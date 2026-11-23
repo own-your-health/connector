@@ -57,6 +57,17 @@ export class FakeGoogle {
     }
   }
 
+  private md5s = new Map<string, { key: string; md5: string }>();
+  /** A file's MD5, worked out again only when its size or time changes. */
+  private md5Of(path: string, s: { size: number; mtimeMs: number }): string {
+    const key = `${s.size}:${s.mtimeMs}`;
+    const held = this.md5s.get(path);
+    if (held?.key === key) return held.md5;
+    const md5 = createHash('md5').update(readFileSync(path)).digest('hex');
+    this.md5s.set(path, { key, md5 });
+    return md5;
+  }
+
   private meta(n: Node) {
     const s = statSync(n.path);
     return {
@@ -64,7 +75,7 @@ export class FakeGoogle {
       name: n.name,
       mimeType: n.folder ? 'application/vnd.google-apps.folder' : 'application/octet-stream',
       modifiedTime: s.mtime.toISOString(),
-      ...(n.folder ? {} : { size: String(s.size) }),
+      ...(n.folder ? {} : { size: String(s.size), md5Checksum: this.md5Of(n.path, s) }),
       parents: [n.parent],
       capabilities: { canEdit: false, canDelete: false, canAddChildren: false },
     };
@@ -136,14 +147,75 @@ export class FakeGoogle {
     if (rest === '' || rest === '/') {
       const q = url.searchParams.get('q') ?? '';
       const m = /^'([^']+)' in parents and trashed = false$/.exec(q);
-      if (!m) return Response.json({ error: { code: 400, message: 'unsupported query', errors: [{ reason: 'invalid' }] } }, { status: 400 });
-      const files = [...this.nodes.values()].filter((n) => n.parent === m[1]).map((n) => this.meta(n));
-      return Response.json({ files });
+      if (m) return Response.json({ files: [...this.nodes.values()].filter((n) => n.parent === m[1]).map((n) => this.meta(n)) });
+      // Any and/or of `'<id>' in parents`, `name = '<name>'` and `trashed = false`, as DriveSource.survey asks.
+      const test = parseQuery(q);
+      if (!test) return Response.json({ error: { code: 400, message: 'unsupported query', errors: [{ reason: 'invalid' }] } }, { status: 400 });
+      return Response.json({ files: [...this.nodes.values()].filter(test).map((n) => this.meta(n)) });
     }
     const id = decodeURIComponent(rest.slice(1));
     const n = this.nodes.get(id);
     if (!n) return Response.json({ error: { code: 404, message: `File not found: ${id}.`, errors: [{ reason: 'notFound' }] } }, { status: 404 });
-    if (url.searchParams.get('alt') === 'media') return new Response(readFileSync(n.path));
+    if (url.searchParams.get('alt') === 'media') {
+      const body = readFileSync(n.path);
+      const r = /^bytes=(\d+)-(\d+)$/.exec(req.headers.get('range') ?? '');
+      if (r) return new Response(body.subarray(Number(r[1]), Number(r[2]) + 1), { status: 206 });
+      return new Response(body);
+    }
     return Response.json(this.meta(n));
   }
+}
+
+/** Drive's query language, the slice of it the connector writes; null for anything else. */
+function parseQuery(q: string): ((n: Node) => boolean) | null {
+  const tokens = q.match(/'(?:[^'\\]|\\.)*'|\(|\)|[^\s()']+/g) ?? [];
+  let i = 0;
+  const str = (t: string) => t.slice(1, -1).replace(/\\(.)/g, '$1');
+  type Test = (n: Node) => boolean;
+  const atom = (): Test | null => {
+    const t = tokens[i++];
+    if (t === '(') {
+      const e = or();
+      return tokens[i++] === ')' ? e : null;
+    }
+    if (t?.startsWith("'") && tokens[i] === 'in' && tokens[i + 1] === 'parents') {
+      i += 2;
+      const id = str(t);
+      return (n) => n.parent === id;
+    }
+    if (t === 'name' && tokens[i] === '=' && tokens[i + 1]?.startsWith("'")) {
+      const name = str(tokens[i + 1]!);
+      i += 2;
+      return (n) => n.name === name;
+    }
+    if (t === 'trashed' && tokens[i] === '=' && tokens[i + 1] === 'false') {
+      i += 2;
+      return () => true;
+    }
+    return null;
+  };
+  const and = (): Test | null => {
+    let a = atom();
+    while (a && tokens[i] === 'and') {
+      i++;
+      const b = atom();
+      if (!b) return null;
+      const x = a;
+      a = (n) => x(n) && b(n);
+    }
+    return a;
+  };
+  const or = (): Test | null => {
+    let a = and();
+    while (a && tokens[i] === 'or') {
+      i++;
+      const b = and();
+      if (!b) return null;
+      const x = a;
+      a = (n) => x(n) || b(n);
+    }
+    return a;
+  };
+  const e = or();
+  return e && i === tokens.length ? e : null;
 }

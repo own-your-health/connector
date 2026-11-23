@@ -25,8 +25,8 @@ Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
 - **Read-only.** The Worker asks Google for `drive.file` (or, if you choose,
   `drive.readonly`), and its code has no path that writes.
-- **Nothing stored.** Each call lists the records folder with the caller's own
-  Google token and reads what it needs. Parsed files are kept only in the
+- **Nothing stored.** Each call looks up the records folder's files with the
+  caller's own Google token and reads what it needs. Parsed files are kept only in the
   isolate's memory, and only while their version in Drive is unchanged. Nothing
   goes to KV, D1, R2 or the cache API, and request logs are off
   (`observability` in `wrangler.jsonc`).
@@ -53,25 +53,70 @@ sees what the tools return, as with any connector.
 
 ## Costs
 
-Run it on **Workers Paid ($5 a month)**. The Free plan allows 10 ms of CPU a
-request, and a folder of a few years' records needs more on the first call after a quiet
-spell:
+Nothing. It runs on Cloudflare's **Workers Free** plan, which gives a request
+10 ms of CPU and 50 subrequests, and allows 100,000 requests a day. A
+request over a Free plan limit fails; nothing is ever charged.
 
-| Call, over a synthetic folder of 5.5 MB of index and 6.5 MB of text | CPU, warm | CPU, cold |
-|---|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 6.5 ms | — |
-| `medrec_summary` of one person | 16 ms | 32 ms |
-| `medrec_search` | 16 ms | 134 ms |
-| `medrec_records` results, 200 | 11 ms | — |
-| `medrec_records` timeline | 12 ms | — |
-| `medrec_document`, 16,000 characters | 12 ms | — |
+A call fits because it reads **views** in the records folder: the same
+records cut into small files, each in the order a tool lists them
+([docs/views.md](docs/views.md)). A call reads only the few kilobytes its
+answer needs, instead of parsing each person's megabytes of `index.json` and
+`text.json`.
 
-Measured with `npm run bench` (workerd under `wrangler dev` on an Apple
-silicon Mac, mean of 40 calls, 2026-11-23); runs differ by about 5 ms. The
-local KV and D1 simulators add CPU that production does not spend. A call is
-cold on a fresh isolate or after a file changed. Workers
-Paid allows 30 s and includes far more requests than one household makes.
+- **medrec 0.8.0 and later** write the views in the same pass as the records.
+- **An earlier medrec** writes none. `npm run views -- <folder>` writes them
+  into the folder on disk (for example through Google Drive for desktop), and
+  has to run again after each refresh.
+- **A person with 300,000 bytes or less** of those files is answered from
+  their files, views or not. Anyone larger needs current views. Without them,
+  the tool says why it cannot answer (below), never answering from records
+  that have since changed.
+
+| Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text | CPU, cold, least | CPU, cold, median | Requests to Google |
+|---|---:|---:|---:|
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.3 ms | 0 |
+| `medrec_summary` of one person | 1.9 ms | 2.4 ms | 10 |
+| `medrec_search`, one word | 3.1 ms | 6.0 ms | 33 |
+| `medrec_search`, one word, 100 hits | 4.7 ms | 8.5 ms | 33 |
+| `medrec_search`, three words | 4.1 ms | 6.9 ms | 37 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 4.6 ms | 9.6 ms | 24 |
+| `medrec_records` results, 200 | 2.9 ms | 3.5 ms | 11 |
+| `medrec_records` timeline | 1.4 ms | 1.9 ms | 7 |
+| `medrec_document`, a page | 2.7 ms | 3.8 ms | 8 |
+| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
+
+Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-23, Apple
+silicon, 20 calls each). The Worker answered in Node, through its own OAuth
+check, MCP framing, Drive client and views, with Node's own `fetch` work
+counted. Google was a local fake on another thread, whose work is not
+counted. A cold call is the first on a fresh isolate, which downloads and
+parses every file it needs. The machine was busy (load 14): the scale row
+takes about 2.2 ms on a quiet one, and the medians spread with the load.
 Cloudflare's dashboard shows the deployed Worker's own CPU times.
+
+At the limits:
+
+- **More than 48 requests to Google.** The tool answers that the question
+  needs more of the records than one request may read, and asks for one
+  person, fewer dates or fewer words.
+- **Views older than the records.** For a person with 300,000 bytes or less,
+  the connector reads their files whole. For anyone larger, the tool says
+  that person's records changed after medrec last prepared them, and that
+  medrec's next pass will. A question about another person by name still
+  answers, and so does `medrec_document`. A search or list across everyone
+  waits until that person's views are current.
+- **The people list meanwhile.** `medrec_summary` lists everyone. A large
+  person whose views are stale appears with the counts and dates of their
+  last prepared views, so one pending refresh does not fail every summary.
+- **Views still arriving.** Drive may hold some of a new pass's views before
+  the rest. A call that would read one of them says the records are being
+  prepared and to ask again in a minute. It never mixes two passes.
+- **Views from a newer medrec.** A layout this connector does not know reads
+  like no views, and a large person's calls say the connector needs updating
+  ([Updating](#updating)).
+- **Over 10 ms of CPU.** Cloudflare ends the request, and the assistant
+  reports a failed call. Asking again usually succeeds, as warm calls parse
+  nothing.
 
 ## Set it up
 
@@ -80,15 +125,15 @@ your medrec signs in with, and Node 22.18 or newer.
 
 ### 1. Cloudflare
 
-1. Create a Cloudflare account for the connector. A separate one keeps its
-   usage apart from anything else you run.
+1. Create a Cloudflare account for the connector, on the Free plan. A
+   separate one keeps its usage apart from anything else you run.
 2. Open **Workers & Pages** once, so the account gets its `workers.dev`
    subdomain. Note the account id in the right-hand column.
-3. Subscribe the account to **Workers Paid** (see [Costs](#costs)).
-4. Create an account API token: **Manage Account > Account API Tokens >
+3. Create an account API token: **Manage Account > Account API Tokens >
    Create Token**, with **Workers Scripts: Edit**, **Workers KV Storage:
    Edit** and **D1: Edit**, for this account only. The first deploy creates
-   the connector's KV namespace and D1 database itself.
+   the connector's KV namespace and D1 database itself. Note the expiry date
+   you give it (see [Renewing the deploy token](#renewing-the-deploy-token)).
 
 ### 2. GitHub
 
@@ -98,7 +143,7 @@ your medrec signs in with, and Node 22.18 or newer.
    **Deployment branches and tags**, choose **Selected branches** and add
    `main`.
 3. In that environment, add two **environment secrets**:
-   `CLOUDFLARE_API_TOKEN` (the token from step 1.4) and
+   `CLOUDFLARE_API_TOKEN` (the token from step 1.3) and
    `CLOUDFLARE_ACCOUNT_ID`. Paste the token straight from Cloudflare's page.
    Nothing else goes into GitHub.
 
@@ -118,6 +163,11 @@ medrec's**. Under `drive.file`, the clients of one project share access to
 the files any of them made. So the connector can read the records folder
 medrec made, and nothing else in the account
 ([pk-cli-drive's test](https://github.com/piekstra/cli-common/blob/main/crates/pk-cli-drive/docs/google-drive.md#scope-drivefile-or-full-drive)).
+
+That access belongs to the Google account medrec signs in with, which owns
+the folder. So an assistant is connected by signing in with **that**
+account. Another account on `allowed_accounts` can sign in, but cannot open
+the folder.
 
 1. In the Cloud console, **Google Auth Platform > Clients > Create client**,
    type **Web application**.
@@ -148,14 +198,20 @@ argument. It sets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
 `FOLDER_ID` is the records folder's Drive id: the part after `/folders/` in
 its link, in the folder holding `household.json`.
 
+The scripts run wrangler on the account `account_id` names, and no other.
+To keep this account's wrangler sign-in apart from one you use elsewhere,
+set `wrangler_config` to a directory of its own (for example
+`~/.config/records-connector/wrangler`). Wrangler then keeps the sign-in
+there, and `npx wrangler login` with `XDG_CONFIG_HOME` set to it signs in.
+
 ### 5. Connect an assistant
 
 The connector's address is `https://records-connector.<subdomain>.workers.dev/mcp`.
 
 - **Claude** (web, desktop, phone): **Settings > Connectors > Add custom
-  connector**, paste the address, then **Connect**. Sign in with an admitted
-  Google account. A connector added on the web also appears in the phone and
-  desktop apps.
+  connector**, paste the address, then **Connect**. Sign in with the Google
+  account that owns the records folder (step 3). A connector added on the
+  web also appears in the phone and desktop apps.
 - **Claude Code**: `claude mcp add --transport http records <address>`.
 - **ChatGPT**: add `chatgpt` to `assistants`, run `npm run setup --
   --settings-only`, then add the address as a connector on chatgpt.com.
@@ -176,6 +232,22 @@ The connector's address is `https://records-connector.<subdomain>.workers.dev/mc
 | Perplexity | `perplexity` | `https://www.perplexity.ai/rest/connections/oauth_callback` | not yet |
 
 `EXTRA_REDIRECT_URIS` (comma-separated, matched exactly) allows any other.
+
+## Updating
+
+A fork updates from this repository: on GitHub, **Sync fork** on your
+fork's main page, or `git pull` from this repository and push to your
+`main`. Each push to `main` deploys. Settings and connections stay as they
+are. A release's notes say when it reads a newer medrec's views.
+
+## Renewing the deploy token
+
+An account API token can carry an expiry. Once it passes, the deploy job
+fails at `wrangler deploy` with an authentication error. The Worker keeps
+serving, and nothing changes until the next deploy. To renew it, create a
+token as in step 1.3, then replace `CLOUDFLARE_API_TOKEN` in the
+`production` environment, pasting it straight from Cloudflare's page. Delete
+the old token in Cloudflare.
 
 ## Revoking, and seeing who used it
 
@@ -203,9 +275,15 @@ npm ci
 npm test            # parity with medrec, the Worker end to end, the pieces
 npm run verify      # what CI runs: types, tests, pinned copies, no personal data, bundle
 npm run golden      # re-record medrec's answers (needs `medrec` on PATH)
-npm run bench       # CPU per call in workerd, over a large synthetic folder
+npm run bench:cpu   # CPU per call in Node: bench/views.cpu.ts (views), parts.cpu.ts (files read whole), request.cpu.ts
+npm run bench       # CPU per call in workerd under wrangler dev (its local KV and D1 add CPU)
+npm run views -- <folder>   # write the reference views into a records folder on disk (--help)
 npm run dev         # the Worker on 127.0.0.1:8787
 ```
+
+The views a tool reads are in `src/views` (the reference writer, and the
+store that reads them); docs/views.md is their layout, for medrec's writer.
+The goldens run twice, over the files and over the views.
 
 Every record in the tests is invented. `test/fixtures/records` is the web
 app's demo folder; `scripts/synth.mjs` grows it to a large family's size.

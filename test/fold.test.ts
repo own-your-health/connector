@@ -3,7 +3,7 @@
 // characters where a faster version could go wrong.
 
 import { describe, expect, it } from 'vitest';
-import { foldCharForTests as foldChar, fold, rawOffset, utf8Length } from '../src/records/text';
+import { foldCharForTests as foldChar, fold, rawOffset, utf8Length, wordStarts } from '../src/records/text';
 
 const ALNUM = /[\p{Alphabetic}\p{N}]/u;
 const isAlnum = (c: string) => (c < '\u0080' ? /^[A-Za-z0-9]$/.test(c) : ALNUM.test(c));
@@ -52,6 +52,16 @@ describe('fold', () => {
       const s = text(1 + Math.floor(rand() * 30));
       const { folded, map } = reference(s);
       for (let k = 1; k < folded.length; k++) expect(rawOffset(s, k), `${JSON.stringify(s)} @${k}`).toBe(map[k]);
+    }
+  });
+
+  it("gives every folded word's start as rawOffset does", () => {
+    for (let i = 0; i < 2000; i++) {
+      const s = text(1 + Math.floor(rand() * 40));
+      const squashed = ` ${fold(s)} `;
+      const want: number[] = [];
+      if (fold(s) !== '') for (let k = 1; k < squashed.length; k++) if (squashed[k - 1] === ' ' && squashed[k] !== ' ') want.push(rawOffset(s, k));
+      expect(wordStarts(s), JSON.stringify(s)).toEqual(want);
     }
   });
 });

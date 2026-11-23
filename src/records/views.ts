@@ -4,12 +4,14 @@
 // parsed files are shared with later calls through the isolate's cache.
 
 import { ToolError } from '../mcp/errors';
-import type { Folder } from './folder';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
 
 /** Longest name or detail a summary line carries, in characters. */
 export const CLIP = 200;
+
+/** Lines in each of medrec_summary's sections. */
+export const SUMMARY_LINES = 25;
 
 export const DOC_TYPES: [code: string, label: string][] = [
   ['visit_summary', 'Visit summary'],
@@ -314,7 +316,7 @@ export interface PersonRow {
   last_import?: string;
 }
 
-function personRow(p: Person, idx: PersonIndex, notes: number): PersonRow {
+export function personRow(p: Person, idx: PersonIndex, notes: number): PersonRow {
   let newest: string | undefined;
   const dates = [...(idx.documents ?? []).map((d) => d.date), ...(idx.records ?? []).map((r) => r.date), ...(idx.studies ?? []).map((s) => s.date)];
   for (const d of dates) {
@@ -335,10 +337,6 @@ function personRow(p: Person, idx: PersonIndex, notes: number): PersonRow {
     ...(newest !== undefined ? { newest } : {}),
     ...(lastImport !== undefined ? { last_import: lastImport } : {}),
   };
-}
-
-export async function people(f: Folder, h: Household): Promise<PersonRow[]> {
-  return Promise.all(h.people.map(async (p) => personRow(p, await f.index(p), (await f.notes(p)).length)));
 }
 
 export interface SummaryLine {
@@ -523,9 +521,7 @@ export interface Summary {
   bills: Listed<Bill>;
 }
 
-export async function summary(f: Folder, h: Household, p: Person, today: string, perList: number): Promise<Summary> {
-  const idx = await f.index(p);
-  const notes = (await f.notes(p)).length;
+export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number): Summary {
   const records = newestFirst(idx.records ?? []);
   const counts = new Map<string, number>();
   const sources = new Map<string, SourceRow>();
@@ -584,10 +580,10 @@ export interface Event {
   source?: string;
 }
 
-export async function timeline(f: Folder, h: Household, person: string | undefined, range: Range): Promise<Event[]> {
+/** A person's documents, records, studies and notes in the range, as timeline events, in the order the files hold them. */
+export function timelineEvents(h: Household, p: Person, idx: PersonIndex, notes: Note[], range: Range): Event[] {
   const out: Event[] = [];
-  for (const p of selected(h, person)) {
-    const idx = await f.index(p);
+  {
     for (const d of idx.documents ?? []) {
       if (!holds(range, d.date)) continue;
       out.push({
@@ -618,7 +614,7 @@ export async function timeline(f: Folder, h: Household, person: string | undefin
         source: s.facility ?? undefined,
       });
     }
-    for (const n of await f.notes(p)) {
+    for (const n of notes) {
       if (!holds(range, n.date)) continue;
       out.push({
         date: n.date,
@@ -632,7 +628,7 @@ export async function timeline(f: Folder, h: Household, person: string | undefin
       });
     }
   }
-  return out.sort(byDateDesc((e) => e.date, (a, b) => cmpStr(a.kind, b.kind) || cmpStr(a.title, b.title)));
+  return out;
 }
 
 // ---- notes ---------------------------------------------------------------------------------------
@@ -642,13 +638,6 @@ export interface NoteRow {
   note: Note;
 }
 
-export async function notes(f: Folder, h: Household, person: string | undefined, range: Range): Promise<NoteRow[]> {
-  const out: NoteRow[] = [];
-  for (const p of selected(h, person)) {
-    for (const n of await f.notes(p)) if (holds(range, n.date)) out.push({ person_name: p.name, note: n });
-  }
-  return out.sort((a, b) => cmpStr(b.note.date, a.note.date));
-}
 
 // ---- search --------------------------------------------------------------------------------------
 
@@ -663,7 +652,7 @@ export interface Hit {
 }
 
 /** One searchable item of a person's: what a hit shows, and its text folded once. */
-interface Searchable {
+export interface Searchable {
   kind: string;
   id: string;
   date?: string;
@@ -676,7 +665,7 @@ interface Searchable {
   lab?: (idx: PersonIndex) => string;
 }
 
-function searchables(idx: PersonIndex, texts: Record<string, string>, notes: Note[]): Searchable[] {
+export function searchables(idx: PersonIndex, texts: Record<string, string>, notes: Note[]): Searchable[] {
   const out: Searchable[] = [];
   const add = (kind: string, id: string, date: string | null | undefined, title: string, hay: Searchable['hay'], lab?: Searchable['lab']) => {
     out.push({ kind, id, date: date ?? undefined, title, folded: ` ${fold(hay(idx, texts, notes))} `, hay, ...(lab ? { lab } : {}) });
@@ -730,42 +719,6 @@ export function score(folded: string, terms: string[]): { score: number; first: 
   return { score: n, first };
 }
 
-/**
- * Every item whose text holds all the query's words (case, accents and
- * punctuation ignored), best first. Each person's items are folded once per
- * version of their files and kept in the isolate's cache; snippets are made
- * only for the hits returned.
- */
-export async function search(f: Folder, h: Household, person: string | undefined, query: string, range: Range, limit: number): Promise<Hit[]> {
-  const terms = fold(query)
-    .split(' ')
-    .filter((t) => t !== '');
-  if (terms.length === 0) throw ToolError.usage('search needs at least one word');
-  const labs = LAB_QUERIES.includes(terms.join(' '));
-  const found: { p: Person; item: Searchable; score: number; first: number }[] = [];
-  for (const p of selected(h, person)) {
-    const items = await f.derived(`search:${p.id}`, f.personFiles(p), async () => {
-      const list = searchables(await f.index(p), (await f.text(p)).texts ?? {}, await f.notes(p));
-      return { value: list, size: list.reduce((n, x) => n + x.folded.length, 0) };
-    });
-    for (const item of items) {
-      if (!holds(range, item.date)) continue;
-      // A lab query finds every lab record by its kind, after the items whose text holds it.
-      const m = score(item.folded, terms) ?? (labs && item.lab ? { score: 0, first: -1 } : null);
-      if (m) found.push({ p, item, ...m });
-    }
-  }
-  found.sort((a, b) => b.score - a.score || cmpOpt(b.item.date, a.item.date));
-  const kept = found.slice(0, Math.max(1, limit));
-  const hits: Hit[] = [];
-  for (const k of kept) {
-    const idx = await f.index(k.p);
-    const snippet = k.first === -1 ? k.item.lab!(idx) : snippetAt(k.item.hay(idx, (await f.text(k.p)).texts ?? {}, await f.notes(k.p)), k.first);
-    hits.push({ person_name: k.p.name, kind: k.item.kind, id: k.item.id, date: k.item.date, title: k.item.title, snippet, score: k.score });
-  }
-  return hits;
-}
-
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -779,31 +732,36 @@ export function matches(hay: string, terms: string[]): { score: number; snippet:
 }
 
 /** medrec's snippet: 60 bytes before the match to 100 after, whitespace collapsed, `…` where cut. */
-function snippetAt(hay: string, first: number): string {
+export function snippetAt(hay: string, first: number): string {
   // The folded text maps to the original in order, so the earliest match there is the earliest here.
-  const at = rawOffset(hay, first + 1);
   const bytes = encoder.encode(hay);
+  return snippetIn(bytes, 0, bytes.length, rawOffset(hay, first + 1));
+}
+
+/** The bytes of a hay a snippet at `at` reads: a little either side, for the character starts. */
+export function snippetWindow(hayBytes: number, at: number): [start: number, end: number] {
+  return [Math.max(0, at - 64), Math.min(hayBytes, at + 101)];
+}
+
+/**
+ * The snippet at byte `at` of a hay of `hayBytes` bytes, from `window`: the
+ * hay's bytes from `windowStart` on, covering at least `snippetWindow`.
+ */
+export function snippetIn(window: Uint8Array, windowStart: number, hayBytes: number, at: number): string {
+  const byte = (i: number) => window[i - windowStart]!;
   const floor = (i: number) => {
-    let j = Math.min(i, bytes.length);
+    let j = Math.min(i, hayBytes);
     // Back to the start of a character: never inside a UTF-8 sequence.
-    while (j > 0 && j < bytes.length && (bytes[j]! & 0xc0) === 0x80) j--;
+    while (j > 0 && j < hayBytes && (byte(j) & 0xc0) === 0x80) j--;
     return j;
   };
   const start = floor(Math.max(0, at - 60));
   const end = floor(at + 100);
-  let snippet = collapse(decoder.decode(bytes.subarray(start, end)));
+  let snippet = collapse(decoder.decode(window.subarray(start - windowStart, end - windowStart)));
   if (start > 0) snippet = `…${snippet}`;
-  if (end < bytes.length) snippet += '…';
+  if (end < hayBytes) snippet += '…';
   return snippet;
 }
 
 // ---- documents -----------------------------------------------------------------------------------
 
-/** A document by id, with whose it is, looking through every person in order. */
-export async function findDocument(f: Folder, h: Household, id: string): Promise<[Person, DocumentEntry]> {
-  for (const p of h.people) {
-    const d = ((await f.index(p)).documents ?? []).find((x) => x.id === id);
-    if (d) return [p, d];
-  }
-  throw ToolError.notFound(`no document \`${id}\`; \`medrec documents list\` shows them`);
-}

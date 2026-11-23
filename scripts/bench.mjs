@@ -8,13 +8,14 @@
 // It runs the connector (bench/worker.ts) under `wrangler dev`, with Google
 // answered by test/fake-google.ts on 127.0.0.1:8790, connects through the
 // real OAuth flow, then samples the workerd processes' CPU time (ps, 10 ms
-// resolution) around N calls of each kind. "Cold" calls touch the folder's
-// files first, so every one downloads and parses them again, as the first
-// call after a change or on a fresh isolate does.
+// resolution) around N calls of each kind. The folder has views
+// (docs/views.md), written by scripts/views.mjs. "Cold" calls touch every
+// file first, so each call downloads and parses what it reads again, as the
+// first call on a fresh isolate does.
 
 import { execFileSync, spawn } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdtempSync, rmSync, utimesSync } from 'node:fs';
+import { mkdtempSync, readdirSync, rmSync, utimesSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -29,6 +30,7 @@ const CB = 'http://127.0.0.1:9999/cb';
 
 const scratch = mkdtempSync(join(tmpdir(), 'oyh-bench-'));
 const folder = synth(join(scratch, 'records'));
+execFileSync(process.execPath, [join(ROOT, 'scripts/views.mjs'), folder], { stdio: 'ignore' });
 const g = new FakeGoogle(folder);
 
 const fake = createServer(async (req, res) => {
@@ -131,10 +133,11 @@ async function rpc(method, params) {
 const call = (name, args) => rpc('tools/call', { name, arguments: args });
 
 const people = Object.keys(TARGETS);
+const files = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]));
+const every = files(folder);
 function touch() {
   const now = new Date(Date.now() + Math.floor(Math.random() * 1e6));
-  for (const p of people) for (const f of ['index.json', 'text.json', 'notes.md']) utimesSync(join(folder, p, f), now, now);
-  utimesSync(join(folder, 'household.json'), now, now);
+  for (const f of every) utimesSync(f, now, now);
 }
 
 async function measure(label, f, cold = false) {

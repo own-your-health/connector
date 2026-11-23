@@ -17,6 +17,7 @@ import type { OAuthHelpers, TokenExchangeCallbackOptions } from '@cloudflare/wor
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import type { jsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/types.js';
 import { audit, pruneAudit } from './audit';
 import { describeAllowed, redirectOwner } from './auth/assistants';
 import { type DriveScope, DRIVE_SCOPES, GoogleError, authorizeUrl, exchangeCode, randomToken, refreshAccess, type GoogleClient } from './auth/google';
@@ -24,6 +25,7 @@ import { ToolError } from './mcp/errors';
 import { consentPage, messagePage, pageCsp } from './pages';
 import { DriveSource } from './records/drive-source';
 import { Folder, ParsedCache } from './records/folder';
+import { ViewsStore } from './views/store';
 import { SERVER, TOOLS, callTool, instructions, unknownTool } from './records/tools';
 import { VERSION } from './version';
 
@@ -98,9 +100,19 @@ function google(env: Env, origin: string): GoogleClient {
   return { clientId: env.GOOGLE_CLIENT_ID.trim(), clientSecret: env.GOOGLE_CLIENT_SECRET.trim(), redirectUri: `${origin}${CALLBACK}`, scope: driveScope(env) };
 }
 
+/** A formatter per time zone: building one costs more than a call's own work. */
+const DAY_FORMATS = new Map<string, Intl.DateTimeFormat>();
+
 /** The household's date, `YYYY-MM-DD`. */
 export function today(env: Pick<Env, 'TIME_ZONE'>, now = new Date()): string {
-  const fmt = (timeZone: string) => new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  const fmt = (timeZone: string) => {
+    let f = DAY_FORMATS.get(timeZone);
+    if (!f) {
+      f = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' });
+      DAY_FORMATS.set(timeZone, f);
+    }
+    return f.format(now);
+  };
   try {
     return fmt(env.TIME_ZONE?.trim() || 'UTC');
   } catch {
@@ -110,6 +122,11 @@ export function today(env: Pick<Env, 'TIME_ZONE'>, now = new Date()): string {
 
 /** Parsed files, shared by every call this isolate serves (src/records/folder.ts). */
 const CACHE = new ParsedCache();
+
+/** Empties the parsed files, as a fresh isolate has them: for the CPU bench. */
+export function clearCacheForTests(): void {
+  CACHE.clear();
+}
 
 // ---- /mcp ----------------------------------------------------------------------------------------
 
@@ -126,8 +143,19 @@ function challenge(origin: string, description: string): Response {
   );
 }
 
+/**
+ * The SDK builds an Ajv validator for every Server, to check what a user
+ * answers when a server elicits; this connector never asks, so it builds none.
+ */
+const NO_ELICITATION: jsonSchemaValidator = {
+  getValidator: () => () => ({ valid: false, data: undefined, errorMessage: 'this connector asks the user nothing' }),
+};
+
 function mcpServer(env: Env, props: TokenProps, ctx: ExecutionContext): Server {
-  const server = new Server({ name: 'own-your-health-connector', title: 'Medical records', version: VERSION }, { capabilities: { tools: {} }, instructions: instructions() });
+  const server = new Server(
+    { name: 'own-your-health-connector', title: 'Medical records', version: VERSION },
+    { capabilities: { tools: {} }, instructions: instructions(), jsonSchemaValidator: NO_ELICITATION },
+  );
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS as never }));
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const name = request.params.name;
@@ -140,7 +168,7 @@ function mcpServer(env: Env, props: TokenProps, ctx: ExecutionContext): Server {
     } else {
       const folder = new Folder(new DriveSource(props.at, env.FOLDER_ID.trim()), CACHE, env.FOLDER_ID.trim());
       try {
-        result = (await callTool(name, request.params.arguments, { folder, today: today(env) }))!;
+        result = (await callTool(name, request.params.arguments, { store: new ViewsStore(folder), today: today(env) }))!;
       } catch (e) {
         // A bug, not the caller's doing. Only the error's class is told or logged: a message could quote a record.
         const kind = e instanceof Error ? e.name : typeof e;
