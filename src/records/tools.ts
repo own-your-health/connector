@@ -5,6 +5,7 @@
 import spec from '../../spec/medrec-tools.json';
 import { ToolError, type ServerInfo } from '../mcp/errors';
 import { HARD_LIMIT, PageRequest, chars, type ListArgs } from '../mcp/shape';
+import { LeftOut, type Warning } from './partial';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Store } from './store';
 import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
@@ -357,19 +358,35 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
   const { terms } = searchTerms(query);
   if (terms.length === 0) throw ToolError.usage('search needs at least one word');
   const chosen = selected(h, person);
-  const hits = await searchHousehold(ctx.store, h, chosen, terms, r, page.wanted());
-  // Snippets only for the hits this page shows; the rest only tell the page where it stands.
-  const shown = hits.slice(page.offset, page.offset + page.limit);
-  await ctx.store.prepare?.(shown.map((x) => x.c));
+  const left = new LeftOut(person === undefined);
+  let asked = chosen;
+  let hits;
+  let shown;
+  for (;;) {
+    hits = await searchHousehold(ctx.store, h, asked, terms, r, page.wanted(), left.of);
+    // Snippets only for the hits this page shows; the rest only tell the page where it stands.
+    shown = hits.slice(page.offset, page.offset + page.limit);
+    try {
+      await ctx.store.prepare?.(shown.map((x) => x.c));
+      break;
+    } catch (e) {
+      // A person whose snippets cannot be read after all is left out like anyone else: rank again without them.
+      if (!left.take(e, asked)) throw e;
+      const gone = new Set(left.ids());
+      asked = asked.filter((p) => !gone.has(p.id));
+    }
+  }
+  const warnings = left.done(chosen);
   const items: Record<string, unknown>[] = hits.map(() => ({}));
   for (const [i, { p, c }] of shown.entries()) {
     items[page.offset + i] = ordered({ person: p.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet() }, ['person', 'kind', 'id', 'date', 'title', 'snippet']);
   }
-  return pageJson(page.page(items, 'person, since/until, or more words'));
+  return pageJson(page.page(items, 'person, since/until, or more words', left.ids()), warnings);
 }
 
-function pageJson<T>(p: { items: T[]; returned: number; next_cursor?: string; truncated?: boolean; hint?: string }): Record<string, unknown> {
-  return ordered(p as unknown as Record<string, unknown>, ['items', 'returned', 'next_cursor', 'truncated', 'hint']);
+/** A page as medrec gives it, with its warnings last when there are any (pk-cli-mcp `PageInfo`). */
+function pageJson<T>(p: { items: T[]; returned: number; next_cursor?: string; truncated?: boolean; hint?: string }, warnings: Warning[] = []): Record<string, unknown> {
+  return ordered({ ...p, ...(warnings.length > 0 ? { warnings } : {}) } as unknown as Record<string, unknown>, ['items', 'returned', 'next_cursor', 'truncated', 'hint', 'warnings']);
 }
 
 // ---- medrec_records ------------------------------------------------------------------------------
@@ -451,18 +468,21 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const items: Item[] = [];
   const recordKind = KINDS[kind];
   const filter = { range: r, active, name };
+  const left = new LeftOut(person === undefined);
+  const hint = 'person, since/until, active or name';
   if (kind === 'tests') {
     for (const p of chosen) {
-      for (const row of await ctx.store.tests(h, p, filter)) {
+      for (const row of await left.of(p, () => ctx.store.tests(h, p, filter), [])) {
         items.push({ kind: 'result', person: p.name, date: row.date, title: row.test, source: row.source, id: '', code: row.code, value: row.value, unit: row.unit, range: row.range, flag: row.flag, results: row.results });
       }
     }
   } else if (recordKind) {
     // Each person's records come in the tool's order: merge them, reading only what the page needs.
     const order = recordOrder(detailed);
-    const tagged = chosen.map((p) => tag(p, ctx.store.records(h, p, recordKind, filter, detailed)));
+    const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.records(h, p, recordKind, filter, detailed))));
     const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted());
-    return pageJson(page.page(top.map(({ p, x }) => item(recordItem(h, p.name, x, detailed))), 'person, since/until, active or name'));
+    const warnings = left.done(chosen);
+    return pageJson(page.page(top.map(({ p, x }) => item(recordItem(h, p.name, x, detailed))), hint, left.ids()), warnings);
   } else if (kind === 'notes') {
     const rows: { person_name: string; note: Note }[] = [];
     for (const p of chosen) for (const n of await ctx.store.notes(h, p)) if (holdsRange(r, n.date)) rows.push({ person_name: p.name, note: n });
@@ -473,14 +493,15 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       items.push({ kind: 'note', person: n.person_name, date: n.note.date, title: firstLine(text, 120), detail: clip(text, NOTE_CLIP), source: n.note.author, id: n.note.id });
     }
   } else if (kind === 'timeline') {
-    const tagged = chosen.map((p) => tag(p, ctx.store.timeline(h, p, r)));
+    const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.timeline(h, p, r))));
     const top = await takeMerged(tagged, (a, b) => eventOrder(a.x, b.x), page.wanted(), ({ x }) => named(x.title));
+    const warnings = left.done(chosen);
     const events = top.map(({ x: e }) => item({ kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
-    return pageJson(page.page(events, 'person, since/until, active or name'));
+    return pageJson(page.page(events, hint, left.ids()), warnings);
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
-      for (const d of await ctx.store.documents(h, p)) {
+      for (const d of await left.of(p, () => ctx.store.documents(h, p), [])) {
         const isBill = d.doc_type === 'bill';
         if ((bills && (!isBill || (d.same_statement_as !== null && d.same_statement_as !== undefined))) || (docType !== undefined && d.doc_type !== docType) || !holdsRange(r, d.date)) continue;
         const title = d.title ?? d.original_name ?? label(d.doc_type);
@@ -490,7 +511,8 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     }
   }
   items.sort((x, y) => cmpOptS(y.date, x.date) || cmpS(x.title as string, y.title as string));
-  return pageJson(page.page(items.map(item), 'person, since/until, active or name'));
+  const warnings = left.done(chosen);
+  return pageJson(page.page(items.map(item), hint, left.ids()), warnings);
 }
 
 async function* tag<T>(p: Person, xs: AsyncIterable<T>): AsyncIterable<{ p: Person; x: T }> {

@@ -54,6 +54,14 @@ export interface Candidate {
   snippet(): Promise<string>;
 }
 
+/**
+ * What the tools read. A person-scoped method that cannot read that person's
+ * records right now, while nothing else is wrong (views stale, still
+ * arriving, or in a layout this connector does not know), throws a ToolError
+ * made with `personUnavailable(p.id)`. A question about everyone then
+ * answers without them (partial.ts). Every other failure, a corrupt file, a
+ * Drive sign-in or the request budget, is never so marked, and fails the call.
+ */
 export interface Store {
   household(): Promise<Household>;
   people(h: Household): Promise<PersonRow[]>;
@@ -147,8 +155,10 @@ export async function searchHousehold(
   terms: string[],
   range: Range,
   want: number,
+  /** Asks one person, or leaves them out (partial.ts LeftOut.of); by default the person's error is the answer. */
+  each: <T>(p: Person, f: () => Promise<T>, none: T) => Promise<T> = (_p, f) => f(),
 ): Promise<{ p: Person; c: Candidate }[]> {
-  const found = await Promise.all(people.map((p) => store.search(h, p, terms, range, want)));
+  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want), [])));
   const owner = new Map(found.flatMap((cs, i) => cs.map((c) => [c, people[i]!] as const)));
   return rankHits(found, want).map((c) => ({ p: owner.get(c)!, c }));
 }

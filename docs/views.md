@@ -25,7 +25,9 @@ VIEWS_WRITER='medrec views write --folder {folder}' npx vitest run test/golden.t
 The test copies each folder, runs the command with `{folder}` replaced by the
 copy's path, and then answers every call from what it wrote. The command
 above is an example; use whatever command your writer has.
-`npm run views -- <folder>` writes the reference views into a folder on disk.
+`npm run views -- <folder>` writes the reference views into the folder
+holding `household.json`, replacing views it wrote before. Views medrec wrote
+are replaced only with `--force`.
 
 ## Where they are
 
@@ -43,12 +45,20 @@ views/<person id>/text-<n>.bin
 views/<person id>/search-<hex>.json
 views/<person id>/search-1-<hex>.json
 views/<person id>/search-items.bin
-views/<person id>/search-hay.bin
+views/<person id>/search-hay-<n>.bin
 views/<person id>/search-labs-<n>.json
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
 person's directory is named by their id in `household.json`, not their name.
+
+These are the views' **names**. Each is **stored** under its name with the
+first 12 hex digits of its MD5 before the extension:
+`records-result-7.json` with MD5 `0a1b2c3d4e5f…` is stored as
+`records-result-7.0a1b2c3d4e5f.json`. `views.json` alone keeps its plain
+name. A reader finds a view's stored name from the MD5 that `views.json`
+gives it (`files`, below). So a stored file's content never changes, and a
+reader holding one `views.json` reads that pass's files or finds them gone.
 
 JSON files are compact, UTF-8, without a byte-order mark. Binary integers are
 little-endian unsigned 32-bit. Strings compare as UTF-8 bytes, as Rust's
@@ -64,7 +74,7 @@ MD5 (hex) of each source file, exactly as stored, that the views were made
 from, and of every view it describes:
 
 ```json
-{"schema":"medrec-views/v1","medrec":"0.8.0","household":"<md5>",
+{"schema":"medrec-views/v2","medrec":"0.8.0","household":"<md5>",
  "people":{"p_…":{"index":"<md5>","text":"<md5>", …,
                   "files":{"summary.json":"<md5>","records-result-0.json":"<md5>", …}}}}
 ```
@@ -80,26 +90,37 @@ which one listing of the folder gives.
   after medrec last prepared them, and that the next pass will.
 - **A different `household` MD5 makes every person's views stale.**
 - **A view that is missing, or whose MD5 is not the one `files` gives,**
-  belongs to a pass still arriving. Drive for desktop and other uploaders
-  send files in any order, so a new shard can be there before the new
-  `views.json`, or after it. The connector answers "being prepared right
-  now, ask again in a minute", and never reads two passes together.
+  belongs to a pass still arriving, or to one that replaced it. Uploaders
+  send files in any order. When the new views arrive first, they sit beside
+  the old ones under new names, and the old `views.json` still reads its
+  own. When the new `views.json` arrives first, the views it names are not
+  there yet. The connector then answers "being prepared right now, ask
+  again in a minute". It never reads two passes together.
 - **A person's stale views still give their row** in `medrec_summary`'s
   people list, as last prepared, so one pending refresh does not fail
   everyone's summary.
 
-A writer that replaces views in place keeps each file whole: write to a
-temporary name and rename, or upload a new revision. Remove the files of a
-person who left `household.json`, and files a pass no longer writes.
+A pass writes only the stored names the folder lacks, and never changes a
+stored file. A view that did not change keeps its name, so it is not
+written again. Write `views.json` after the views it names. Then remove the
+stored files it no longer names, and the directories of people who left
+`household.json`. Remove only files with the stored-name shape, so nothing
+else in `views/` is touched.
 
 ### The schema
 
 `schema` names the layout. A change that a reader of the current layout
-would misread takes the next number (`medrec-views/v2`). A field that
+would misread takes the next number (`medrec-views/v3`). A field that
 readers may ignore does not. A reader that meets a later number than it
 knows reads small people's files whole. For anyone larger, it says the
-connector needs updating. A writer moves to a new number only in a release
-whose notes name the connector version that reads it.
+connector needs updating. Meeting an earlier number, it says the writer's
+next pass prepares the current layout. A writer moves to a new number only
+in a release whose notes name the connector version that reads it.
+
+This is `medrec-views/v2`. `v1` was written only by the connector's own
+`npm run views`, before medrec wrote views: plain names, and one
+`search-hay.bin`. A writer that finds a `v1` `views.json` also removes the
+files it names (the keys of each person's `files`).
 
 ## `views.json`, per person
 
@@ -244,14 +265,18 @@ no shard in `files` knows no word matches.
 | Bytes | What |
 |---|---|
 | 4 | `n`, the number of items |
-| 4 × (n + 1) | `text[i]`: item *i*'s text runs from `text[i]` to `text[i + 1]` in `search-hay.bin` |
+| 4 × (n + 1) | `text[i]`: item *i*'s text runs from `text[i]` to `text[i + 1]`, counted over every hay pack in order |
 | 4 × (n + 1) | `meta[i]`: item *i*'s details run from `meta[i]` to `meta[i + 1]` in the region below |
 | the rest | each item's details, `[date or null, kind, id, title]` as JSON, one after another |
 
-### `search-hay.bin`
+### `search-hay-<n>.bin`
 
-Every item's text, UTF-8, in item order, with no separators. A reader fetches
-only the byte ranges its snippets need.
+Every item's text, UTF-8, in item order, with no separators, in packs of 512
+items. Pack *n* holds items 512 × *n* to 512 × *n* + 511, so item *i* is in
+pack ⌊*i* / 512⌋, starting `text[i] − text[512 × n]` bytes into it. A count
+rather than a size keeps a pass's rewrites small: a changed item rewrites
+its own pack, and a new newest item only the last. A reader fetches only
+the byte ranges its snippets need.
 
 ### `search-labs-<n>.json`
 

@@ -3,13 +3,13 @@
     {
       "name": "medrec_summary",
       "title": "Household and person summary",
-      "description": "Lists the household's people, and with person a summary of their records. Use it first. Returns people (name, birth_date, counts) and summary: counts, sources, and sections of current medications, conditions, allergies, immunizations, latest results, recent visits and bills due.",
+      "description": "Lists the household's people, and with person their summary. Use it first. A summary has current medications, conditions, allergies, immunizations, latest results, visits and bills due.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "person": {
             "type": "string",
-            "description": "Whose summary: a name, alias or id. Omit for the people only."
+            "description": "A name, alias or id; omit for the people only."
           }
         }
       },
@@ -176,7 +176,7 @@
     {
       "name": "medrec_search",
       "title": "Search records",
-      "description": "Finds documents, records, studies and notes holding every word of query, best first; labs or blood tests also finds every lab result. Use it when a question names a doctor, test, medicine or clinic. Returns items with person, kind, id, date, title and snippet.",
+      "description": "Finds documents, records, studies and notes with every word of query, best first; labs or blood tests also finds every lab result. Use it for a named doctor, test, medicine or clinic. Filter by person and dates.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -267,6 +267,24 @@
           },
           "hint": {
             "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
           }
         },
         "required": [
@@ -285,7 +303,7 @@
     {
       "name": "medrec_records",
       "title": "List records by kind",
-      "description": "Lists one kind of record, newest first; results with name is one test over time. Use active for current medicines or conditions. Returns items with kind, person, date, title, detail, status, source and id, plus value, unit, range and flag for results, amount_due and due_date for bills, and has_text for documents.",
+      "description": "Lists one kind of record, newest first; results with name is one test over time. Use active for current medicines or conditions. Results carry value, unit, range and flag; bills amount_due and due_date; documents has_text.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -445,6 +463,24 @@
           },
           "hint": {
             "type": "string"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ]
+            }
           }
         },
         "required": [
@@ -463,7 +499,7 @@
     {
       "name": "medrec_document",
       "title": "Read a document's text",
-      "description": "Returns a filed document's extracted text (PDF text or a scan's OCR) with its title, date, type and organization. Use it to read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset back as offset, or page to jump.",
+      "description": "Returns a filed document's extracted text, with its title, date, type and organization. Use it to read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset, or page to jump.",
       "inputSchema": {
         "type": "object",
         "properties": {

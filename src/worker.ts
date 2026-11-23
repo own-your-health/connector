@@ -88,8 +88,11 @@ const accounts = (env: Env) =>
   );
 const admitted = (env: Env, email: string | undefined) => email !== undefined && accounts(env).has(email.toLowerCase());
 
-function missingConfig(env: Env): string[] {
-  return (['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'ALLOWED_ACCOUNTS', 'FOLDER_ID'] as const).filter((k) => !env[k]?.trim());
+/** What signing in needs. A tool call also needs FOLDER_ID, so an assistant can be connected before the folder is known. */
+const SIGN_IN = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'ALLOWED_ACCOUNTS'] as const;
+
+function missingConfig(env: Env, keys: readonly (keyof Env)[] = [...SIGN_IN, 'FOLDER_ID']): string[] {
+  return keys.filter((k) => !String(env[k] ?? '').trim()) as string[];
 }
 
 function driveScope(env: Env): DriveScope {
@@ -222,7 +225,7 @@ const site = {
 };
 
 async function showConsent(request: Request, env: Env): Promise<Response> {
-  const missing = missingConfig(env);
+  const missing = missingConfig(env, SIGN_IN);
   if (missing.length > 0) return messagePage(503, `This connector is not set up yet: ${missing.join(', ')} not set. Its README says how.`);
   const oauth = env.OAUTH_PROVIDER;
   const authRequest = await oauth.parseAuthRequest(request);

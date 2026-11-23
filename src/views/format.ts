@@ -4,6 +4,10 @@
 // person's index.json and text.json; notes.md is not, as it is small and
 // read as it is. docs/views.md describes each file.
 //
+// These are the views' names. Each is stored under its name with its MD5's
+// first 12 hex digits before the extension (storedName), so a stored file
+// never changes; views.json keeps its own name.
+//
 //   views/views.json                       which views exist, and what they were made from
 //   views/<person id>/summary.json         medrec_summary's summary, but for today
 //   views/<person id>/records-<kind>-<n>.json   records of one kind, in the records tool's order
@@ -15,7 +19,7 @@
 //   views/<person id>/search-<hex>.json    the words starting with one two-character prefix, and where
 //   views/<person id>/search-1-<hex>.json  the words starting with one character, for one-character terms
 //   views/<person id>/search-items.bin     each searchable item: where its text is, and its date, kind, id and title
-//   views/<person id>/search-hay.bin       each searchable item's text, UTF-8, for snippets
+//   views/<person id>/search-hay-<n>.bin   each searchable item's text, UTF-8, for snippets, 512 items a pack
 //   views/<person id>/search-labs-<n>.json what a lab query finds by kind
 //
 // Search items are numbered in the reverse of medrec's order for hits of
@@ -27,13 +31,44 @@ import type { Bill, Listed, ResultRow, SourceRow, SummaryLine, Vaccine } from '.
 import type { Coding, DocumentEntry, Json, JsonObject } from '../records/model';
 
 export const VIEWS_DIR = 'views';
-export const VIEWS_SCHEMA = 'medrec-views/v1';
+/**
+ * The layout. v1 (connector #1 only, never written by medrec) stored views
+ * under their plain names with one search-hay.bin; v2 stores them under
+ * content-addressed names with hay in packs.
+ */
+export const VIEWS_SCHEMA = 'medrec-views/v2';
 export const VIEWS_INDEX = `${VIEWS_DIR}/views.json`;
+
+/** A person's views directory, with the trailing slash. */
+export const personDir = (pid: string) => `${VIEWS_DIR}/${pid}/`;
+
+/**
+ * The name a view is stored under: its name with the first 12 hex digits of
+ * its MD5 before the extension (`summary.json` as `summary.0a1b2c3d4e5f.json`).
+ * A stored file's content never changes, so a reader holding one views.json
+ * reads only that pass's files, or finds them gone.
+ */
+export function storedName(name: string, md5: string): string {
+  const dot = name.lastIndexOf('.');
+  return `${name.slice(0, dot)}.${md5.slice(0, 12)}${name.slice(dot)}`;
+}
+
+/** The name a path has in its person's `files`, or undefined when it is not one of their views. */
+export function viewName(pid: string, path: string): string | undefined {
+  const dir = personDir(pid);
+  return path.startsWith(dir) && !path.slice(dir.length).includes('/') ? path.slice(dir.length) : undefined;
+}
 
 /** Shards and packs are cut near these sizes; a day's records, or one item's text, are never split. */
 export const SHARD_BYTES = 48_000;
 export const PACK_BYTES = 1_000_000;
 export const LAB_CHUNK = 256;
+/**
+ * Search items to a `search-hay-<n>.bin`: pack n holds items n × 512 to
+ * n × 512 + 511. A count, not a size, so a changed item rewrites only its
+ * own pack, and a new newest item only the last.
+ */
+export const HAY_ITEMS = 512;
 
 /** A shard's span: its newest and oldest day, and how many it holds. */
 export type Span = [newest: string, oldest: string, count: number];
@@ -128,7 +163,7 @@ export type SearchShard = Record<string, number[]>;
  * search-items.bin, little-endian unsigned 32-bit integers then UTF-8:
  *
  *   n                        the number of items
- *   text[0..n]               n + 1 byte offsets into search-hay.bin: item i's text is text[i] to text[i + 1]
+ *   text[0..n]               n + 1 byte offsets over the hay packs in order: item i's text is text[i] to text[i + 1]
  *   meta[0..n]               n + 1 byte offsets into the details below: item i's are meta[i] to meta[i + 1]
  *   details                  each item's JSON array [date or null, kind, id, title], one after another
  */
@@ -168,7 +203,7 @@ export const paths = {
   first: (pid: string, charHex: string) => `${VIEWS_DIR}/${pid}/search-1-${charHex}.json`,
   labs: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-labs-${n}.json`,
   items: (pid: string) => `${VIEWS_DIR}/${pid}/search-items.bin`,
-  hay: (pid: string) => `${VIEWS_DIR}/${pid}/search-hay.bin`,
+  hay: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-hay-${n}.bin`,
 };
 
 export type { Json };

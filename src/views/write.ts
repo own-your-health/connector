@@ -13,11 +13,14 @@ import {
   LAB_CHUNK,
   PACK_BYTES,
   SHARD_BYTES,
-  VIEWS_DIR,
   VIEWS_INDEX,
   VIEWS_SCHEMA,
+  HAY_ITEMS,
   hex,
   paths,
+  personDir,
+  storedName,
+  viewName,
   prefixOf,
   type DocumentView,
   type LabRow,
@@ -48,16 +51,19 @@ export const md5 = (b: Uint8Array) => createHash('md5').update(b).digest('hex');
 const encoder = new TextEncoder();
 const json = (v: unknown) => JSON.stringify(v);
 
-/** Every view of the folder, by path. */
+/** Every view of the folder, by the path it is stored at (storedName), and views.json. */
 export function writeViews(h: Household, householdBytes: Uint8Array, people: PersonFiles[], medrec: string): Map<string, string | Uint8Array> {
   const out = new Map<string, string | Uint8Array>();
   const index: ViewsIndex = { schema: VIEWS_SCHEMA, medrec, household: md5(householdBytes), people: {} };
   for (const f of people) {
     const pid = f.person.id;
-    const v = writePerson(h, f, out);
-    const dir = `${VIEWS_DIR}/${pid}/`;
-    for (const [path, body] of out) {
-      if (path.startsWith(dir)) v.files[path.slice(dir.length)] = md5(typeof body === 'string' ? encoder.encode(body) : body);
+    const views = new Map<string, string | Uint8Array>();
+    const v = writePerson(h, f, views);
+    for (const [path, body] of views) {
+      const name = viewName(pid, path)!;
+      const sum = md5(typeof body === 'string' ? encoder.encode(body) : body);
+      v.files[name] = sum;
+      out.set(personDir(pid) + storedName(name, sum), body);
     }
     index.people[pid] = v;
   }
@@ -280,8 +286,8 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   const hays = items.map((it) => it.hay(idx, texts, []));
   const hayBytes = hays.map((h) => encoder.encode(h));
   const metaBytes = items.map((it) => encoder.encode(json([it.date ?? null, it.kind, it.id, it.title] satisfies ItemMeta)));
-  out.set(paths.hay(pid), concat(hayBytes));
   const n = items.length;
+  for (let k = 0; k * HAY_ITEMS < n; k++) out.set(paths.hay(pid, k), concat(hayBytes.slice(k * HAY_ITEMS, (k + 1) * HAY_ITEMS)));
   const head = new DataView(new ArrayBuffer(ITEMS_HEADER(n)));
   head.setUint32(0, n, true);
   let at = 0;

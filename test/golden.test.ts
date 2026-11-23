@@ -1,5 +1,5 @@
 // This connector answers every call in test/golden/calls.json as `medrec mcp`
-// 0.5.0 did (scripts/golden.mjs recorded it): the same structured result, the
+// 0.7.0 did (scripts/golden.mjs recorded it): the same structured result, the
 // same text to the character, the same errors.
 
 import { execSync } from 'node:child_process';
@@ -23,7 +23,7 @@ interface Golden {
   results: { folder: 'demo' | 'large'; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
 }
 
-const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.5.0.json'), 'utf8')) as Golden;
+const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.7.0.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};

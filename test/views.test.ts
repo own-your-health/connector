@@ -12,7 +12,7 @@ import { DriveSource, SUBREQUESTS } from '../src/records/drive-source';
 import { Folder, ParsedCache } from '../src/records/folder';
 import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
-import { VIEWS_INDEX, hex, paths, prefixOf } from '../src/views/format';
+import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
@@ -33,6 +33,16 @@ beforeAll(() => {
   writeViewsAt(demo);
 }, 120_000);
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
+
+/** Where a view is stored in a prepared folder: `paths` names it, views.json gives its MD5 (storedName). */
+function stored(root: string, path: string): string {
+  const [, pid, name] = path.split('/');
+  const index = JSON.parse(readFileSync(join(root, VIEWS_INDEX), 'utf8')) as ViewsIndex;
+  return join(root, personDir(pid!) + storedName(name!, index.people[pid!]!.files[name!]!));
+}
+
+const personId = (root: string, name: string) =>
+  (JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] }).people.find((p) => p.name === name)!.id;
 
 /** A copy of a prepared folder, to change. */
 function copy(from: string, name: string): string {
@@ -110,8 +120,79 @@ describe('the views store', () => {
     const summary = await ask(root, 'medrec_summary', { person: 'Sam' });
     expect(summary.r.isError ?? false).toBe(false);
     expect(whole(summary.read)).toEqual([]);
-    const search = await ask(root, 'medrec_search', { query: 'cholesterol' });
-    expect(search.r.content[0]!.text).toMatch(/Robin Example's records changed/);
+    // A question about Robin by name gets the error itself.
+    const named = await ask(root, 'medrec_search', { query: 'cholesterol', person: 'Robin' });
+    expect(named.r.isError).toBe(true);
+    expect(named.r.content[0]!.text).toMatch(/Robin Example's records changed/);
+  });
+
+  it('answers a question about everyone without a person who cannot be read, and says so', async () => {
+    const root = copy(large, 'large-stale-everyone');
+    appendFileSync(join(root, 'Robin Example/index.json'), ' ');
+    type Page = { items: { person: string }[]; warnings?: { code: string; message: string }[] };
+    const calls: [string, Record<string, unknown>][] = [
+      ['medrec_search', { query: 'cholesterol' }],
+      ['medrec_records', { kind: 'results', limit: 50 }],
+      ['medrec_records', { kind: 'tests' }],
+      ['medrec_records', { kind: 'timeline', limit: 50 }],
+      ['medrec_records', { kind: 'documents', limit: 50 }],
+    ];
+    for (const [name, args] of calls) {
+      const { r } = await ask(root, name, args);
+      expect(r.isError ?? false, `${name} ${JSON.stringify(args)}`).toBe(false);
+      const page = r.structuredContent as Page;
+      expect(page.items.length).toBeGreaterThan(0);
+      expect(page.items.some((x) => x.person === 'Robin Example')).toBe(false);
+      expect(page.warnings).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Robin Example's records changed after medrec last prepared them.*; they are missing from this list\. Tell the user/) }]);
+    }
+    // Everyone else's rows are what they would be without Robin.
+    const sam = (await ask(root, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 })).r.structuredContent as Page;
+    expect(sam.warnings).toBeUndefined();
+  });
+
+  it("leaves out a person whose snippets cannot be read after all, and ranks again without them", async () => {
+    const sam = personId(large, 'Sam Example');
+    // Drive returns short reads of Sam's hay, as when a file goes mid-call.
+    class Short extends LocalSource {
+      override async bytes(path: string, start: number, end: number) {
+        const b = await super.bytes(path, start, end);
+        return path.startsWith(`views/${sam}/search-hay-`) && b ? b.subarray(0, Math.max(0, b.length - 1)) : b;
+      }
+    }
+    const store = new ViewsStore(new Folder(new Short(large), new ParsedCache(), large));
+    const r = (await callTool('medrec_search', { query: 'cholesterol' }, { store, today: TODAY }))!;
+    expect(r.isError ?? false).toBe(false);
+    const page = r.structuredContent as { items: { person: string; snippet: string }[]; warnings?: { code: string; message: string }[] };
+    expect(page.items.length).toBeGreaterThan(0);
+    expect(page.items.some((x) => x.person === 'Sam Example')).toBe(false);
+    expect(page.items.every((x) => x.snippet.length > 0)).toBe(true);
+    expect(page.warnings).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Sam Example's records are being prepared/) }]);
+    // Asked about Sam by name, the error is the answer.
+    const named = (await callTool('medrec_search', { query: 'cholesterol', person: 'Sam' }, { store: new ViewsStore(new Folder(new Short(large), new ParsedCache(), large)), today: TODAY }))!;
+    expect(named.isError).toBe(true);
+  });
+
+  it('gives the error when no one in a question about everyone can be read', async () => {
+    const root = copy(large, 'large-stale-all');
+    // Only the two large people, and a changed household.json makes both stale.
+    const at = join(root, 'household.json');
+    const household = JSON.parse(readFileSync(at, 'utf8')) as { people: { name: string }[] };
+    household.people = household.people.filter((p) => p.name === 'Robin Example' || p.name === 'Sam Example');
+    writeFileSync(at, JSON.stringify(household));
+    const { r } = await ask(root, 'medrec_search', { query: 'cholesterol' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/Robin Example's records changed/);
+  });
+
+  it("does not pass over another kind of error while looking for a document", async () => {
+    const root = copy(demo, 'demo-corrupt');
+    // Robin is small, so stale views are read whole, and the file does not parse.
+    writeFileSync(join(root, 'Robin Example/index.json'), '{"schema":');
+    const docs = await raw(demo, 'medrec_records', { kind: 'documents', person: 'Sam', limit: 1 });
+    const id = (docs.structuredContent as { items: { id: string }[] }).items[0]!.id;
+    const { r } = await ask(root, 'medrec_document', { id });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).not.toMatch(/being prepared|changed after medrec/);
   });
 
   it('treats a changed household.json as stale views for everyone', async () => {
@@ -125,7 +206,7 @@ describe('the views store', () => {
   it('ignores views of another schema', async () => {
     const root = copy(demo, 'demo-schema');
     const at = join(root, VIEWS_INDEX);
-    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v1', 'medrec-views/v2'));
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v3'));
     const { r } = await ask(root, 'medrec_records', { kind: 'conditions' });
     expect(r).toEqual(await raw(root, 'medrec_records', { kind: 'conditions' }));
   });
@@ -133,11 +214,21 @@ describe('the views store', () => {
   it('says a newer layout needs a newer connector, for a person too large to read whole', async () => {
     const root = copy(large, 'large-schema');
     const at = join(root, VIEWS_INDEX);
-    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v1', 'medrec-views/v2'));
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v3'));
     const { r } = await ask(root, 'medrec_summary', { person: 'Robin' });
     expect(r.isError).toBe(true);
-    expect(r.content[0]!.text).toMatch(/newer layout \(medrec-views\/v2\) than this connector reads/);
+    expect(r.content[0]!.text).toMatch(/newer layout \(medrec-views\/v3\) than this connector reads/);
     expect(r.content[0]!.text).toMatch(/connector needs updating/);
+  });
+
+  it("says an older layout needs a new pass of the writer, for a person too large to read whole", async () => {
+    const root = copy(large, 'large-old-schema');
+    const at = join(root, VIEWS_INDEX);
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v1'));
+    const { r } = await ask(root, 'medrec_summary', { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/older layout \(medrec-views\/v1\) than this connector reads/);
+    expect(r.content[0]!.text).toMatch(/medrec 0\.8\.0 or later prepares them in the current one/);
   });
 
   it("finds another person's document while one person's views are stale", async () => {
@@ -154,29 +245,48 @@ describe('the views store', () => {
     expect(missing.r.content[0]!.text).toMatch(/Robin Example's records changed/);
   });
 
-  it('never mixes a view from a pass still arriving with the views.json before it', async () => {
-    const root = copy(large, 'large-mixed');
-    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
-    const sam = household.people.find((p) => p.name === 'Sam Example')!.id;
-    // The next pass's newest results shard arrives first: valid, but not the one views.json names.
-    const dir = join(root, 'views', sam);
-    const newest = readdirSync(dir).filter((f) => /^records-result-\d+\.json$/.test(f)).sort((a, b) => Number(/\d+/.exec(b)![0]) - Number(/\d+/.exec(a)![0]))[0]!;
-    const shard = JSON.parse(readFileSync(join(dir, newest), 'utf8')) as unknown[];
-    writeFileSync(join(dir, newest), JSON.stringify(shard.slice(1)));
-    const { r } = await ask(root, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+  it('reads one pass only, in whichever order the next one arrives', async () => {
+    const sam = personId(large, 'Sam Example');
+    // The next pass: one new result for Sam.
+    const next = copy(large, 'large-next');
+    const at = join(next, 'Sam Example/index.json');
+    const index = JSON.parse(readFileSync(at, 'utf8'));
+    index.records.push({ id: 'rec_next_pass_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } });
+    writeFileSync(at, JSON.stringify(index));
+    writeViewsAt(next);
+    const newViews = readdirSync(join(next, 'views', sam));
+
+    // Its views first: new names beside the old ones, which the old views.json still reads.
+    const early = copy(large, 'large-next-early');
+    for (const f of newViews) cpSync(join(next, 'views', sam, f), join(early, 'views', sam, f));
+    const before = await ask(early, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+    expect(before.r).toEqual(await raw(large, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 }));
+
+    // Its index.json and views.json first: the views they name are not there yet.
+    const late = copy(large, 'large-next-late');
+    cpSync(at, join(late, 'Sam Example/index.json'));
+    cpSync(join(next, VIEWS_INDEX), join(late, VIEWS_INDEX));
+    const { r } = await ask(late, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/Sam Example's records are being prepared for assistants right now/);
+    // Robin's views did not change, so their names did not either.
+    const robin = await ask(late, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
+    expect(robin.r).toEqual(await raw(late, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 }));
+  });
+
+  it('refuses a view whose content is not the MD5 views.json gives it', async () => {
+    const root = copy(large, 'large-foreign');
+    const sam = personId(root, 'Sam Example');
+    const file = stored(root, paths.tests(sam));
+    writeFileSync(file, '[]');
+    const { r } = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
-    const tests = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
-    expect(tests.r.isError).toBe(true);
-    // Everyone else answers.
-    const robin = await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
-    expect(robin.r).toEqual(await raw(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 }));
   });
 
   it('says the records are being prepared when a view is missing', async () => {
     const root = copy(large, 'large-missing');
-    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
-    rmSync(join(root, paths.summary(household.people.find((p) => p.name === 'Sam Example')!.id)));
+    rmSync(stored(root, paths.summary(personId(root, 'Sam Example'))));
     const { r } = await ask(root, 'medrec_summary', { person: 'Sam' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
@@ -248,33 +358,36 @@ describe('planning byte ranges', () => {
 });
 
 describe('rewriting the views after a new record', () => {
-  it('changes only the newest shards and the search shards of its words', () => {
+  it('changes only the newest shards, the last hay pack and the search shards of its words', () => {
     const root = copy(large, 'large-append');
-    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string; folder: string }[] };
-    const robin = household.people.find((p) => p.name === 'Robin Example')!;
-    const dir = join(root, 'views', robin.id);
-    const snapshot = () => new Map(readdirSync(dir).map((f) => [f, createHash('md5').update(readFileSync(join(dir, f))).digest('hex')]));
-    const before = snapshot();
-    const at = join(root, robin.folder, 'index.json');
+    const robin = personId(root, 'Robin Example');
+    const files = () => (JSON.parse(readFileSync(join(root, VIEWS_INDEX), 'utf8')) as ViewsIndex).people[robin]!.files;
+    const before = files();
+    const at = join(root, 'Robin Example/index.json');
     const index = JSON.parse(readFileSync(at, 'utf8'));
-    const record = { id: 'rec_appended_test_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } };
-    index.records.push(record);
+    index.records.push({ id: 'rec_appended_test_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } });
     writeFileSync(at, JSON.stringify(index));
     writeViewsAt(root);
-    const after = snapshot();
-    const changed = [...after].filter(([f, m]) => before.get(f) !== m).map(([f]) => f);
+    const after = files();
+    const changed = Object.keys(after).filter((f) => before[f] !== after[f]);
     const words = fold('Zinc\nQuixotic').split(' ');
     const allowed = new Set(words.flatMap((w) => [`search-${hex(prefixOf(w))}.json`, `search-1-${hex(prefixOf(w, 1))}.json`]));
-    const shardsOf = (prefix: string) => [...after.keys()].filter((f) => f.startsWith(prefix) && /-\d+\.json$/.test(f)).map((f) => Number(/-(\d+)\.json$/.exec(f)![1]));
-    const newest = (prefix: string) => Math.max(...shardsOf(prefix));
+    const numbered = (prefix: string) => Object.keys(after).filter((f) => f.startsWith(prefix) && /-\d+\.(json|bin)$/.test(f)).map((f) => Number(/-(\d+)\.(json|bin)$/.exec(f)![1]));
+    const newest = (prefix: string) => Math.max(...numbered(prefix));
+    const n = (f: string) => Number(/-(\d+)\.(json|bin)$/.exec(f)![1]);
     for (const f of changed) {
-      if (f.startsWith('search-') && f.endsWith('.json') && !f.startsWith('search-labs-')) expect(allowed.has(f), f).toBe(true);
-      else if (f.startsWith('records-result-')) expect(Number(/-(\d+)\.json$/.exec(f)![1]), f).toBeGreaterThanOrEqual(newest('records-result-') - 1);
-      else if (f.startsWith('timeline-')) expect(Number(/-(\d+)\.json$/.exec(f)![1]), f).toBeGreaterThanOrEqual(newest('timeline-') - 1);
-      else expect(['summary.json', 'names-result.json', 'tests.json', 'search-items.bin', 'search-hay.bin', 'documents.json', f.startsWith('search-labs-') ? f : ''], f).toContain(f);
+      if (f.startsWith('search-hay-')) expect(n(f), f).toBe(newest('search-hay-'));
+      else if (f.startsWith('search-labs-')) expect(n(f), f).toBe(newest('search-labs-'));
+      else if (f.startsWith('search-') && f.endsWith('.json')) expect(allowed.has(f), f).toBe(true);
+      else if (f.startsWith('records-result-')) expect(n(f), f).toBeGreaterThanOrEqual(newest('records-result-') - 1);
+      else if (f.startsWith('timeline-')) expect(n(f), f).toBeGreaterThanOrEqual(newest('timeline-') - 1);
+      else expect(['summary.json', 'names-result.json', 'tests.json', 'search-items.bin', 'documents.json'], f).toContain(f);
     }
-    // Of hundreds of views, a few dozen at most.
+    // Of hundreds of views, a few dozen at most, and each is stored under a new name.
     expect(changed.length).toBeLessThan(20);
-    expect(after.size).toBeGreaterThan(200);
+    expect(Object.keys(after).length).toBeGreaterThan(200);
+    const dir = readdirSync(join(root, personDir(robin)));
+    for (const f of Object.keys(after)) expect(dir).toContain(storedName(f, after[f]!));
+    expect(dir).toHaveLength(Object.keys(after).length);
   });
 });

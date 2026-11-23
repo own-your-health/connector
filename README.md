@@ -7,7 +7,7 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.5.0 under the same names, with the
+It offers the four tools of `medrec mcp` 0.7.0 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
 same too: `test/golden.test.ts` holds 154 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
@@ -66,7 +66,8 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
 - **medrec 0.8.0 and later** write the views in the same pass as the records.
 - **An earlier medrec** writes none. `npm run views -- <folder>` writes them
   into the folder on disk (for example through Google Drive for desktop), and
-  has to run again after each refresh.
+  has to run again after each refresh. Once medrec writes views there, the
+  script leaves them alone unless given `--force`.
 - **A person with 300,000 bytes or less** of those files is answered from
   their files, views or not. Anyone larger needs current views. Without them,
   the tool says why it cannot answer (below), never answering from records
@@ -104,7 +105,9 @@ At the limits:
   that person's records changed after medrec last prepared them, and that
   medrec's next pass will. A question about another person by name still
   answers, and so does `medrec_document`. A search or list across everyone
-  waits until that person's views are current.
+  answers without that person, and its `warnings` (code
+  `person-unavailable`) say whose records are missing and why. When no one
+  can be read, it gives the error instead.
 - **The people list meanwhile.** `medrec_summary` lists everyone. A large
   person whose views are stale appears with the counts and dates of their
   last prepared views, so one pending refresh does not fail every summary.
@@ -191,12 +194,14 @@ rm ~/Downloads/client_secret_….json
 `npm run setup` sends everything to the Worker in one
 `wrangler secret bulk` over stdin. No value is printed or passed as an
 argument. It sets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
-`ALLOWED_ACCOUNTS`, `FOLDER_ID`, and optionally `TIME_ZONE` (for "past due"),
-`ASSISTANTS` and `DRIVE_SCOPE`. Deploys never change them. After editing
+`ALLOWED_ACCOUNTS`, `FOLDER_ID` (once `folder_id` is filled in), and
+optionally `TIME_ZONE` (for "past due"), `ASSISTANTS` and `DRIVE_SCOPE`. Deploys never change them. After editing
 `connector.local.json`, run `npm run setup -- --settings-only`.
 
 `FOLDER_ID` is the records folder's Drive id: the part after `/folders/` in
-its link, in the folder holding `household.json`.
+its link, in the folder holding `household.json`. Without it, assistants can
+connect, and each tool call says it is not set.
+Add it later with `npm run setup -- --settings-only`.
 
 The scripts run wrangler on the account `account_id` names, and no other.
 To keep this account's wrangler sign-in apart from one you use elsewhere,
@@ -277,7 +282,7 @@ npm run verify      # what CI runs: types, tests, pinned copies, no personal dat
 npm run golden      # re-record medrec's answers (needs `medrec` on PATH)
 npm run bench:cpu   # CPU per call in Node: bench/views.cpu.ts (views), parts.cpu.ts (files read whole), request.cpu.ts
 npm run bench       # CPU per call in workerd under wrangler dev (its local KV and D1 add CPU)
-npm run views -- <folder>   # write the reference views into a records folder on disk (--help)
+npm run views -- <folder>   # write the reference views into a records folder on disk; --force replaces medrec's
 npm run dev         # the Worker on 127.0.0.1:8787
 ```
 
