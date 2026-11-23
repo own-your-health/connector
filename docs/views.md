@@ -4,9 +4,10 @@ A records folder keeps each person's records in two files, `index.json` and
 `text.json`, of a few megabytes each for an adult with years of records.
 This connector runs on Cloudflare's Workers Free plan. That plan gives a
 request 10 ms of CPU, and parsing 2.5 MB of JSON alone takes about 6 ms. So
-medrec also writes **views** beside those files: the same records, cut into
-small files, each in the order a tool lists them. A call parses only the few
-kilobytes its answer needs.
+medrec, from 0.8.0, also writes **views** beside those files: the same
+records, cut into small files, each in the order a tool lists them. A call
+parses only the few kilobytes its answer needs. For a folder no such medrec
+prepares, `npm run views -- <folder>` writes them.
 
 Each view is derived from `household.json` and a person's `index.json` and
 `text.json`. `notes.md` has no view. It is small, and the app may change it,
@@ -15,7 +16,7 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder
 and the large synthetic folder answers all 154 recorded calls exactly as
 `medrec mcp` does (`test/golden.test.ts`, "from the views"). Another writer
-(medrec's own) is right when its views pass the same calls:
+(medrec's) is right when its views pass the same calls:
 
 ```sh
 VIEWS_WRITER='medrec views write --folder {folder}' npx vitest run test/golden.test.ts
@@ -60,27 +61,45 @@ the order is reversed.
 Write the views whenever `index.json`, `text.json` or `household.json`
 changes, in the same pass. Write `views/views.json` **last**. It records the
 MD5 (hex) of each source file, exactly as stored, that the views were made
-from:
+from, and of every view it describes:
 
 ```json
-{"schema":"medrec-views/v1","medrec":"0.6.0","household":"<md5>","people":{"p_…":{"index":"<md5>","text":"<md5>", …}}}
+{"schema":"medrec-views/v1","medrec":"0.8.0","household":"<md5>",
+ "people":{"p_…":{"index":"<md5>","text":"<md5>", …,
+                  "files":{"summary.json":"<md5>","records-result-0.json":"<md5>", …}}}}
 ```
 
-`index` or `text` is `null` when that file is absent.
+`index` or `text` is `null` when that file is absent. `files` names every
+file in the person's directory, `views/<person id>/`, with its MD5.
 
-A reader compares these with the MD5s Drive reports (`md5Checksum`).
+A reader compares these with the MD5s Drive reports (`md5Checksum`), all of
+which one listing of the folder gives.
 - **A person whose `index` or `text` MD5 differs has stale views.** The
   connector then reads that person's own files when they total 300,000 bytes
   or less. Otherwise it answers with an error that says the records changed
   after medrec last prepared them, and that the next pass will.
 - **A different `household` MD5 makes every person's views stale.**
-- **A file that `views.json` names but the folder lacks** is a write in
-  progress. The connector answers "being prepared right now, ask again in a
-  minute".
+- **A view that is missing, or whose MD5 is not the one `files` gives,**
+  belongs to a pass still arriving. Drive for desktop and other uploaders
+  send files in any order, so a new shard can be there before the new
+  `views.json`, or after it. The connector answers "being prepared right
+  now, ask again in a minute", and never reads two passes together.
+- **A person's stale views still give their row** in `medrec_summary`'s
+  people list, as last prepared, so one pending refresh does not fail
+  everyone's summary.
 
 A writer that replaces views in place keeps each file whole: write to a
 temporary name and rename, or upload a new revision. Remove the files of a
-person who left `household.json`.
+person who left `household.json`, and files a pass no longer writes.
+
+### The schema
+
+`schema` names the layout. A change that a reader of the current layout
+would misread takes the next number (`medrec-views/v2`). A field that
+readers may ignore does not. A reader that meets a later number than it
+knows reads small people's files whole. For anyone larger, it says the
+connector needs updating. A writer moves to a new number only in a release
+whose notes name the connector version that reads it.
 
 ## `views.json`, per person
 
@@ -90,8 +109,8 @@ person who left `household.json`.
 | `row` | `documents`, `records`, `studies`, and `newest` and `last_import` when there are any: the person's line in `medrec_summary`'s people list, without `notes` |
 | `records` | for each record kind, `{"shards": [[newest day, oldest day, count], …], "undated": count}`: its dated shards by number, and how many records its undated file holds |
 | `timeline` | the timeline's shards, the same way |
-| `text_packs` | how many `text-<n>.bin` |
-| `search` | `prefixes` and `firsts` (the hex keys of the search shards written), `items` (how many search items), `labs` (how many `search-labs-<n>.json`) |
+| `search` | `items` (how many search items) and `labs` (how many `search-labs-<n>.json`) |
+| `files` | every file in `views/<person id>/` with its MD5, above |
 
 ## Records: `records-<kind>-<n>.json`
 
@@ -216,7 +235,9 @@ number:
 `<hex>` is the lowercase hex of the UTF-8 bytes of the word's first two
 characters (Unicode scalar values), or of the whole word when it has only
 one. `search-1-<hex>.json` holds the same postings keyed by the first
-character only, for one-character terms like the "d" in "vitamin d".
+character only, for one-character terms like the "d" in "vitamin d". A
+shard exists only for characters some word starts with: a reader that finds
+no shard in `files` knows no word matches.
 
 ### `search-items.bin`
 

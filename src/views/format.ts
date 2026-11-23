@@ -64,10 +64,14 @@ export interface PersonViews {
   /** Each record kind's shards. */
   records: Record<string, Run>;
   timeline: Run;
-  /** How many text packs. */
-  text_packs: number;
-  /** The search shards there are, by hex prefix: two characters (or a one-character word), and one character. */
-  search: { prefixes: string[]; firsts: string[]; items: number; labs: number };
+  /** How many search items, and how many search-labs-<n>.json. */
+  search: { items: number; labs: number };
+  /**
+   * Every file in the person's views directory, by name, with its MD5 (hex).
+   * A reader checks each file it reads against this: a view whose MD5
+   * differs belongs to another pass, which is still arriving.
+   */
+  files: Record<string, string>;
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */

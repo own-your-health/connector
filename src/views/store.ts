@@ -2,7 +2,9 @@
 // parses only the shards its answer needs. A person whose views are missing
 // or older than their files is read whole when that is small enough, and
 // otherwise gets an error that says the views are being prepared: never an
-// answer from views that no longer match the records.
+// answer from views that no longer match the records. Each view read is
+// checked against the MD5 views.json gives it, so a pass still arriving on
+// Drive is never mixed with the one before.
 
 import { ToolError } from '../mcp/errors';
 import type { Folder } from '../records/folder';
@@ -83,7 +85,7 @@ interface ViewsCandidate extends Candidate {
 
 export class ViewsStore implements Store {
   private readonly raw: RawStore;
-  private state_: Promise<{ index: ViewsIndex | null; fresh: Set<string> }> | null = null;
+  private state_: Promise<{ index: ViewsIndex | null; newer?: string; fresh: Set<string> }> | null = null;
   /** Byte ranges fetched for snippets this call, by file: each one's first byte, and the bytes. */
   private windows = new Map<string, { start: number; bytes: Uint8Array }[]>();
 
@@ -99,7 +101,11 @@ export class ViewsStore implements Store {
   private state(h: Household) {
     this.state_ ??= (async () => {
       const index = await this.folder.parsed<ViewsIndex>(VIEWS_INDEX);
-      if (!index || index.schema !== VIEWS_SCHEMA) return { index: null, fresh: new Set<string>() };
+      if (!index || index.schema !== VIEWS_SCHEMA) {
+        // A later layout (medrec-views/v2 on) needs a later connector; anything else is no views at all.
+        const v = /^medrec-views\/v(\d+)$/.exec(index?.schema ?? '');
+        return { index: null, ...(v && Number(v[1]) > 1 ? { newer: index!.schema } : {}), fresh: new Set<string>() };
+      }
       const files = ['household.json', ...h.people.flatMap((p) => [`${p.folder}/index.json`, `${p.folder}/text.json`])];
       // One request: these files' MD5s, everyone's notes.md, and every view.
       await this.folder.survey(
@@ -111,7 +117,7 @@ export class ViewsStore implements Store {
       if (md5[0] === index.household) {
         h.people.forEach((p, i) => {
           const v = index.people[p.id];
-          if (v && md5[1 + 2 * i] === v.index && md5[2 + 2 * i] === v.text) fresh.add(p.id);
+          if (v?.files && md5[1 + 2 * i] === v.index && md5[2 + 2 * i] === v.text) fresh.add(p.id);
         });
       }
       return { index, fresh };
@@ -125,9 +131,14 @@ export class ViewsStore implements Store {
     if (st.fresh.has(p.id)) return st.index!.people[p.id]!;
     const sizes = await Promise.all([this.folder.size(`${p.folder}/index.json`), this.folder.size(`${p.folder}/text.json`)]);
     if ((sizes[0] ?? 0) + (sizes[1] ?? 0) <= RAW_LIMIT) return null;
+    if (st.newer) {
+      throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads, and they are too large to read here without it`).withFix(
+        "Tell the user the connector needs updating: its README's Updating section has the steps",
+      );
+    }
     if (!st.index?.people[p.id]) {
       throw ToolError.upstream(`medrec has not prepared ${p.name}'s records for assistants, and they are too large to read here until it does`).withFix(
-        "Tell the user medrec 0.6.0 or later prepares them on its next pass on the household's computer (medrec refresh), then ask again",
+        "Tell the user medrec 0.8.0 or later prepares them on its next pass on the household's computer (medrec refresh), then ask again",
       );
     }
     throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared them for assistants, and are too large to read here until it does`).withFix(
@@ -135,7 +146,21 @@ export class ViewsStore implements Store {
     );
   }
 
+  /**
+   * Refuses a view that is not the one views.json names: missing, or from
+   * another pass that is still arriving. The survey has every view's MD5, so
+   * this costs no request.
+   */
+  private async check(path: string): Promise<void> {
+    const st = await this.state_!;
+    const [, pid, name] = path.split('/');
+    const want = st.index?.people[pid!]?.files[name!];
+    const [got] = await this.folder.md5([path]);
+    if (want === undefined || got !== want) throw preparing();
+  }
+
   private async need<T>(path: string): Promise<T> {
+    await this.check(path);
     const v = await this.folder.parsed<T>(path);
     if (v === null) throw preparing();
     return v;
@@ -262,39 +287,63 @@ export class ViewsStore implements Store {
     yield* merged([fromViews(), fromNotes()], eventOrder);
   }
 
-  async documents(p: Person): Promise<DocumentEntry[]> {
-    const h = await this.household();
+  async documents(h: Household, p: Person): Promise<DocumentEntry[]> {
     const v = await this.views(h, p);
-    if (!v) return this.raw.documents(p);
+    if (!v) return this.raw.documents(h, p);
     return this.need<DocumentView[]>(paths.documents(p.id));
   }
 
-  notes(p: Person): Promise<Note[]> {
+  /**
+   * Looks through everyone it can read. A person it cannot read right now
+   * (views stale, still arriving, or a newer layout) is passed over, and their
+   * error is the answer only when no one else has the id: it may be theirs.
+   */
+  async findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null> {
+    let unreadable: ToolError | undefined;
+    for (const p of h.people) {
+      let docs: DocumentEntry[];
+      try {
+        docs = await this.documents(h, p);
+      } catch (e) {
+        if (!(e instanceof ToolError)) throw e;
+        unreadable ??= e;
+        continue;
+      }
+      const d = docs.find((x) => x.id === id);
+      if (d) return [p, d];
+    }
+    if (unreadable) throw unreadable;
+    return null;
+  }
+
+  notes(_h: Household, p: Person): Promise<Note[]> {
     return this.folder.notes(p);
   }
 
-  async documentText(p: Person, d: DocumentEntry): Promise<string> {
-    const h = await this.household();
+  async documentText(h: Household, p: Person, d: DocumentEntry): Promise<string> {
     const v = await this.views(h, p);
-    if (!v) return this.raw.documentText(p, d);
+    if (!v) return this.raw.documentText(h, p, d);
     const at = (d as DocumentView).text_at;
     if (!at) return '';
     const [pack, start, bytes] = at;
-    const b = await this.folder.bytes(paths.text(p.id, pack), start, start + bytes);
+    const path = paths.text(p.id, pack);
+    await this.check(path);
+    const b = await this.folder.bytes(path, start, start + bytes);
     if (!b || b.length !== bytes) throw preparing();
     return decoder.decode(b);
   }
 
-  async documentRecords(p: Person, d: DocumentEntry): Promise<string[]> {
-    const h = await this.household();
+  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
     const v = await this.views(h, p);
-    if (!v) return this.raw.documentRecords(p, d);
+    if (!v) return this.raw.documentRecords(h, p, d);
     return ((d as DocumentView).linked ?? []).map((n) => clip(n, CLIP));
   }
 
   /** A person's search items (search-items.bin): their count, and each one's text and details. */
   private async items(p: Person): Promise<Items> {
-    const b = await this.folder.binary(paths.items(p.id));
+    const path = paths.items(p.id);
+    await this.check(path);
+    const b = await this.folder.binary(path);
     if (!b || b.length < 4) throw preparing();
     const view = new DataView(b.buffer, b.byteOffset, b.byteLength);
     const n = view.getUint32(0, true);
@@ -313,8 +362,6 @@ export class ViewsStore implements Store {
     const v = await this.views(h, p);
     if (!v) return this.raw.search(h, p, terms, range, want);
     const labs = LAB_QUERIES.includes(terms.join(' '));
-    const prefixes = new Set(v.search.prefixes);
-    const firsts = new Set(v.search.firsts);
 
     const items = await this.items(p);
     const [lo, hi] = runOf(items, range);
@@ -328,9 +375,11 @@ export class ViewsStore implements Store {
       // A term of two characters or more is in one two-character shard; of one, in its one-character shard.
       const short = [...t].length < 2;
       const key = hex(prefixOf(t, short ? 1 : 2));
+      const at = short ? paths.first(p.id, key) : paths.search(p.id, key);
       matched = 0;
-      if (short ? firsts.has(key) : prefixes.has(key)) {
-        const shard = await this.need<SearchShard>(short ? paths.first(p.id, key) : paths.search(p.id, key));
+      // No shard: no word starts so.
+      if (v.files[at.slice(at.lastIndexOf('/') + 1)] !== undefined) {
+        const shard = await this.need<SearchShard>(at);
         for (const w in shard) {
           if (!w.startsWith(t)) continue;
           const list = shard[w]!;
@@ -406,6 +455,7 @@ export class ViewsStore implements Store {
     }
     await Promise.all(
       [...planRanges(wanted, Math.min(this.folder.remaining() - 2, SNIPPET_RANGES))].map(async ([path, spans]) => {
+        await this.check(path);
         const got = await Promise.all(
           spans.map(async ([a, b]) => {
             const bytes = await this.folder.bytes(path, a, b);

@@ -64,13 +64,15 @@ export interface Store {
   tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]>;
   /** A person's documents, records, studies and notes as timeline events in the range, ordered as the records tool lists them. */
   timeline(h: Household, p: Person, range: Range): AsyncIterable<Event>;
-  documents(p: Person): Promise<DocumentEntry[]>;
-  notes(p: Person): Promise<Note[]>;
+  documents(h: Household, p: Person): Promise<DocumentEntry[]>;
+  /** The document with this id, and whose it is; null when no one has it. */
+  findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null>;
+  notes(h: Household, p: Person): Promise<Note[]>;
   /** The person's `want` best hits, best first (score, then date, newest first). */
   search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]>;
-  documentText(p: Person, d: DocumentEntry): Promise<string>;
+  documentText(h: Household, p: Person, d: DocumentEntry): Promise<string>;
   /** The names of the first 20 records filed from the document. */
-  documentRecords(p: Person, d: DocumentEntry): Promise<string[]>;
+  documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]>;
   /** Fetch what the hits' snippets need in as few requests as the store can, before `snippet()` is called on each. */
   prepare?(hits: Candidate[]): Promise<void>;
 }
@@ -129,16 +131,26 @@ export async function* merged<T>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) =>
   }
 }
 
-async function* each<T>(xs: T[]): AsyncIterable<T> {
-  yield* xs;
-}
-
 /** Every person's best hits merged as medrec ranks them: score, then date, newest first; ties in household order. */
 export function rankHits(perPerson: Candidate[][], want: number): Candidate[] {
   return perPerson
     .flat()
     .sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date))
     .slice(0, want);
+}
+
+/** The people's `want` best hits for the terms, ranked together (rankHits), each with whose it is. */
+export async function searchHousehold(
+  store: Store,
+  h: Household,
+  people: Person[],
+  terms: string[],
+  range: Range,
+  want: number,
+): Promise<{ p: Person; c: Candidate }[]> {
+  const found = await Promise.all(people.map((p) => store.search(h, p, terms, range, want)));
+  const owner = new Map(found.flatMap((cs, i) => cs.map((c) => [c, people[i]!] as const)));
+  return rankHits(found, want).map((c) => ({ p: owner.get(c)!, c }));
 }
 
 export function searchTerms(query: string): { terms: string[]; labs: boolean } {
@@ -178,11 +190,19 @@ export class RawStore implements Store {
     yield* timelineEvents(h, p, await this.folder.index(p), await this.folder.notes(p), range).sort(eventOrder);
   }
 
-  async documents(p: Person): Promise<DocumentEntry[]> {
+  async documents(_h: Household, p: Person): Promise<DocumentEntry[]> {
     return (await this.folder.index(p)).documents ?? [];
   }
 
-  notes(p: Person): Promise<Note[]> {
+  async findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null> {
+    for (const p of h.people) {
+      const d = (await this.documents(h, p)).find((x) => x.id === id);
+      if (d) return [p, d];
+    }
+    return null;
+  }
+
+  notes(_h: Household, p: Person): Promise<Note[]> {
     return this.folder.notes(p);
   }
 
@@ -214,16 +234,14 @@ export class RawStore implements Store {
     return found.sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date)).slice(0, want);
   }
 
-  async documentText(p: Person, d: DocumentEntry): Promise<string> {
+  async documentText(_h: Household, p: Person, d: DocumentEntry): Promise<string> {
     return (await this.folder.text(p)).texts?.[d.id] ?? '';
   }
 
-  async documentRecords(p: Person, d: DocumentEntry): Promise<string[]> {
+  async documentRecords(_h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
     return ((await this.folder.index(p)).records ?? [])
       .filter((r) => (r.documents ?? []).includes(d.id))
       .slice(0, 20)
       .map((r) => clip(r.display, CLIP));
   }
 }
-
-export { each };

@@ -13,6 +13,7 @@ import {
   LAB_CHUNK,
   PACK_BYTES,
   SHARD_BYTES,
+  VIEWS_DIR,
   VIEWS_INDEX,
   VIEWS_SCHEMA,
   hex,
@@ -51,7 +52,15 @@ const json = (v: unknown) => JSON.stringify(v);
 export function writeViews(h: Household, householdBytes: Uint8Array, people: PersonFiles[], medrec: string): Map<string, string | Uint8Array> {
   const out = new Map<string, string | Uint8Array>();
   const index: ViewsIndex = { schema: VIEWS_SCHEMA, medrec, household: md5(householdBytes), people: {} };
-  for (const f of people) index.people[f.person.id] = writePerson(h, f, out);
+  for (const f of people) {
+    const pid = f.person.id;
+    const v = writePerson(h, f, out);
+    const dir = `${VIEWS_DIR}/${pid}/`;
+    for (const [path, body] of out) {
+      if (path.startsWith(dir)) v.files[path.slice(dir.length)] = md5(typeof body === 'string' ? encoder.encode(body) : body);
+    }
+    index.people[pid] = v;
+  }
   out.set(VIEWS_INDEX, json(index));
   return out;
 }
@@ -331,8 +340,8 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
     },
     records: spans,
     timeline: { shards: timeline.shards.map((sh) => span(sh, (e) => e.date)), undated: timeline.undated.length },
-    text_packs: new Set(textAt.map((a) => a[0])).size,
-    search: { prefixes, firsts: firstKeys, items: n, labs: labChunks.length },
+    search: { items: n, labs: labChunks.length },
+    files: {},
   };
 }
 

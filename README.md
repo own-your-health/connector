@@ -57,32 +57,42 @@ Nothing. It runs on Cloudflare's **Workers Free** plan, which gives a request
 10 ms of CPU and 50 subrequests, and allows 100,000 requests a day. A
 request over a Free plan limit fails; nothing is ever charged.
 
-A call fits because medrec also writes **views** in the records folder: the
-same records cut into small files, each in the order a tool lists them
+A call fits because it reads **views** in the records folder: the same
+records cut into small files, each in the order a tool lists them
 ([docs/views.md](docs/views.md)). A call reads only the few kilobytes its
 answer needs, instead of parsing each person's megabytes of `index.json` and
-`text.json`. A folder whose people each have 300,000 bytes or less of those
-files works without views.
+`text.json`.
 
-| Call, over a synthetic folder of 5.5 MB of index and 6.5 MB of text | CPU, cold | CPU, cold, with Node's fetch counted | Requests to Google |
+- **medrec 0.8.0 and later** write the views in the same pass as the records.
+- **An earlier medrec** writes none. `npm run views -- <folder>` writes them
+  into the folder on disk (for example through Google Drive for desktop), and
+  has to run again after each refresh.
+- **A person with 300,000 bytes or less** of those files is answered from
+  their files, views or not. Anyone larger needs current views. Without them,
+  the tool says why it cannot answer (below), never answering from records
+  that have since changed.
+
+| Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 0.5 ms | 0.3 ms | 0 |
-| `medrec_summary` of one person | 2.4 ms | 3.2 ms | 10 |
-| `medrec_search`, one word | 4.0 ms | 5.1 ms | 33 |
-| `medrec_search`, one word, 100 hits | 7.9 ms | 7.8 ms | 33 |
-| `medrec_search`, three words | 4.9 ms | 4.2 ms | 37 |
-| `medrec_records` results, 200 | 2.8 ms | 2.5 ms | 9 |
-| `medrec_records` timeline | 1.7 ms | 1.4 ms | 7 |
-| `medrec_document`, a page | 2.5 ms | 2.4 ms | 8 |
-| for scale: `JSON.parse` of 0.96 MB | 3.6 ms | 3.1 ms | — |
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.3 ms | 0 |
+| `medrec_summary` of one person | 1.9 ms | 2.4 ms | 10 |
+| `medrec_search`, one word | 3.1 ms | 6.0 ms | 33 |
+| `medrec_search`, one word, 100 hits | 4.7 ms | 8.5 ms | 33 |
+| `medrec_search`, three words | 4.1 ms | 6.9 ms | 37 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 4.6 ms | 9.6 ms | 24 |
+| `medrec_records` results, 200 | 2.9 ms | 3.5 ms | 11 |
+| `medrec_records` timeline | 1.4 ms | 1.9 ms | 7 |
+| `medrec_document`, a page | 2.7 ms | 3.8 ms | 8 |
+| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-23, Apple
-silicon, the least of 30 calls). The Worker answered in Node, through its
-own OAuth check, MCP framing, Drive client and views. Google was a local
-fake whose own work is not counted. A cold call is the first on a fresh
-isolate, which downloads and parses every file it needs. The machine was
-busy: the scale row takes about 2.2 ms on a quiet one. Cloudflare's
-dashboard shows the deployed Worker's own CPU times.
+silicon, 20 calls each). The Worker answered in Node, through its own OAuth
+check, MCP framing, Drive client and views, with Node's own `fetch` work
+counted. Google was a local fake on another thread, whose work is not
+counted. A cold call is the first on a fresh isolate, which downloads and
+parses every file it needs. The machine was busy (load 14): the scale row
+takes about 2.2 ms on a quiet one, and the medians spread with the load.
+Cloudflare's dashboard shows the deployed Worker's own CPU times.
 
 At the limits:
 
@@ -92,7 +102,18 @@ At the limits:
 - **Views older than the records.** For a person with 300,000 bytes or less,
   the connector reads their files whole. For anyone larger, the tool says
   that person's records changed after medrec last prepared them, and that
-  medrec's next pass will. Other people still answer.
+  medrec's next pass will. A question about another person by name still
+  answers, and so does `medrec_document`. A search or list across everyone
+  waits until that person's views are current.
+- **The people list meanwhile.** `medrec_summary` lists everyone. A large
+  person whose views are stale appears with the counts and dates of their
+  last prepared views, so one pending refresh does not fail every summary.
+- **Views still arriving.** Drive may hold some of a new pass's views before
+  the rest. A call that would read one of them says the records are being
+  prepared and to ask again in a minute. It never mixes two passes.
+- **Views from a newer medrec.** A layout this connector does not know reads
+  like no views, and a large person's calls say the connector needs updating
+  ([Updating](#updating)).
 - **Over 10 ms of CPU.** Cloudflare ends the request, and the assistant
   reports a failed call. Asking again usually succeeds, as warm calls parse
   nothing.
@@ -143,6 +164,11 @@ the files any of them made. So the connector can read the records folder
 medrec made, and nothing else in the account
 ([pk-cli-drive's test](https://github.com/piekstra/cli-common/blob/main/crates/pk-cli-drive/docs/google-drive.md#scope-drivefile-or-full-drive)).
 
+That access belongs to the Google account medrec signs in with, which owns
+the folder. So an assistant is connected by signing in with **that**
+account. Another account on `allowed_accounts` can sign in, but cannot open
+the folder.
+
 1. In the Cloud console, **Google Auth Platform > Clients > Create client**,
    type **Web application**.
 2. Under **Authorized redirect URIs**, add
@@ -172,14 +198,20 @@ argument. It sets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
 `FOLDER_ID` is the records folder's Drive id: the part after `/folders/` in
 its link, in the folder holding `household.json`.
 
+The scripts run wrangler on the account `account_id` names, and no other.
+To keep this account's wrangler sign-in apart from one you use elsewhere,
+set `wrangler_config` to a directory of its own (for example
+`~/.config/records-connector/wrangler`). Wrangler then keeps the sign-in
+there, and `npx wrangler login` with `XDG_CONFIG_HOME` set to it signs in.
+
 ### 5. Connect an assistant
 
 The connector's address is `https://records-connector.<subdomain>.workers.dev/mcp`.
 
 - **Claude** (web, desktop, phone): **Settings > Connectors > Add custom
-  connector**, paste the address, then **Connect**. Sign in with an admitted
-  Google account. A connector added on the web also appears in the phone and
-  desktop apps.
+  connector**, paste the address, then **Connect**. Sign in with the Google
+  account that owns the records folder (step 3). A connector added on the
+  web also appears in the phone and desktop apps.
 - **Claude Code**: `claude mcp add --transport http records <address>`.
 - **ChatGPT**: add `chatgpt` to `assistants`, run `npm run setup --
   --settings-only`, then add the address as a connector on chatgpt.com.
@@ -200,6 +232,13 @@ The connector's address is `https://records-connector.<subdomain>.workers.dev/mc
 | Perplexity | `perplexity` | `https://www.perplexity.ai/rest/connections/oauth_callback` | not yet |
 
 `EXTRA_REDIRECT_URIS` (comma-separated, matched exactly) allows any other.
+
+## Updating
+
+A fork updates from this repository: on GitHub, **Sync fork** on your
+fork's main page, or `git pull` from this repository and push to your
+`main`. Each push to `main` deploys. Settings and connections stay as they
+are. A release's notes say when it reads a newer medrec's views.
 
 ## Renewing the deploy token
 
@@ -238,7 +277,7 @@ npm run verify      # what CI runs: types, tests, pinned copies, no personal dat
 npm run golden      # re-record medrec's answers (needs `medrec` on PATH)
 npm run bench:cpu   # CPU per call in Node: bench/views.cpu.ts (views), parts.cpu.ts (files read whole), request.cpu.ts
 npm run bench       # CPU per call in workerd under wrangler dev (its local KV and D1 add CPU)
-npm run views -- <folder>   # write the reference views into a records folder on disk
+npm run views -- <folder>   # write the reference views into a records folder on disk (--help)
 npm run dev         # the Worker on 127.0.0.1:8787
 ```
 

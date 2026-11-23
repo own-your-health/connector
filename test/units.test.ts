@@ -12,7 +12,8 @@ import { callTool } from '../src/records/tools';
 import { isLab, memberShare, moneyForTests, recordDetail } from '../src/records/views';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, LocalSource } from './support';
-import { RawStore } from '../src/records/store';
+import { RawStore, searchHousehold, type Candidate, type Store } from '../src/records/store';
+import type { Household, Person } from '../src/records/model';
 
 describe('paging', () => {
   const filters = { query: 'a', person: null };
@@ -250,5 +251,31 @@ describe("a claim's money", () => {
     expect(isLab({ id: 'a', kind: 'claim', display: '', fields: { items: [{ category: 'visit' }, { category: 'lab' }] } } as never)).toBe(true);
     expect(isLab({ id: 'a', kind: 'claim', display: '', fields: { items: [{ category: 'visit' }] } } as never)).toBe(false);
     expect(isLab({ id: 'a', kind: 'encounter', display: '' } as never)).toBe(false);
+  });
+});
+
+describe('searching the household', () => {
+  const hit = (id: string, score: number, date?: string): Candidate => ({ kind: 'record', id, title: id, score, ...(date ? { date } : {}), snippet: async () => '' });
+  const people = [{ id: 'p_a', name: 'A' }, { id: 'p_b', name: 'B' }] as Person[];
+  const h = { people } as unknown as Household;
+  const found: Record<string, Candidate[]> = {
+    p_a: [hit('a1', 3, '2020-01-01'), hit('a2', 1, '2024-01-01')],
+    p_b: [hit('b1', 3, '2021-01-01'), hit('b2', 2)],
+  };
+  const store = { search: async (_h: Household, p: Person) => found[p.id]! } as unknown as Store;
+
+  it('ranks everyone together by score, then date, newest first, and says whose each hit is', async () => {
+    const hits = await searchHousehold(store, h, people, ['x'], {}, 3);
+    expect(hits.map(({ p, c }) => [p.name, c.id])).toEqual([
+      ['B', 'b1'],
+      ['A', 'a1'],
+      ['B', 'b2'],
+    ]);
+  });
+
+  it('keeps ties in household order', async () => {
+    const tied: Record<string, Candidate[]> = { p_a: [hit('a', 1, '2020-01-01')], p_b: [hit('b', 1, '2020-01-01')] };
+    const s = { search: async (_h: Household, p: Person) => tied[p.id]! } as unknown as Store;
+    expect((await searchHousehold(s, h, people, ['x'], {}, 2)).map(({ c }) => c.id)).toEqual(['a', 'b']);
   });
 });

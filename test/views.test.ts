@@ -130,6 +130,49 @@ describe('the views store', () => {
     expect(r).toEqual(await raw(root, 'medrec_records', { kind: 'conditions' }));
   });
 
+  it('says a newer layout needs a newer connector, for a person too large to read whole', async () => {
+    const root = copy(large, 'large-schema');
+    const at = join(root, VIEWS_INDEX);
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v1', 'medrec-views/v2'));
+    const { r } = await ask(root, 'medrec_summary', { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/newer layout \(medrec-views\/v2\) than this connector reads/);
+    expect(r.content[0]!.text).toMatch(/connector needs updating/);
+  });
+
+  it("finds another person's document while one person's views are stale", async () => {
+    const root = copy(large, 'large-stale-document');
+    // Robin comes first in household.json, so the lookup meets them first.
+    appendFileSync(join(root, 'Robin Example/index.json'), ' ');
+    const docs = await raw(root, 'medrec_records', { kind: 'documents', person: 'Sam', limit: 1 });
+    const id = (docs.structuredContent as { items: { id: string }[] }).items[0]!.id;
+    const { r } = await ask(root, 'medrec_document', { id });
+    expect(r).toEqual(await raw(root, 'medrec_document', { id }));
+    // An id no one readable has may be Robin's: the answer is why Robin cannot be read.
+    const missing = await ask(root, 'medrec_document', { id: 'doc_not_anyones' });
+    expect(missing.r.isError).toBe(true);
+    expect(missing.r.content[0]!.text).toMatch(/Robin Example's records changed/);
+  });
+
+  it('never mixes a view from a pass still arriving with the views.json before it', async () => {
+    const root = copy(large, 'large-mixed');
+    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
+    const sam = household.people.find((p) => p.name === 'Sam Example')!.id;
+    // The next pass's newest results shard arrives first: valid, but not the one views.json names.
+    const dir = join(root, 'views', sam);
+    const newest = readdirSync(dir).filter((f) => /^records-result-\d+\.json$/.test(f)).sort((a, b) => Number(/\d+/.exec(b)![0]) - Number(/\d+/.exec(a)![0]))[0]!;
+    const shard = JSON.parse(readFileSync(join(dir, newest), 'utf8')) as unknown[];
+    writeFileSync(join(dir, newest), JSON.stringify(shard.slice(1)));
+    const { r } = await ask(root, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
+    const tests = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
+    expect(tests.r.isError).toBe(true);
+    // Everyone else answers.
+    const robin = await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
+    expect(robin.r).toEqual(await raw(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 }));
+  });
+
   it('says the records are being prepared when a view is missing', async () => {
     const root = copy(large, 'large-missing');
     const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };

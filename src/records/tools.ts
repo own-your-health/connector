@@ -5,7 +5,7 @@
 import spec from '../../spec/medrec-tools.json';
 import { ToolError, type ServerInfo } from '../mcp/errors';
 import { HARD_LIMIT, PageRequest, chars, type ListArgs } from '../mcp/shape';
-import { eventOrder, rankHits, recordOrder, searchTerms, takeMerged, type Store } from './store';
+import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Store } from './store';
 import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
@@ -357,20 +357,13 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
   const { terms } = searchTerms(query);
   if (terms.length === 0) throw ToolError.usage('search needs at least one word');
   const chosen = selected(h, person);
-  const want = page.wanted();
-  const found = await Promise.all(chosen.map(async (p) => (await ctx.store.search(h, p, terms, r, want)).map((c) => ({ p, c }))));
-  // rankHits sorts every person's candidates together; keep whose each one is.
-  const owner = new Map(found.flat().map(({ p, c }) => [c, p]));
-  const hits = rankHits(
-    found.map((xs) => xs.map((x) => x.c)),
-    want,
-  );
+  const hits = await searchHousehold(ctx.store, h, chosen, terms, r, page.wanted());
   // Snippets only for the hits this page shows; the rest only tell the page where it stands.
   const shown = hits.slice(page.offset, page.offset + page.limit);
-  await ctx.store.prepare?.(shown);
+  await ctx.store.prepare?.(shown.map((x) => x.c));
   const items: Record<string, unknown>[] = hits.map(() => ({}));
-  for (const [i, c] of shown.entries()) {
-    items[page.offset + i] = ordered({ person: owner.get(c)!.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet() }, ['person', 'kind', 'id', 'date', 'title', 'snippet']);
+  for (const [i, { p, c }] of shown.entries()) {
+    items[page.offset + i] = ordered({ person: p.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet() }, ['person', 'kind', 'id', 'date', 'title', 'snippet']);
   }
   return pageJson(page.page(items, 'person, since/until, or more words'));
 }
@@ -472,7 +465,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     return pageJson(page.page(top.map(({ p, x }) => item(recordItem(h, p.name, x, detailed))), 'person, since/until, active or name'));
   } else if (kind === 'notes') {
     const rows: { person_name: string; note: Note }[] = [];
-    for (const p of chosen) for (const n of await ctx.store.notes(p)) if (holdsRange(r, n.date)) rows.push({ person_name: p.name, note: n });
+    for (const p of chosen) for (const n of await ctx.store.notes(h, p)) if (holdsRange(r, n.date)) rows.push({ person_name: p.name, note: n });
     rows.sort((a, b) => cmpS(b.note.date, a.note.date));
     for (const n of rows) {
       const text = trim(n.note.text);
@@ -487,7 +480,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
-      for (const d of await ctx.store.documents(p)) {
+      for (const d of await ctx.store.documents(h, p)) {
         const isBill = d.doc_type === 'bill';
         if ((bills && (!isBill || (d.same_statement_as !== null && d.same_statement_as !== undefined))) || (docType !== undefined && d.doc_type !== docType) || !holdsRange(r, d.date)) continue;
         const title = d.title ?? d.original_name ?? label(d.doc_type);
@@ -602,17 +595,10 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page !== undefined && offset !== undefined) throw ToolError.usage('pass page or offset, not both');
   if (page === 0) throw ToolError.usage('pages count from 1');
   const h = await open(ctx);
-  let found: [Person, DocumentEntry] | undefined;
-  for (const p of h.people) {
-    const d = (await ctx.store.documents(p)).find((x) => x.id === id);
-    if (d) {
-      found = [p, d];
-      break;
-    }
-  }
+  const found = await ctx.store.findDocument(h, id);
   if (!found) throw ToolError.notFound(`no document \`${id}\`; \`medrec documents list\` shows them`).withFix('Find the id with medrec_search or medrec_records');
   const [p, d] = found;
-  const text = await ctx.store.documentText(p, d);
+  const text = await ctx.store.documentText(h, p, d);
   const cs = Array.from(text);
   const breaks: number[] = [];
   cs.forEach((c, i) => {
@@ -624,7 +610,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page === 1 || (page === undefined && offset === undefined)) start = 0;
   else if (page !== undefined) start = breaks[page - 2]! + 1;
   else start = Math.min(offset!, cs.length);
-  const records = await ctx.store.documentRecords(p, d);
+  const records = await ctx.store.documentRecords(h, p, d);
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,
