@@ -43,7 +43,9 @@ import {
   type ItemMeta,
   type SearchShard,
   type SlimRecord,
+  type Run,
   type Span,
+  UNDATED,
   type SummaryView,
   type TestSeries,
   type ViewsIndex,
@@ -59,14 +61,19 @@ function nameMatches(code: string | null, display: string, codeDisplay: string |
   return matchesCode({ id: '', kind: '', display, code: { code, display: codeDisplay } } as RecordEntry, q);
 }
 
-/** Whether a shard spanning `s` can hold a date in `r`. */
-function overlaps(s: Span, r: Range): boolean {
-  const [newest, oldest] = s;
-  if (r.since === undefined && r.until === undefined) return true;
-  if (newest === null) return false;
-  if (r.since !== undefined && cmpStr(newest, r.since) < 0) return false;
-  if (r.until !== undefined && oldest !== null && cmpStr(oldest, r.until) > 0) return false;
-  return true;
+/**
+ * The shards a range can touch, newest first: dated shards from the highest
+ * number down, then the undated file when no range leaves it out.
+ */
+function* shardsFor(run: Run, r: Range): Iterable<number> {
+  for (let i = run.shards.length - 1; i >= 0; i--) {
+    const [newest, oldest] = run.shards[i]!;
+    // Lower numbers are older still.
+    if (r.since !== undefined && cmpStr(newest, r.since) < 0) return;
+    if (r.until !== undefined && cmpStr(oldest, r.until) > 0) continue;
+    yield i;
+  }
+  if (run.undated > 0 && r.since === undefined && r.until === undefined) yield UNDATED;
 }
 
 /** A search hit from the views: its snippet is made from a few bytes of its pack. */
@@ -184,17 +191,14 @@ export class ViewsStore implements Store {
   async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry> {
     const v = await this.views(h, p);
     if (!v) return yield* this.raw.records(h, p, kind, filter, detailed);
-    const spans = v.records[kind] ?? [];
+    const run = v.records[kind] ?? { shards: [], undated: 0 };
     let only: Set<number> | null = null;
     if (filter.name !== undefined) {
       const names = await this.need<NameRow[]>(paths.names(p.id, kind));
       only = new Set(names.filter(([c, d, cd]) => nameMatches(c, d, cd, filter.name!)).flatMap((n) => n[3]));
     }
-    for (let i = 0; i < spans.length; i++) {
-      const s = spans[i]!;
-      // Shards run newest first: past the range's start, every later one is older still.
-      if (filter.range.since !== undefined && s[0] !== null && cmpStr(s[0], filter.range.since) < 0) break;
-      if ((only && !only.has(i)) || !overlaps(s, filter.range)) continue;
+    for (const i of shardsFor(run, filter.range)) {
+      if (only && !only.has(i)) continue;
       const shard = (await this.need<SlimRecord[]>(paths.records(p.id, kind, i))) as RecordEntry[];
       const pass = shard.filter((r) => passes(r, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
@@ -244,10 +248,7 @@ export class ViewsStore implements Store {
     const folder = this.folder;
     const need = this.need.bind(this);
     async function* fromViews(): AsyncIterable<Event> {
-      for (let i = 0; i < v!.timeline.length; i++) {
-        const s = v!.timeline[i]!;
-        if (range.since !== undefined && s[0] !== null && cmpStr(s[0], range.since) < 0) break;
-        if (!overlaps(s, range)) continue;
+      for (const i of shardsFor(v!.timeline, range)) {
         for (const e of await need<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))) {
           if (holds(range, e.date)) yield { ...e, person: p.id, person_name: p.name };
         }
@@ -351,15 +352,16 @@ export class ViewsStore implements Store {
     const all = terms.length;
     const isHit = (ord: number) => matched > 0 && terms_[ord] === all;
 
-    // The best `want` by score, then item number: medrec's order, as the numbers follow date and the files.
+    // The best `want` by score, then item number, highest first: medrec's order, as the numbers run
+    // oldest to newest. Keys sort ascending: -(score, then number).
     const keys: number[] = [];
-    if (matched > 0) for (let ord = lo; ord < hi; ord++) if (terms_[ord] === all) keys.push(-scores[ord]! * 2 ** 26 + ord);
+    if (matched > 0) for (let ord = lo; ord < hi; ord++) if (terms_[ord] === all) keys.push(-(scores[ord]! * 2 ** 26 + ord));
     const best = Float64Array.from(keys).sort().subarray(0, want);
     const hay = paths.hay(p.id);
     type Ranked = { c: ViewsCandidate; seq: number };
     const ranked: Ranked[] = [];
     best.forEach((key, seq) => {
-      const ord = key - Math.floor(key / 2 ** 26) * 2 ** 26;
+      const ord = -key % 2 ** 26;
       const [date, kind, id, title] = items.meta(ord);
       const [start, end] = items.text(ord);
       const c: ViewsCandidate = { kind, id, date: date ?? undefined, title, score: scores[ord]!, hay: { path: hay, start, bytes: end - start, at: firstAt[ord]! }, snippet: () => this.snippet(c) };
@@ -381,12 +383,13 @@ export class ViewsStore implements Store {
     ranked.sort((a, b) => b.c.score - a.c.score || cmpOpt(b.c.date, a.c.date) || a.seq - b.seq);
     const out = ranked.slice(0, want).map((r) => r.c);
 
-    // A lab query's finds by kind score 0: after every text hit, by item number.
-    for (let i = 0; labs && out.length < want && i < v.search.labs; i++) {
-      for (const [ord, date, kind, id, title, snippet] of await this.need<LabRow[]>(paths.labs(p.id, i))) {
+    // A lab query's finds by kind score 0: after every text hit, highest item number first.
+    for (let i = v.search.labs - 1; labs && out.length < want && i >= 0; i--) {
+      const rows = await this.need<LabRow[]>(paths.labs(p.id, i));
+      for (let j = rows.length - 1; j >= 0 && out.length < want; j--) {
+        const [ord, date, kind, id, title, snippet] = rows[j]!;
         if (isHit(ord) || !holds(range, date)) continue;
         out.push({ kind, id, date: date ?? undefined, title, score: 0, snippet: async () => snippet });
-        if (out.length >= want) break;
       }
     }
     return out;
@@ -442,7 +445,8 @@ interface Items {
 
 /**
  * The item numbers whose dates the range holds, as [first, after last]: the
- * numbers run newest first with undated items last, so they are one run.
+ * numbers run oldest first with undated items before every dated one, so
+ * they are one run.
  */
 function runOf(items: Items, r: Range): [number, number] {
   if (r.since === undefined && r.until === undefined) return [0, items.n];
@@ -458,13 +462,13 @@ function runOf(items: Items, r: Range): [number, number] {
     }
     return a;
   };
-  const lo = r.until === undefined ? 0 : from((i) => {
+  const lo = from((i) => {
     const d = dayOf(i);
-    return d === undefined || cmpStr(d, r.until!) <= 0;
+    return d !== undefined && (r.since === undefined || cmpStr(d, r.since) >= 0);
   });
-  const hi = from((i) => {
+  const hi = r.until === undefined ? items.n : from((i) => {
     const d = dayOf(i);
-    return d === undefined || (r.since !== undefined && cmpStr(d, r.since) < 0);
+    return d !== undefined && cmpStr(d, r.until!) > 0;
   });
   return [lo, Math.max(lo, hi)];
 }

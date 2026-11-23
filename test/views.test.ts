@@ -2,7 +2,8 @@
 // views that no longer match the records: a small person's files are read
 // whole instead, and a large person gets an error that says why.
 
-import { appendFileSync, cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { appendFileSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -11,7 +12,8 @@ import { DriveSource, SUBREQUESTS } from '../src/records/drive-source';
 import { Folder, ParsedCache } from '../src/records/folder';
 import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
-import { VIEWS_INDEX, paths } from '../src/views/format';
+import { VIEWS_INDEX, hex, paths, prefixOf } from '../src/views/format';
+import { fold } from '../src/records/text';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
@@ -199,5 +201,37 @@ describe('planning byte ranges', () => {
     expect(plan(wanted, 4)).toEqual({ a: wanted.a, b: [[0, 30_010]] });
     expect(plan(wanted, 3)).toEqual({ a: [[0, 50_010], [400_000, 400_010]], b: [[0, 30_010]] });
     expect(plan(wanted, 0)).toEqual({ a: [[0, 400_010]], b: [[0, 30_010]] });
+  });
+});
+
+describe('rewriting the views after a new record', () => {
+  it('changes only the newest shards and the search shards of its words', () => {
+    const root = copy(large, 'large-append');
+    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string; folder: string }[] };
+    const robin = household.people.find((p) => p.name === 'Robin Example')!;
+    const dir = join(root, 'views', robin.id);
+    const snapshot = () => new Map(readdirSync(dir).map((f) => [f, createHash('md5').update(readFileSync(join(dir, f))).digest('hex')]));
+    const before = snapshot();
+    const at = join(root, robin.folder, 'index.json');
+    const index = JSON.parse(readFileSync(at, 'utf8'));
+    const record = { id: 'rec_appended_test_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } };
+    index.records.push(record);
+    writeFileSync(at, JSON.stringify(index));
+    writeViewsAt(root);
+    const after = snapshot();
+    const changed = [...after].filter(([f, m]) => before.get(f) !== m).map(([f]) => f);
+    const words = fold('Zinc\nQuixotic').split(' ');
+    const allowed = new Set(words.flatMap((w) => [`search-${hex(prefixOf(w))}.json`, `search-1-${hex(prefixOf(w, 1))}.json`]));
+    const shardsOf = (prefix: string) => [...after.keys()].filter((f) => f.startsWith(prefix) && /-\d+\.json$/.test(f)).map((f) => Number(/-(\d+)\.json$/.exec(f)![1]));
+    const newest = (prefix: string) => Math.max(...shardsOf(prefix));
+    for (const f of changed) {
+      if (f.startsWith('search-') && f.endsWith('.json') && !f.startsWith('search-labs-')) expect(allowed.has(f), f).toBe(true);
+      else if (f.startsWith('records-result-')) expect(Number(/-(\d+)\.json$/.exec(f)![1]), f).toBeGreaterThanOrEqual(newest('records-result-') - 1);
+      else if (f.startsWith('timeline-')) expect(Number(/-(\d+)\.json$/.exec(f)![1]), f).toBeGreaterThanOrEqual(newest('timeline-') - 1);
+      else expect(['summary.json', 'names-result.json', 'tests.json', 'search-items.bin', 'search-hay.bin', 'documents.json', f.startsWith('search-labs-') ? f : ''], f).toContain(f);
+    }
+    // Of hundreds of views, a few dozen at most.
+    expect(changed.length).toBeLessThan(20);
+    expect(after.size).toBeGreaterThan(200);
   });
 });

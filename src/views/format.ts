@@ -18,9 +18,10 @@
 //   views/<person id>/search-hay.bin       each searchable item's text, UTF-8, for snippets
 //   views/<person id>/search-labs-<n>.json what a lab query finds by kind
 //
-// Search items are numbered in medrec's order for hits of equal score: date,
-// newest first (undated last), then as the files hold them. So hits rank by
-// score, then number, and a date range is a run of numbers.
+// Search items are numbered in the reverse of medrec's order for hits of
+// equal score (date, newest first, undated last, then as the files hold
+// them). So hits rank by score, then number, highest first; a date range is
+// a run of numbers; and new items, nearly always the newest, take new numbers.
 
 import type { Bill, Listed, ResultRow, SourceRow, SummaryLine, Vaccine } from '../records/views';
 import type { Coding, DocumentEntry, Json, JsonObject } from '../records/model';
@@ -34,8 +35,17 @@ export const SHARD_BYTES = 48_000;
 export const PACK_BYTES = 1_000_000;
 export const LAB_CHUNK = 256;
 
-/** A shard's span: its newest and oldest day (null when undated), and how many it holds. */
-export type Span = [newest: string | null, oldest: string | null, count: number];
+/** A shard's span: its newest and oldest day, and how many it holds. */
+export type Span = [newest: string, oldest: string, count: number];
+
+/** A list's dated shards by number (0 the oldest), and how many undated items its undated file holds. */
+export interface Run {
+  shards: Span[];
+  undated: number;
+}
+
+/** The shard number that names the undated file (`records-<kind>-undated.json`, `timeline-undated.json`). */
+export const UNDATED = -1;
 
 export interface ViewsIndex {
   schema: string;
@@ -51,9 +61,9 @@ export interface PersonViews {
   text: string | null;
   /** The person's counts for medrec_summary's people list (notes are counted live). */
   row: { documents: number; records: number; studies: number; newest?: string; last_import?: string };
-  /** Each record kind's shards, newest first. */
-  records: Record<string, Span[]>;
-  timeline: Span[];
+  /** Each record kind's shards. */
+  records: Record<string, Run>;
+  timeline: Run;
   /** How many text packs. */
   text_packs: number;
   /** The search shards there are, by hex prefix: two characters (or a one-character word), and one character. */
@@ -86,13 +96,13 @@ export interface SlimRecord {
   provenance?: { source: JsonObject }[];
 }
 
-/** A name records of one kind carry (code, display, code display) and the shards holding them. */
+/** A name records of one kind carry (code, display, code display) and the shards holding them (UNDATED for the undated file). */
 export type NameRow = [code: string | null, display: string, codeDisplay: string | null, shards: number[]];
 
 export interface TestSeries {
   /** Each name the series' results carry. */
   names: [code: string | null, display: string, codeDisplay: string | null][];
-  /** Each result, newest first: its date, name, shard and place in it, and rank among all the person's results newest first. */
+  /** Each result, newest first: its date, name, shard (UNDATED for the undated file) and place in it, and rank among all the person's results newest first. */
   entries: [date: string | null, name: number, shard: number, pos: number, rank: number][];
 }
 
@@ -121,7 +131,7 @@ export type SearchShard = Record<string, number[]>;
 export const ITEMS_HEADER = (n: number) => 4 * (1 + 2 * (n + 1));
 export type ItemMeta = [date: string | null, kind: string, id: string, title: string];
 
-/** A lab query's finds by kind, by item number (newest first): item number, date, kind, id, title, snippet. */
+/** A lab query's finds by kind, by item number (oldest first): item number, date, kind, id, title, snippet. */
 export type LabRow = [ord: number, date: string | null, kind: string, id: string, title: string, snippet: string];
 
 /** The word's first `n` characters (code points). */
@@ -144,10 +154,10 @@ export function hex(s: string): string {
 
 export const paths = {
   summary: (pid: string) => `${VIEWS_DIR}/${pid}/summary.json`,
-  records: (pid: string, kind: string, n: number) => `${VIEWS_DIR}/${pid}/records-${kind}-${n}.json`,
+  records: (pid: string, kind: string, n: number) => `${VIEWS_DIR}/${pid}/records-${kind}-${n === UNDATED ? 'undated' : n}.json`,
   names: (pid: string, kind: string) => `${VIEWS_DIR}/${pid}/names-${kind}.json`,
   tests: (pid: string) => `${VIEWS_DIR}/${pid}/tests.json`,
-  timeline: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/timeline-${n}.json`,
+  timeline: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/timeline-${n === UNDATED ? 'undated' : n}.json`,
   documents: (pid: string) => `${VIEWS_DIR}/${pid}/documents.json`,
   text: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/text-${n}.bin`,
   search: (pid: string, prefixHex: string) => `${VIEWS_DIR}/${pid}/search-${prefixHex}.json`,

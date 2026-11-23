@@ -26,7 +26,9 @@ import {
   type ItemMeta,
   type SearchShard,
   type SlimRecord,
+  type Run,
   type Span,
+  UNDATED,
   type SummaryView,
   type TestSeries,
   type ViewsIndex,
@@ -77,7 +79,41 @@ function cut<T>(items: T[], size: (x: T) => number, target: number, group: (x: T
   return out;
 }
 
-const span = <T>(xs: T[], date: (x: T) => string | null | undefined): Span => [day(date(xs[0]!)) ?? null, day(date(xs[xs.length - 1]!)) ?? null, xs.length];
+const span = <T>(xs: T[], date: (x: T) => string | null | undefined): Span => [day(date(xs[0]!))!, day(date(xs[xs.length - 1]!))!, xs.length];
+
+/**
+ * A list in newest-first order cut into shards from its oldest end: shard 0
+ * is the oldest, and only the newest shard grows as newer items come. A
+ * shard closes once it holds SHARD_BYTES, never inside a day, and keeps its
+ * items newest first. Undated items, last in the list, go apart.
+ */
+function cutFromOldest<T>(list: T[], dayOf: (x: T) => string | undefined, size: (x: T) => number): { shards: T[][]; undated: T[] } {
+  const firstUndated = list.findIndex((x) => dayOf(x) === undefined);
+  const dated = firstUndated === -1 ? list : list.slice(0, firstUndated);
+  const undated = firstUndated === -1 ? [] : list.slice(firstUndated);
+  // Days, oldest first, each one's items in the list's order.
+  const days: T[][] = [];
+  for (const x of dated) {
+    const last = days[days.length - 1];
+    if (last && dayOf(last[0]!) === dayOf(x)) last.push(x);
+    else days.push([x]);
+  }
+  days.reverse();
+  const shards: T[][] = [];
+  let run: T[][] = [];
+  let bytes = 0;
+  for (const d of days) {
+    run.push(d);
+    bytes += d.reduce((t, x) => t + size(x), 0);
+    if (bytes >= SHARD_BYTES) {
+      shards.push(run.reverse().flat());
+      run = [];
+      bytes = 0;
+    }
+  }
+  if (run.length > 0) shards.push(run.reverse().flat());
+  return { shards, undated };
+}
 
 function slim(r: RecordEntry): SlimRecord {
   const s: SlimRecord = { id: r.id, kind: r.kind, display: r.display };
@@ -156,23 +192,29 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
 
   // ---- records of each kind ----
   const kinds = [...new Set(records.map((r) => r.kind))].sort();
-  const spans: Record<string, Span[]> = {};
+  const spans: Record<string, Run> = {};
   const where = new Map<RecordEntry, [shard: number, pos: number]>();
   for (const kind of kinds) {
     const list = records.filter((r) => r.kind === kind).sort(recordOrder(false));
-    const shards = cut(list, (r) => json(slim(r)).length, SHARD_BYTES, (r) => day(r.date) ?? '\u0000none');
-    spans[kind] = shards.map((sh) => span(sh, (r) => r.date));
+    const { shards, undated } = cutFromOldest(list, (r) => day(r.date), (r) => json(slim(r)).length);
+    spans[kind] = { shards: shards.map((sh) => span(sh, (r) => r.date)), undated: undated.length };
     const names = new Map<string, NameRow>();
-    shards.forEach((sh, i) => {
-      out.set(paths.records(pid, kind, i), json(sh.map(slim)));
+    const place = (sh: RecordEntry[], i: number) =>
       sh.forEach((r, pos) => {
         where.set(r, [i, pos]);
         const n: NameRow = [r.code?.code ?? null, r.display, r.code?.display ?? null, []];
         const key = json(n.slice(0, 3));
         const held = names.get(key) ?? (names.set(key, n), n);
-        if (held[3][held[3].length - 1] !== i) held[3].push(i);
+        if (!held[3].includes(i)) held[3].push(i);
       });
+    shards.forEach((sh, i) => {
+      out.set(paths.records(pid, kind, i), json(sh.map(slim)));
+      place(sh, i);
     });
+    if (undated.length > 0) {
+      out.set(paths.records(pid, kind, UNDATED), json(undated.map(slim)));
+      place(undated, UNDATED);
+    }
     out.set(paths.names(pid, kind), json([...names.values()]));
   }
 
@@ -193,8 +235,9 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   // ---- timeline: documents, records and studies (notes are read live) ----
   const events = timelineEvents(h, p, idx, [], {}).sort(eventOrder);
   const strip = ({ person: _p, person_name: _n, ...e }: Event) => e;
-  const tshards = cut(events, (e) => json(strip(e)).length, SHARD_BYTES, (e) => day(e.date) ?? '\u0000none');
-  tshards.forEach((sh, i) => out.set(paths.timeline(pid, i), json(sh.map(strip))));
+  const timeline = cutFromOldest(events, (e) => day(e.date), (e) => json(strip(e)).length);
+  timeline.shards.forEach((sh, i) => out.set(paths.timeline(pid, i), json(sh.map(strip))));
+  if (timeline.undated.length > 0) out.set(paths.timeline(pid, UNDATED), json(timeline.undated.map(strip)));
 
   // ---- documents and their text ----
   const docs = idx.documents ?? [];
@@ -218,8 +261,12 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
 
   // ---- search ----
   const listed = searchables(idx, texts, []);
-  // medrec's order for hits of equal score: date, newest first, then as the files hold them.
-  const order = listed.map((_, i) => i).sort((a, b) => cmpOpt(listed[b]!.date, listed[a]!.date) || a - b);
+  // Numbered in the reverse of medrec's order for hits of equal score (date, newest first, then as the
+  // files hold them): the newest item has the highest number, so new items take new numbers.
+  const order = listed
+    .map((_, i) => i)
+    .sort((a, b) => cmpOpt(listed[b]!.date, listed[a]!.date) || a - b)
+    .reverse();
   const items = order.map((i) => listed[i]!);
   const hays = items.map((it) => it.hay(idx, texts, []));
   const hayBytes = hays.map((h) => encoder.encode(h));
@@ -283,7 +330,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
       ...(row.last_import !== undefined ? { last_import: row.last_import } : {}),
     },
     records: spans,
-    timeline: tshards.map((sh) => span(sh, (e) => e.date)),
+    timeline: { shards: timeline.shards.map((sh) => span(sh, (e) => e.date)), undated: timeline.undated.length },
     text_packs: new Set(textAt.map((a) => a[0])).size,
     search: { prefixes, firsts: firstKeys, items: n, labs: labChunks.length },
   };

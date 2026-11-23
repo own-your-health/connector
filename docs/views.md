@@ -32,9 +32,11 @@ above is an example; use whatever command your writer has.
 views/views.json                          what was written, and from what
 views/<person id>/summary.json
 views/<person id>/records-<kind>-<n>.json
+views/<person id>/records-<kind>-undated.json
 views/<person id>/names-<kind>.json
 views/<person id>/tests.json
 views/<person id>/timeline-<n>.json
+views/<person id>/timeline-undated.json
 views/<person id>/documents.json
 views/<person id>/text-<n>.bin
 views/<person id>/search-<hex>.json
@@ -86,7 +88,7 @@ person who left `household.json`.
 |---|---|
 | `index`, `text` | the MD5s above |
 | `row` | `documents`, `records`, `studies`, and `newest` and `last_import` when there are any: the person's line in `medrec_summary`'s people list, without `notes` |
-| `records` | for each record kind, its shards as `[newest day, oldest day, count]`, newest first; a day is `null` for undated records |
+| `records` | for each record kind, `{"shards": [[newest day, oldest day, count], …], "undated": count}`: its dated shards by number, and how many records its undated file holds |
 | `timeline` | the timeline's shards, the same way |
 | `text_packs` | how many `text-<n>.bin` |
 | `search` | `prefixes` and `firsts` (the hex keys of the search shards written), `items` (how many search items), `labs` (how many `search-labs-<n>.json`) |
@@ -103,16 +105,28 @@ Every record keeps its `index.json` fields `id`, `kind`, `date`, `code`,
 `display`, `status` and `fields` as they are, when present. `provenance` is
 cut to its first entry's `source`, keeping only `fhir_base` and `cli`.
 
-A shard closes once it holds 48,000 bytes or more, but never between two
-records of the same day. All undated records count as one day. So a shard's
-span tells a reader whether a date range can touch it.
+Shards are cut from the **oldest** end. `records-<kind>-0.json` holds the
+oldest days. A shard closes once it holds 48,000 bytes or more, never inside
+a day. The highest-numbered shard is the newest, and the only one still
+filling. Inside a shard, records stay in the concise order, newest first. A
+reader picks shards by their spans and reads them from the highest number
+down.
+
+New records are nearly always the newest, so a pass that adds a few touches
+only the newest shard, or starts the next one. Backfilled history reshapes
+more, which is rare.
+
+Undated records go in `records-<kind>-undated.json`, in the same order,
+outside the numbered run. They come after every dated record, and a date
+range leaves them out.
 
 ## `names-<kind>.json`
 
 Every distinct name the kind's records carry, as
 `[code, display, code display, [shard numbers]]`. `code` and `code display`
-are `code.code` and `code.display`, or `null`. A reader filtering by name
-opens only the shards a matching name is in.
+are `code.code` and `code.display`, or `null`. Shard `-1` is the undated
+file. A reader filtering by name opens only the shards a matching name is
+in.
 
 ## `tests.json`
 
@@ -125,7 +139,8 @@ Each test series (records of kind `result` with one `seriesKey`: the code's
 ```
 
 `entries` lists every result of the series, newest first.
-- `shard` and `place` locate the record in `records-result-<shard>.json`.
+- `shard` and `place` locate the record in `records-result-<shard>.json`
+  (`-1`: `records-result-undated.json`).
 - `rank` is the result's place among all the person's results, newest first,
   stable over `index.json`'s order.
 
@@ -141,7 +156,8 @@ The order is newest first by full date, then:
 - then the full title,
 - then documents, records and studies in their `index.json` order.
 
-Shards are cut as record shards are.
+Shards are cut as record shards are: from the oldest end, with undated
+events in `timeline-undated.json`.
 
 ## `summary.json`
 
@@ -175,10 +191,16 @@ Search items are what `medrec_search` searches, notes aside:
 These are the same strings medrec searches. `src/records/views.ts`
 `searchables` spells them out.
 
-**Item numbers** follow medrec's order for hits of equal score: date, newest
-first by the full date string, then documents, records and studies in their
-`index.json` order. So hits rank by score, then item number. Every date range
-is also one run of numbers.
+**Item numbers** run in the reverse of medrec's order for hits of equal
+score. medrec's order is: date, newest first by the full date string, undated
+last, then documents, records and studies in their `index.json` order.
+Reversed, undated items take the lowest numbers, then dated items follow from
+the oldest. The highest number is the newest. Within one date, later
+`index.json` entries get lower numbers.
+
+Hits rank by score, then by item number, highest first. Every date range is
+one run of numbers. A new item, nearly always the newest, takes a new number,
+and only the shards of its own words change.
 
 ### `search-<hex>.json` and `search-1-<hex>.json`
 
@@ -217,4 +239,5 @@ For the lab queries (`blood test`, `blood tests`, `bloodwork`, `blood work`,
 every lab record by its kind, with score 0.
 These are results, reports, and claims with a lab line. Each row is
 `[item, date, kind, id, title, snippet]`, where `snippet` is the record's
-detail line. Rows are in item order, 256 to a file.
+detail line. Rows are by item number, lowest first, 256 to a file. A reader
+reads them from the last file back.
