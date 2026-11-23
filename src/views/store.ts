@@ -32,6 +32,7 @@ import {
 } from '../records/views';
 import {
   VIEWS_DIR,
+  viewName,
   VIEWS_INDEX,
   VIEWS_SCHEMA,
   hex,
@@ -80,7 +81,54 @@ function* shardsFor(run: Run, r: Range): Iterable<number> {
 
 /** A search hit from the views: its snippet is made from a few bytes of its pack. */
 interface ViewsCandidate extends Candidate {
-  hay?: { path: string; start: number; bytes: number; at: number };
+  hay?: { path: string; start: number; bytes: number; at: number; reader: PersonReader };
+}
+
+/**
+ * One person's views, each read checked against the MD5 views.json gives
+ * it. A view that is missing, or from another pass still arriving, is
+ * refused. The survey has every view's MD5, so a check costs no request.
+ */
+class PersonReader {
+  constructor(
+    private readonly folder: Folder,
+    readonly p: Person,
+    readonly v: PersonViews,
+  ) {}
+
+  /** Whether the views include this file. */
+  has(path: string): boolean {
+    const name = viewName(this.p.id, path);
+    return name !== undefined && this.v.files[name] !== undefined;
+  }
+
+  async check(path: string): Promise<void> {
+    const name = viewName(this.p.id, path);
+    const want = name === undefined ? undefined : this.v.files[name];
+    const [got] = await this.folder.md5([path]);
+    if (want === undefined || got !== want) throw preparing(this.p);
+  }
+
+  async json<T>(path: string): Promise<T> {
+    await this.check(path);
+    const x = await this.folder.parsed<T>(path);
+    if (x === null) throw preparing(this.p);
+    return x;
+  }
+
+  async binary(path: string): Promise<Uint8Array> {
+    await this.check(path);
+    const b = await this.folder.binary(path);
+    if (!b) throw preparing(this.p);
+    return b;
+  }
+
+  async bytes(path: string, start: number, end: number): Promise<Uint8Array> {
+    await this.check(path);
+    const b = await this.folder.bytes(path, start, end);
+    if (!b || b.length !== end - start) throw preparing(this.p);
+    return b;
+  }
 }
 
 export class ViewsStore implements Store {
@@ -126,44 +174,24 @@ export class ViewsStore implements Store {
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */
-  private async views(h: Household, p: Person): Promise<PersonViews | null> {
+  private async views(h: Household, p: Person): Promise<PersonReader | null> {
     const st = await this.state(h);
-    if (st.fresh.has(p.id)) return st.index!.people[p.id]!;
+    if (st.fresh.has(p.id)) return new PersonReader(this.folder, p, st.index!.people[p.id]!);
     const sizes = await Promise.all([this.folder.size(`${p.folder}/index.json`), this.folder.size(`${p.folder}/text.json`)]);
     if ((sizes[0] ?? 0) + (sizes[1] ?? 0) <= RAW_LIMIT) return null;
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads, and they are too large to read here without it`).withFix(
         "Tell the user the connector needs updating: its README's Updating section has the steps",
-      );
+      ).personUnavailable(p.id);
     }
     if (!st.index?.people[p.id]) {
       throw ToolError.upstream(`medrec has not prepared ${p.name}'s records for assistants, and they are too large to read here until it does`).withFix(
         "Tell the user medrec 0.8.0 or later prepares them on its next pass on the household's computer (medrec refresh), then ask again",
-      );
+      ).personUnavailable(p.id);
     }
     throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared them for assistants, and are too large to read here until it does`).withFix(
       "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
-    );
-  }
-
-  /**
-   * Refuses a view that is not the one views.json names: missing, or from
-   * another pass that is still arriving. The survey has every view's MD5, so
-   * this costs no request.
-   */
-  private async check(path: string): Promise<void> {
-    const st = await this.state_!;
-    const [, pid, name] = path.split('/');
-    const want = st.index?.people[pid!]?.files[name!];
-    const [got] = await this.folder.md5([path]);
-    if (want === undefined || got !== want) throw preparing();
-  }
-
-  private async need<T>(path: string): Promise<T> {
-    await this.check(path);
-    const v = await this.folder.parsed<T>(path);
-    if (v === null) throw preparing();
-    return v;
+    ).personUnavailable(p.id);
   }
 
   private row(p: Person, v: PersonViews, notes: number): PersonRow {
@@ -190,11 +218,14 @@ export class ViewsStore implements Store {
   async people(h: Household): Promise<PersonRow[]> {
     return Promise.all(
       h.people.map(async (p) => {
-        const v = await this.views(h, p).catch(async (e: unknown) => {
-          const last = (await this.state(h)).index?.people[p.id];
-          if (last) return last;
-          throw e;
-        });
+        const v = await this.views(h, p).then(
+          (r) => r?.v ?? null,
+          async (e: unknown) => {
+            const last = e instanceof ToolError && e.unavailable ? (await this.state(h)).index?.people[p.id] : undefined;
+            if (last) return last;
+            throw e;
+          },
+        );
         if (!v) return (await this.raw.people({ ...h, people: [p] }))[0]!;
         return this.row(p, v, (await this.folder.notes(p)).length);
       }),
@@ -202,30 +233,30 @@ export class ViewsStore implements Store {
   }
 
   async summary(h: Household, p: Person, today: string, perList: number): Promise<Summary> {
-    const v = await this.views(h, p);
-    if (!v || perList !== SUMMARY_LINES) return this.raw.summary(h, p, today, perList);
-    const s = await this.need<SummaryView>(paths.summary(p.id));
+    const r = await this.views(h, p);
+    if (!r || perList !== SUMMARY_LINES) return this.raw.summary(h, p, today, perList);
+    const s = await r.json<SummaryView>(paths.summary(p.id));
     return {
       ...s,
-      person: this.row(p, v, (await this.folder.notes(p)).length),
+      person: this.row(p, r.v, (await this.folder.notes(p)).length),
       as_of: today,
       bills: { items: s.bills.items.map((b) => ({ ...b, past_due: b.due_date !== undefined && b.due_date !== null && cmpStr(b.due_date, today) < 0 })), more: s.bills.more },
     };
   }
 
   async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry> {
-    const v = await this.views(h, p);
-    if (!v) return yield* this.raw.records(h, p, kind, filter, detailed);
-    const run = v.records[kind] ?? { shards: [], undated: 0 };
+    const r = await this.views(h, p);
+    if (!r) return yield* this.raw.records(h, p, kind, filter, detailed);
+    const run = r.v.records[kind] ?? { shards: [], undated: 0 };
     let only: Set<number> | null = null;
     if (filter.name !== undefined) {
-      const names = await this.need<NameRow[]>(paths.names(p.id, kind));
+      const names = await r.json<NameRow[]>(paths.names(p.id, kind));
       only = new Set(names.filter(([c, d, cd]) => nameMatches(c, d, cd, filter.name!)).flatMap((n) => n[3]));
     }
     for (const i of shardsFor(run, filter.range)) {
       if (only && !only.has(i)) continue;
-      const shard = (await this.need<SlimRecord[]>(paths.records(p.id, kind, i))) as RecordEntry[];
-      const pass = shard.filter((r) => passes(r, kind, filter));
+      const shard = (await r.json<SlimRecord[]>(paths.records(p.id, kind, i))) as RecordEntry[];
+      const pass = shard.filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
       if (detailed) pass.sort(recordOrder(true));
       yield* pass;
@@ -233,9 +264,9 @@ export class ViewsStore implements Store {
   }
 
   async tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]> {
-    const v = await this.views(h, p);
-    if (!v) return this.raw.tests(h, p, filter);
-    const series = await this.need<TestSeries[]>(paths.tests(p.id));
+    const reader = await this.views(h, p);
+    if (!reader) return this.raw.tests(h, p, filter);
+    const series = await reader.json<TestSeries[]>(paths.tests(p.id));
     const rows: { rank: number; shard: number; pos: number; results: number; first?: string }[] = [];
     for (const t of series) {
       let head: TestSeries['entries'][number] | undefined;
@@ -259,22 +290,21 @@ export class ViewsStore implements Store {
     rows.sort((a, b) => a.rank - b.rank);
     const out: ResultRow[] = [];
     for (const r of rows) {
-      const shard = (await this.need<SlimRecord[]>(paths.records(p.id, 'result', r.shard))) as RecordEntry[];
+      const shard = (await reader.json<SlimRecord[]>(paths.records(p.id, 'result', r.shard))) as RecordEntry[];
       const rec = shard[r.pos];
-      if (!rec) throw preparing();
+      if (!rec) throw preparing(p);
       out.push({ ...resultRow(h, rec), results: r.results, first_date: r.first });
     }
     return out;
   }
 
   async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {
-    const v = await this.views(h, p);
-    if (!v) return yield* this.raw.timeline(h, p, range);
+    const r = await this.views(h, p);
+    if (!r) return yield* this.raw.timeline(h, p, range);
     const folder = this.folder;
-    const need = this.need.bind(this);
     async function* fromViews(): AsyncIterable<Event> {
-      for (const i of shardsFor(v!.timeline, range)) {
-        for (const e of await need<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))) {
+      for (const i of shardsFor(r!.v.timeline, range)) {
+        for (const e of await r!.json<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))) {
           if (holds(range, e.date)) yield { ...e, person: p.id, person_name: p.name };
         }
       }
@@ -288,9 +318,9 @@ export class ViewsStore implements Store {
   }
 
   async documents(h: Household, p: Person): Promise<DocumentEntry[]> {
-    const v = await this.views(h, p);
-    if (!v) return this.raw.documents(h, p);
-    return this.need<DocumentView[]>(paths.documents(p.id));
+    const r = await this.views(h, p);
+    if (!r) return this.raw.documents(h, p);
+    return r.json<DocumentView[]>(paths.documents(p.id));
   }
 
   /**
@@ -305,7 +335,7 @@ export class ViewsStore implements Store {
       try {
         docs = await this.documents(h, p);
       } catch (e) {
-        if (!(e instanceof ToolError)) throw e;
+        if (!(e instanceof ToolError && e.unavailable === p.id)) throw e;
         unreadable ??= e;
         continue;
       }
@@ -321,33 +351,26 @@ export class ViewsStore implements Store {
   }
 
   async documentText(h: Household, p: Person, d: DocumentEntry): Promise<string> {
-    const v = await this.views(h, p);
-    if (!v) return this.raw.documentText(h, p, d);
+    const r = await this.views(h, p);
+    if (!r) return this.raw.documentText(h, p, d);
     const at = (d as DocumentView).text_at;
     if (!at) return '';
     const [pack, start, bytes] = at;
-    const path = paths.text(p.id, pack);
-    await this.check(path);
-    const b = await this.folder.bytes(path, start, start + bytes);
-    if (!b || b.length !== bytes) throw preparing();
-    return decoder.decode(b);
+    return decoder.decode(await r.bytes(paths.text(p.id, pack), start, start + bytes));
   }
 
   async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
-    const v = await this.views(h, p);
-    if (!v) return this.raw.documentRecords(h, p, d);
+    if (!(await this.views(h, p))) return this.raw.documentRecords(h, p, d);
     return ((d as DocumentView).linked ?? []).map((n) => clip(n, CLIP));
   }
 
   /** A person's search items (search-items.bin): their count, and each one's text and details. */
-  private async items(p: Person): Promise<Items> {
-    const path = paths.items(p.id);
-    await this.check(path);
-    const b = await this.folder.binary(path);
-    if (!b || b.length < 4) throw preparing();
+  private async items(r: PersonReader): Promise<Items> {
+    const b = await r.binary(paths.items(r.p.id));
+    if (b.length < 4) throw preparing(r.p);
     const view = new DataView(b.buffer, b.byteOffset, b.byteLength);
     const n = view.getUint32(0, true);
-    if (b.length < ITEMS_HEADER(n)) throw preparing();
+    if (b.length < ITEMS_HEADER(n)) throw preparing(r.p);
     const base = ITEMS_HEADER(n);
     const text = (i: number) => view.getUint32(4 * (1 + i), true);
     const metaAt = (i: number) => view.getUint32(4 * (2 + n + i), true);
@@ -359,11 +382,14 @@ export class ViewsStore implements Store {
   }
 
   async search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]> {
-    const v = await this.views(h, p);
-    if (!v) return this.raw.search(h, p, terms, range, want);
+    const r = await this.views(h, p);
+    if (!r) return this.raw.search(h, p, terms, range, want);
     const labs = LAB_QUERIES.includes(terms.join(' '));
+    const hay = paths.hay(p.id);
+    // Refused here rather than at the snippets, so a question about everyone can leave this person out.
+    await r.check(hay);
 
-    const items = await this.items(p);
+    const items = await this.items(r);
     const [lo, hi] = runOf(items, range);
     // Items holding every term, each as a word prefix: occurrences, and the first one's byte.
     const scores = new Float64Array(items.n);
@@ -378,8 +404,8 @@ export class ViewsStore implements Store {
       const at = short ? paths.first(p.id, key) : paths.search(p.id, key);
       matched = 0;
       // No shard: no word starts so.
-      if (v.files[at.slice(at.lastIndexOf('/') + 1)] !== undefined) {
-        const shard = await this.need<SearchShard>(at);
+      if (r.has(at)) {
+        const shard = await r.json<SearchShard>(at);
         for (const w in shard) {
           if (!w.startsWith(t)) continue;
           const list = shard[w]!;
@@ -406,14 +432,13 @@ export class ViewsStore implements Store {
     const keys: number[] = [];
     if (matched > 0) for (let ord = lo; ord < hi; ord++) if (terms_[ord] === all) keys.push(-(scores[ord]! * 2 ** 26 + ord));
     const best = Float64Array.from(keys).sort().subarray(0, want);
-    const hay = paths.hay(p.id);
     type Ranked = { c: ViewsCandidate; seq: number };
     const ranked: Ranked[] = [];
     best.forEach((key, seq) => {
       const ord = -key % 2 ** 26;
       const [date, kind, id, title] = items.meta(ord);
       const [start, end] = items.text(ord);
-      const c: ViewsCandidate = { kind, id, date: date ?? undefined, title, score: scores[ord]!, hay: { path: hay, start, bytes: end - start, at: firstAt[ord]! }, snippet: () => this.snippet(c) };
+      const c: ViewsCandidate = { kind, id, date: date ?? undefined, title, score: scores[ord]!, hay: { path: hay, start, bytes: end - start, at: firstAt[ord]!, reader: r }, snippet: () => this.snippet(c) };
       ranked.push({ c, seq });
     });
 
@@ -433,8 +458,8 @@ export class ViewsStore implements Store {
     const out = ranked.slice(0, want).map((r) => r.c);
 
     // A lab query's finds by kind score 0: after every text hit, highest item number first.
-    for (let i = v.search.labs - 1; labs && out.length < want && i >= 0; i--) {
-      const rows = await this.need<LabRow[]>(paths.labs(p.id, i));
+    for (let i = r.v.search.labs - 1; labs && out.length < want && i >= 0; i--) {
+      const rows = await r.json<LabRow[]>(paths.labs(p.id, i));
       for (let j = rows.length - 1; j >= 0 && out.length < want; j--) {
         const [ord, date, kind, id, title, snippet] = rows[j]!;
         if (isHit(ord) || !holds(range, date)) continue;
@@ -447,22 +472,18 @@ export class ViewsStore implements Store {
   /** Reads the bytes the hits' snippets need from each person's search-hay.bin: near ones as one range, and as many ranges as the call may still make. */
   async prepare(hits: Candidate[]): Promise<void> {
     const wanted = new Map<string, [number, number][]>();
+    const readers = new Map<string, PersonReader>();
     for (const c of hits as ViewsCandidate[]) {
       if (!c.hay || this.covered(c)) continue;
       const [ws, we] = snippetWindow(c.hay.bytes, c.hay.at);
       const list = wanted.get(c.hay.path) ?? (wanted.set(c.hay.path, []), wanted.get(c.hay.path)!);
       list.push([c.hay.start + ws, c.hay.start + we]);
+      readers.set(c.hay.path, c.hay.reader);
     }
     await Promise.all(
       [...planRanges(wanted, Math.min(this.folder.remaining() - 2, SNIPPET_RANGES))].map(async ([path, spans]) => {
-        await this.check(path);
-        const got = await Promise.all(
-          spans.map(async ([a, b]) => {
-            const bytes = await this.folder.bytes(path, a, b);
-            if (!bytes || bytes.length !== b - a) throw preparing();
-            return { start: a, bytes };
-          }),
-        );
+        const reader = readers.get(path)!;
+        const got = await Promise.all(spans.map(async ([a, b]) => ({ start: a, bytes: await reader.bytes(path, a, b) })));
         this.windows.set(path, [...(this.windows.get(path) ?? []), ...got]);
       }),
     );
@@ -573,9 +594,9 @@ export function planRanges(wanted: Map<string, [number, number][]>, max: number)
   return out;
 }
 
-function preparing(): ToolError {
-  // A view the index names but the folder lacks: medrec is writing them now.
-  return ToolError.upstream('the records are being prepared for assistants right now').withFix('Ask again in a minute');
+function preparing(p: Person): ToolError {
+  // A view missing, or not the one views.json names: medrec's next pass is still arriving.
+  return ToolError.upstream(`${p.name}'s records are being prepared for assistants right now`).withFix('Ask again in a minute').personUnavailable(p.id);
 }
 
 export type { ViewsCandidate };

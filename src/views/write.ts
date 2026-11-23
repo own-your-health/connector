@@ -13,11 +13,11 @@ import {
   LAB_CHUNK,
   PACK_BYTES,
   SHARD_BYTES,
-  VIEWS_DIR,
   VIEWS_INDEX,
   VIEWS_SCHEMA,
   hex,
   paths,
+  viewName,
   prefixOf,
   type DocumentView,
   type LabRow,
@@ -55,9 +55,9 @@ export function writeViews(h: Household, householdBytes: Uint8Array, people: Per
   for (const f of people) {
     const pid = f.person.id;
     const v = writePerson(h, f, out);
-    const dir = `${VIEWS_DIR}/${pid}/`;
     for (const [path, body] of out) {
-      if (path.startsWith(dir)) v.files[path.slice(dir.length)] = md5(typeof body === 'string' ? encoder.encode(body) : body);
+      const name = viewName(pid, path);
+      if (name !== undefined) v.files[name] = md5(typeof body === 'string' ? encoder.encode(body) : body);
     }
     index.people[pid] = v;
   }

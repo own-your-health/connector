@@ -30,6 +30,15 @@ export const VIEWS_DIR = 'views';
 export const VIEWS_SCHEMA = 'medrec-views/v1';
 export const VIEWS_INDEX = `${VIEWS_DIR}/views.json`;
 
+/** A person's views directory, with the trailing slash. */
+export const personDir = (pid: string) => `${VIEWS_DIR}/${pid}/`;
+
+/** The name a path has in its person's `files`, or undefined when it is not one of their views. */
+export function viewName(pid: string, path: string): string | undefined {
+  const dir = personDir(pid);
+  return path.startsWith(dir) && !path.slice(dir.length).includes('/') ? path.slice(dir.length) : undefined;
+}
+
 /** Shards and packs are cut near these sizes; a day's records, or one item's text, are never split. */
 export const SHARD_BYTES = 48_000;
 export const PACK_BYTES = 1_000_000;

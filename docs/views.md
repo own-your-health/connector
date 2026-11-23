@@ -25,7 +25,9 @@ VIEWS_WRITER='medrec views write --folder {folder}' npx vitest run test/golden.t
 The test copies each folder, runs the command with `{folder}` replaced by the
 copy's path, and then answers every call from what it wrote. The command
 above is an example; use whatever command your writer has.
-`npm run views -- <folder>` writes the reference views into a folder on disk.
+`npm run views -- <folder>` writes the reference views into the folder
+holding `household.json`, replacing views it wrote before. Views medrec wrote
+are replaced only with `--force`.
 
 ## Where they are
 

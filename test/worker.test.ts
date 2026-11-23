@@ -211,11 +211,19 @@ describe('connecting', () => {
   });
 
   it('says what is missing when the Worker is not set up', async () => {
-    env.FOLDER_ID = '';
+    env.GOOGLE_CLIENT_SECRET = '';
     const client = (await (await register()).json()) as { client_id: string };
     const { page } = await startConnect(client.client_id);
     expect(page.status).toBe(503);
-    expect(await page.text()).toContain('FOLDER_ID not set');
+    expect(await page.text()).toContain('GOOGLE_CLIENT_SECRET not set');
+  });
+
+  it('connects before the folder is set, and its tools say what is missing', async () => {
+    env.FOLDER_ID = '';
+    const { access_token } = await connected();
+    const call = await mcp(access_token, 'tools/call', { name: 'medrec_summary', arguments: {} });
+    expect(call.body?.result?.isError).toBe(true);
+    expect(JSON.stringify(call.body?.result)).toContain('FOLDER_ID not set');
   });
 });
 

@@ -110,8 +110,57 @@ describe('the views store', () => {
     const summary = await ask(root, 'medrec_summary', { person: 'Sam' });
     expect(summary.r.isError ?? false).toBe(false);
     expect(whole(summary.read)).toEqual([]);
-    const search = await ask(root, 'medrec_search', { query: 'cholesterol' });
-    expect(search.r.content[0]!.text).toMatch(/Robin Example's records changed/);
+    // A question about Robin by name gets the error itself.
+    const named = await ask(root, 'medrec_search', { query: 'cholesterol', person: 'Robin' });
+    expect(named.r.isError).toBe(true);
+    expect(named.r.content[0]!.text).toMatch(/Robin Example's records changed/);
+  });
+
+  it('answers a question about everyone without a person who cannot be read, and says so', async () => {
+    const root = copy(large, 'large-stale-everyone');
+    appendFileSync(join(root, 'Robin Example/index.json'), ' ');
+    type Page = { items: { person: string }[]; warnings?: { code: string; message: string }[] };
+    const calls: [string, Record<string, unknown>][] = [
+      ['medrec_search', { query: 'cholesterol' }],
+      ['medrec_records', { kind: 'results', limit: 50 }],
+      ['medrec_records', { kind: 'tests' }],
+      ['medrec_records', { kind: 'timeline', limit: 50 }],
+      ['medrec_records', { kind: 'documents', limit: 50 }],
+    ];
+    for (const [name, args] of calls) {
+      const { r } = await ask(root, name, args);
+      expect(r.isError ?? false, `${name} ${JSON.stringify(args)}`).toBe(false);
+      const page = r.structuredContent as Page;
+      expect(page.items.length).toBeGreaterThan(0);
+      expect(page.items.some((x) => x.person === 'Robin Example')).toBe(false);
+      expect(page.warnings).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Robin Example's records changed after medrec last prepared them.*; they are missing from this list\. Tell the user/) }]);
+    }
+    // Everyone else's rows are what they would be without Robin.
+    const sam = (await ask(root, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 })).r.structuredContent as Page;
+    expect(sam.warnings).toBeUndefined();
+  });
+
+  it('gives the error when no one in a question about everyone can be read', async () => {
+    const root = copy(large, 'large-stale-all');
+    // Only the two large people, and a changed household.json makes both stale.
+    const at = join(root, 'household.json');
+    const household = JSON.parse(readFileSync(at, 'utf8')) as { people: { name: string }[] };
+    household.people = household.people.filter((p) => p.name === 'Robin Example' || p.name === 'Sam Example');
+    writeFileSync(at, JSON.stringify(household));
+    const { r } = await ask(root, 'medrec_search', { query: 'cholesterol' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/Robin Example's records changed/);
+  });
+
+  it("does not pass over another kind of error while looking for a document", async () => {
+    const root = copy(demo, 'demo-corrupt');
+    // Robin is small, so stale views are read whole, and the file does not parse.
+    writeFileSync(join(root, 'Robin Example/index.json'), '{"schema":');
+    const docs = await raw(demo, 'medrec_records', { kind: 'documents', person: 'Sam', limit: 1 });
+    const id = (docs.structuredContent as { items: { id: string }[] }).items[0]!.id;
+    const { r } = await ask(root, 'medrec_document', { id });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).not.toMatch(/being prepared|changed after medrec/);
   });
 
   it('treats a changed household.json as stale views for everyone', async () => {

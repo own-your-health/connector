@@ -15,6 +15,12 @@ export class ToolError extends Error {
     readonly kind: ErrorKind,
     message: string,
     readonly fix?: string,
+    /**
+     * The person whose records cannot be read right now (their views are
+     * stale, still arriving, or in a newer layout), when that is the whole
+     * of the error. A question about everyone answers without them.
+     */
+    readonly unavailable?: string,
   ) {
     super(message);
     this.name = 'ToolError';
@@ -37,7 +43,12 @@ export class ToolError extends Error {
   }
 
   withFix(fix: string): ToolError {
-    return new ToolError(this.kind, this.message, fix);
+    return new ToolError(this.kind, this.message, fix, this.unavailable);
+  }
+
+  /** This error, as the reason one person's records cannot be read right now. */
+  personUnavailable(personId: string): ToolError {
+    return new ToolError(this.kind, this.message, this.fix, personId);
   }
 
   render(server: ServerInfo): string {

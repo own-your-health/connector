@@ -20,9 +20,12 @@ const list = (v) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map((x) 
 const secrets = {};
 const accounts = list(s.allowed_accounts);
 if (accounts.length === 0 || !accounts.every((a) => /^[^@\s:,]+@[^@\s:,]+\.[^@\s:,]+$/.test(a))) fail('connector.local.json: allowed_accounts must list Google account emails.');
-if (!/^[A-Za-z0-9_-]{10,}$/.test(s.folder_id ?? '')) fail('connector.local.json: folder_id must be a Drive folder id (the part after /folders/ in its link).');
 secrets.ALLOWED_ACCOUNTS = accounts.join(',');
-secrets.FOLDER_ID = s.folder_id;
+// Left out, assistants can connect, and their tool calls say FOLDER_ID is not set.
+if (s.folder_id !== undefined && s.folder_id !== '') {
+  if (!/^[A-Za-z0-9_-]{10,}$/.test(s.folder_id)) fail('connector.local.json: folder_id must be a Drive folder id (the part after /folders/ in its link).');
+  secrets.FOLDER_ID = s.folder_id;
+}
 if (s.time_zone) {
   try {
     new Intl.DateTimeFormat('en', { timeZone: s.time_zone });
@@ -52,4 +55,5 @@ if (arg !== '--settings-only') {
 }
 
 console.log(`Setting ${Object.keys(secrets).join(', ')} on the Worker.`);
+if (!secrets.FOLDER_ID) console.log('No folder_id yet: assistants can connect, and tools answer once it is set (npm run setup -- --settings-only).');
 wrangler(['secret', 'bulk'], { input: JSON.stringify(secrets) });
