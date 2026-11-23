@@ -1,0 +1,1245 @@
+{
+  "about": "The calls scripts/golden.mjs makes of `medrec mcp`, and test/golden.test.ts of this connector, over the same folders. `cursor_from` and `id_from` name an earlier call's label, whose result supplies the argument.",
+  "calls": [
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Sam Example"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "robin q example"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "p_bjpnvyvnmxv74q335tk4"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Jamie"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Example"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "nobody"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "  "
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": null
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "who": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "cholesterol"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "a1c"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Example Health statement"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "blood pressure",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "vaccine",
+        "since": "2025-01-01",
+        "until": "2025-12-31"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "COVID-19"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "recheck"
+      }
+    },
+    {
+      "label": "search-page",
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example",
+        "limit": 3
+      },
+      "cursor_from": "search-page"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "examples",
+        "limit": 3
+      },
+      "cursor_from": "search-page"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example",
+        "cursor": "zz"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example",
+        "cursor": "6331"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "   "
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "--"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "since": "2026-13-01"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "until": "26-01-01"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": 0
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": 201
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": 2.5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": -1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "person": "nobody"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {}
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": 7
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "response_format": "detailed",
+        "limit": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "4548-4"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "cholesterol",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "glucose"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "reports"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "coverage"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills"
+      }
+    },
+    {
+      "label": "documents",
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "doc_type": "bill"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "doc_type": "eob",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "statement"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "doc_type": "xray"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "doc_type": "bill"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "notes"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "notes",
+        "name": "cholesterol"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2026-01-01"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Sam",
+        "until": "2026-06-30"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "visit"
+      }
+    },
+    {
+      "label": "records-page",
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 4
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 4
+      },
+      "cursor_from": "records-page"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 4,
+        "active": true
+      },
+      "cursor_from": "records-page"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 4,
+        "response_format": "detailed"
+      },
+      "cursor_from": "records-page"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "pets"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {}
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "active": "yes"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "response_format": "full"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {},
+      "id_from": {
+        "label": "documents",
+        "item": 0
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {},
+      "id_from": {
+        "label": "documents",
+        "item": 3
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 1
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 2
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 9
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 0
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "offset": 20
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "offset": 100000
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 1,
+        "offset": 3
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_aaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "id": ""
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {}
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_nothing",
+      "arguments": {}
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": true
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": []
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": {}
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": []
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": "Robin"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": null
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": 2.5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": "2"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": true
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": null
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "cursor": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "limit": 4294967296
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "since": "2026-02-31"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "since": "  "
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": true
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": null
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "Medications"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "active": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "response_format": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "response_format": "concise"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "doc_type": "  "
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "id": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": "2"
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": true
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "offset": 1.5
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "offset": -3
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 4294967296
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 2.5
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": -1
+      },
+      "id_from": {
+        "label": "documents",
+        "item": 1
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "page": "2"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "limit": "x"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "limit": 2.5,
+        "kind": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "limit": 2.5,
+        "person": 7
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "response_format": "full",
+        "limit": 2.5,
+        "kind": "results"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab",
+        "person": "Robin",
+        "since": 5,
+        "until": "x"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "large",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Sam"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "cholesterol"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "café zürich",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "血压"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "patient",
+        "limit": 200
+      }
+    },
+    {
+      "label": "large-results",
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 200
+      },
+      "cursor_from": "large-results"
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "limit": 200,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "limit": 100
+      }
+    },
+    {
+      "label": "large-docs",
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Sam",
+        "limit": 40
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_document",
+      "arguments": {},
+      "id_from": {
+        "label": "large-docs",
+        "item": 0
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_document",
+      "arguments": {
+        "page": 3
+      },
+      "id_from": {
+        "label": "large-docs",
+        "item": 0
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_document",
+      "arguments": {
+        "offset": 16000
+      },
+      "id_from": {
+        "label": "large-docs",
+        "item": 0
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_document",
+      "arguments": {},
+      "id_from": {
+        "label": "large-docs",
+        "item": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "blood tests"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Blood-Work",
+        "person": "Robin"
+      }
+    },
+    {
+      "label": "labs-page",
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab results",
+        "limit": 5
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab results",
+        "limit": 5
+      },
+      "cursor_from": "labs-page"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs",
+        "since": "2025-01-01",
+        "until": "2025-12-31"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs blood"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "LABS",
+        "person": "Jamie"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs",
+        "since": "2014-01-01",
+        "until": "2014-12-31",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "bloodwork",
+        "person": "Sam",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "panel",
+        "since": "2014-01-01",
+        "until": "2014-12-31"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "since": "2014-01-01",
+        "until": "2014-12-31",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Sam",
+        "since": "2014-01-01",
+        "until": "2014-12-31",
+        "limit": 50,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "since": "2014-01-01",
+        "until": "2014-12-31"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    }
+  ]
+}

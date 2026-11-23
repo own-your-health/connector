@@ -1,0 +1,24 @@
+{
+  "resourceType": "Condition",
+  "id": "condition-4cb660de",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "clinicalStatus": {
+    "coding": [
+      {
+        "code": "active"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "I10",
+        "display": "Essential (primary) hypertension"
+      }
+    ]
+  },
+  "onsetDateTime": "2025-03-10"
+}

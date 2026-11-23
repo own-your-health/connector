@@ -1,0 +1,16 @@
+{
+  "resourceType": "Encounter",
+  "id": "encounter-021d5d27",
+  "meta": {
+    "lastUpdated": "2026-06-15T08:00:00Z"
+  },
+  "status": "finished",
+  "type": [
+    {
+      "text": "Weight check"
+    }
+  ],
+  "period": {
+    "start": "2026-06-12T15:00:00Z"
+  }
+}

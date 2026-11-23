@@ -1,0 +1,410 @@
+{
+  "schema": "medrec-index/v1",
+  "person": "p_skrlw3od3nik2hkngezu",
+  "rev": 9,
+  "documents": [
+    {
+      "id": "d_qsyl3gzsasuwaysqf7ll",
+      "path": "Jamie Example/Documents/2026/2026-06-03_discharge_summary_example_health_newborn_discharge.pdf",
+      "sha256": "272a1f1b0d65e9e5c6ab593faa5b6737e919e5336df0d31dab0e23d24a69a81d",
+      "md5": "a153ffb47c93732ac5d15b7b464f84c5",
+      "size": 135905,
+      "media_type": "application/pdf",
+      "pages": 2,
+      "original_name": "newborn_discharge.pdf",
+      "title": "Newborn discharge summary",
+      "doc_type": "discharge_summary",
+      "date": "2026-06-03",
+      "organization": "Example Health",
+      "filed_at": "2026-06-15T00:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "name": "newborn_discharge.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 195,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "athena",
+          "cli_version": "0.7.1",
+          "organization_id": "example-pediatrics",
+          "fhir_base": "https://api.example.net/fhir/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "Binary",
+          "id": "binary-472705c5",
+          "last_updated": "2026-06-15T08:00:00Z"
+        },
+        "fetched_at": "2026-06-15T00:00:00Z",
+        "filed_at": "2026-06-15T00:00:00Z",
+        "raw_path": "Jamie Example/Records/athena-example-pediatrics/Binary/binary-472705c5.json",
+        "filed_by": "medrec 0.2.11"
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "r_ikfxlaez63g3jvqu4jco",
+      "kind": "encounter",
+      "key": "encounter|birth hospital stay|2026-06-01",
+      "date": "2026-06-01",
+      "display": "Birth hospital stay",
+      "status": "finished",
+      "fields": {
+        "when": "2026-06-01",
+        "class": "inpatient",
+        "practitioner": "Dr. Riley Placeholder",
+        "location": "Example Health Birth Center",
+        "reason": "Newborn delivery",
+        "period": {
+          "start": "2026-06-01T06:10:00Z",
+          "end": "2026-06-03T15:00:00Z"
+        }
+      },
+      "documents": [
+        "d_qsyl3gzsasuwaysqf7ll"
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-8893406b",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-8893406b.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_qywazm2wjvyx2l43tjyy",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|08|2026-06-01",
+      "date": "2026-06-01",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "08",
+        "display": "Hep B, adolescent or pediatric"
+      },
+      "display": "Hep B, adolescent or pediatric",
+      "status": "completed",
+      "fields": {
+        "when": "2026-06-01",
+        "performer": "Example Health Birth Center",
+        "lot_number": "LOTEAF0",
+        "site": "Right thigh",
+        "route": "Intramuscular"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-6b8975c3",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Immunization/immunization-6b8975c3.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_khohvsabsoaslcpbaal3",
+      "kind": "result",
+      "key": "result|http://loinc.org|29463-7|2026-06-01",
+      "date": "2026-06-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "29463-7",
+        "display": "Body weight"
+      },
+      "display": "Weight",
+      "status": "final",
+      "fields": {
+        "when": "2026-06-01",
+        "value": {
+          "value": 3.42,
+          "unit": "kg"
+        },
+        "category": "Vital signs"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-542702f7",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-542702f7.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_652i26mibiqfp45fkx6e",
+      "kind": "result",
+      "key": "result|http://loinc.org|29463-7|2026-06-05",
+      "date": "2026-06-05",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "29463-7",
+        "display": "Body weight"
+      },
+      "display": "Weight",
+      "status": "final",
+      "fields": {
+        "when": "2026-06-05",
+        "value": {
+          "value": 3.31,
+          "unit": "kg"
+        },
+        "category": "Vital signs"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-40b88a24",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-40b88a24.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_6lizzj53udtnp4yhqh4o",
+      "kind": "result",
+      "key": "result|http://loinc.org|29463-7|2026-06-12",
+      "date": "2026-06-12",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "29463-7",
+        "display": "Body weight"
+      },
+      "display": "Weight",
+      "status": "final",
+      "fields": {
+        "when": "2026-06-12",
+        "value": {
+          "value": 3.55,
+          "unit": "kg"
+        },
+        "category": "Vital signs"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-53eb7cc4",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-53eb7cc4.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_7em4kivx2x3dto2pxlpp",
+      "kind": "result",
+      "key": "result|http://loinc.org|42719-5|2026-06-02",
+      "date": "2026-06-02",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "42719-5",
+        "display": "Bilirubin.total [Mass/volume] in Blood"
+      },
+      "display": "Bilirubin, total",
+      "status": "final",
+      "fields": {
+        "when": "2026-06-02",
+        "value": {
+          "value": 7.2,
+          "unit": "mg/dL"
+        },
+        "reference_range": "1.0-12.0 mg/dL",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-a452f7b3",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-a452f7b3.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_eqzhajxycdlozsk2r4r7",
+      "kind": "encounter",
+      "key": "encounter|newborn visit|2026-06-05",
+      "date": "2026-06-05",
+      "display": "Newborn visit",
+      "status": "finished",
+      "fields": {
+        "when": "2026-06-05",
+        "class": "ambulatory",
+        "practitioner": "Dr. Morgan Placeholder",
+        "location": "Example Pediatrics"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-f694ce41",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-f694ce41.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ef73hxqncna5sfoxputk",
+      "kind": "encounter",
+      "key": "encounter|weight check|2026-06-12",
+      "date": "2026-06-12",
+      "display": "Weight check",
+      "status": "finished",
+      "fields": {
+        "when": "2026-06-12",
+        "class": "ambulatory",
+        "practitioner": "Dr. Morgan Placeholder",
+        "location": "Example Pediatrics"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-021d5d27",
+            "last_updated": "2026-06-15T08:00:00Z"
+          },
+          "fetched_at": "2026-06-15T00:00:00Z",
+          "filed_at": "2026-06-15T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-021d5d27.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    }
+  ],
+  "studies": [],
+  "imports": [
+    {
+      "id": "i_5d6ebjm6qzfuzbvakamh",
+      "source_dir": "Jamie Example/Records/athena-example-pediatrics",
+      "stream_sha256": "a588f4a40d06acb958a756c014b109e0e28fa7095fa8c15b11ca7b2f6f1ee768",
+      "stream_bytes": 861257,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-pediatrics",
+      "patient_id": "pat-35ac49",
+      "pulled_at": "2026-06-15T00:00:00Z",
+      "imported_at": "2026-06-15T00:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 7
+      },
+      "records_added": 7,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 7,
+      "resources_unchanged": 0,
+      "documents_added": 1
+    }
+  ]
+}

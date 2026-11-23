@@ -1,0 +1,15 @@
+{
+  "schema": "medrec-text/v1",
+  "person": "p_xo4em46i7yj3hphlpajo",
+  "texts": {
+    "d_yxneikjpr2ku6f473zde": "Explanation of Benefits. Example Health, office visit 10/01/2026. Amount billed $412.00. Plan paid $214.72. You may owe the provider $53.68.",
+    "d_76ujctibnfxzik6dlxdr": "Visit summary. Annual physical with Dr. Jordan Sample. Discussed home blood pressure readings and continuing lisinopril. LDL cholesterol is lower than last year. Influenza vaccine given today. Return in twelve months.",
+    "d_yln4rknhb7kdpgotfnme": "Lipid panel, fasting 12 hours. LDL cholesterol 104 mg/dL. Total cholesterol 176 mg/dL. HDL 51 mg/dL. Triglycerides 117 mg/dL.",
+    "d_pv57tjsi5ot4237rjcdf": "Statement date 10/20/2026. Account number ****0000. Amount due $53.68. Please pay by 11/19/2026.",
+    "d_hzeiaz4ooaflblkav63m": "Statement date 04/02/2025. Account number ****0000. Amount due $51.18. Please pay by 05/02/2025.",
+    "d_zzo4v2idv4mi6fkh7s2b": "Payment received 04/20/2025. Account ****0000. Amount paid $51.18. Thank you.",
+    "d_kbw3kvi6dmg664qsv4aa": "Statement date 10/28/2026. Account # ****1111. Balance due $19.28. Due date 11/27/2026.",
+    "d_t35vywrysx5zuezwtnki": "Vaccination record. Tdap 02/11/2024.",
+    "d_giwq36ury7q3rqb6d52e": "Basic metabolic panel. Potassium 5.4 mmol/L (high). Creatinine 0.9 mg/dL."
+  }
+}

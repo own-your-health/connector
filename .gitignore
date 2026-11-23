@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*
+# A household's own settings and Google's client file: never committed.
+connector.local.json
+client_secret*.json
+*.local.json
+dist/

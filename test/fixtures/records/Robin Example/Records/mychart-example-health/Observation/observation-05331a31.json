@@ -1,0 +1,46 @@
+{
+  "resourceType": "Observation",
+  "id": "observation-05331a31",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "4548-4",
+        "display": "Hemoglobin A1c"
+      }
+    ],
+    "text": "Hemoglobin A1c"
+  },
+  "valueQuantity": {
+    "value": 5.4,
+    "unit": "%",
+    "system": "http://unitsofmeasure.org",
+    "code": "%"
+  },
+  "referenceRange": [
+    {
+      "text": "4.0-5.6 %"
+    }
+  ],
+  "interpretation": [
+    {
+      "text": "Normal"
+    }
+  ],
+  "effectiveDateTime": "2026-10-01"
+}

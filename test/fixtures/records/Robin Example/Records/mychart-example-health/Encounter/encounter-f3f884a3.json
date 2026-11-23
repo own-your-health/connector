@@ -1,0 +1,26 @@
+{
+  "resourceType": "Encounter",
+  "id": "encounter-f3f884a3",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "finished",
+  "class": {
+    "code": "AMB",
+    "display": "ambulatory"
+  },
+  "type": [
+    {
+      "text": "Office visit"
+    }
+  ],
+  "period": {
+    "start": "2025-09-15T14:00:00Z",
+    "end": "2025-09-15T14:40:00Z"
+  },
+  "reasonCode": [
+    {
+      "text": "Follow-up"
+    }
+  ]
+}

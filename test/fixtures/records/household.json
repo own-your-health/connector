@@ -1,0 +1,182 @@
+{
+  "schema": "medrec-household/v1",
+  "format": 1,
+  "folder_id": "f_y6l4ay6emoqfnzlv3bcu",
+  "rev": 12,
+  "created_at": "2026-10-13T20:00:00Z",
+  "people": [
+    {
+      "id": "p_xo4em46i7yj3hphlpajo",
+      "name": "Robin Example",
+      "folder": "Robin Example",
+      "birth_date": "1980-01-01",
+      "adult": true,
+      "aliases": [
+        "Robin Q Example"
+      ],
+      "links": {
+        "huishouden_health_person": "hh-demo-robin"
+      },
+      "created_at": "2026-10-13T20:00:00Z"
+    },
+    {
+      "id": "p_wwezzed7kml67hnp6s7n",
+      "name": "Sam Example",
+      "folder": "Sam Example",
+      "birth_date": "1980-07-01",
+      "adult": true,
+      "links": {
+        "huishouden_health_person": "hh-demo-sam"
+      },
+      "created_at": "2026-10-13T20:00:00Z"
+    },
+    {
+      "id": "p_bjpnvyvnmxv74q335tk4",
+      "name": "Alex Example",
+      "folder": "Alex Example",
+      "birth_date": "2018-01-01",
+      "guardians": [
+        "p_xo4em46i7yj3hphlpajo",
+        "p_wwezzed7kml67hnp6s7n"
+      ],
+      "links": {
+        "huishouden_health_person": "hh-demo-alex"
+      },
+      "created_at": "2026-10-13T20:00:00Z"
+    },
+    {
+      "id": "p_skrlw3od3nik2hkngezu",
+      "name": "Jamie Example",
+      "folder": "Jamie Example",
+      "birth_date": "2026-06-01",
+      "guardians": [
+        "p_xo4em46i7yj3hphlpajo",
+        "p_wwezzed7kml67hnp6s7n"
+      ],
+      "links": {
+        "huishouden_health_person": "hh-demo-jamie"
+      },
+      "created_at": "2026-06-03T20:00:00Z"
+    }
+  ],
+  "organizations": [
+    {
+      "id": "g_b262f6hmtfjryzdyihnn",
+      "name": "Example Health",
+      "fhir_base": "https://fhir.example.org/r4",
+      "aliases": []
+    },
+    {
+      "id": "g_emkqp2j3ns7zvkkjjacw",
+      "name": "Example Pediatrics",
+      "fhir_base": "https://api.example.net/fhir/r4",
+      "aliases": []
+    },
+    {
+      "id": "g_yhz7zjrdt7drgxx3ojs6",
+      "name": "Example Health Plan",
+      "aliases": []
+    },
+    {
+      "id": "g_cuxidzdmfrvtvuv4vkbi",
+      "name": "Example Blood Center",
+      "aliases": []
+    },
+    {
+      "id": "g_6lvyllsgdpjdbh2v4mqb",
+      "name": "Example Lab",
+      "aliases": []
+    },
+    {
+      "id": "g_wiqqsj7bu76g6zism2dg",
+      "name": "Example Billing",
+      "aliases": []
+    }
+  ],
+  "sources": [
+    {
+      "id": "s_odljb2zaec4qvcbrepln",
+      "kind": "fhir",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "mychart",
+      "organization": "example-health",
+      "organization_name": "Example Health",
+      "fhir_base": "https://fhir.example.org/r4",
+      "patient_id": "pat-6e833c",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_m2hp2blyhdngeilmbj7z",
+      "kind": "portal",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "uhc",
+      "organization": "example-health-plan",
+      "organization_name": "Example Health Plan",
+      "patient_id": "pat-afa7da",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_e2ocktqcc75b55gjsygb",
+      "kind": "portal",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "oneblood",
+      "organization": "example-blood-center",
+      "organization_name": "Example Blood Center",
+      "patient_id": "pat-342add",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_zlmj2vo3tpdf2wjzuqz6",
+      "kind": "fhir",
+      "person": "p_wwezzed7kml67hnp6s7n",
+      "cli": "mychart",
+      "organization": "example-health",
+      "organization_name": "Example Health",
+      "fhir_base": "https://fhir.example.org/r4",
+      "patient_id": "pat-44a34d",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_k3airwnmbx2pnhefn7fn",
+      "kind": "portal",
+      "person": "p_wwezzed7kml67hnp6s7n",
+      "cli": "labcorp",
+      "organization": "example-lab",
+      "organization_name": "Example Lab",
+      "patient_id": "pat-971097",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_lmiarlj5hvabrc33teti",
+      "kind": "portal",
+      "person": "p_wwezzed7kml67hnp6s7n",
+      "cli": "peryourhealth",
+      "organization": "example-billing",
+      "organization_name": "Example Billing",
+      "patient_id": "pat-bbee5d",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_zyx7rfb4ftctwkd3wfhn",
+      "kind": "fhir",
+      "person": "p_bjpnvyvnmxv74q335tk4",
+      "cli": "athena",
+      "organization": "example-pediatrics",
+      "organization_name": "Example Pediatrics",
+      "fhir_base": "https://api.example.net/fhir/r4",
+      "patient_id": "pat-1198d6",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_zvhdzsozzvuiecyjho6j",
+      "kind": "fhir",
+      "person": "p_skrlw3od3nik2hkngezu",
+      "cli": "athena",
+      "organization": "example-pediatrics",
+      "organization_name": "Example Pediatrics",
+      "fhir_base": "https://api.example.net/fhir/r4",
+      "patient_id": "pat-35ac49",
+      "last_pull": "2026-11-22T18:30:00Z"
+    }
+  ]
+}

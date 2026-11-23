@@ -1,0 +1,573 @@
+{
+  "tools": [
+    {
+      "name": "medrec_summary",
+      "title": "Household and person summary",
+      "description": "Lists the household's people, and with person a summary of their records. Use it first. Returns people (name, birth_date, counts) and summary: counts, sources, and sections of current medications, conditions, allergies, immunizations, latest results, recent visits and bills due.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "person": {
+            "type": "string",
+            "description": "Whose summary: a name, alias or id. Omit for the people only."
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "people": {
+            "type": "array",
+            "items": {
+              "required": [
+                "id",
+                "name",
+                "adult",
+                "documents",
+                "records",
+                "studies",
+                "notes"
+              ],
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "birth_date": {
+                  "type": "string"
+                },
+                "adult": {
+                  "type": "boolean"
+                },
+                "documents": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "records": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "studies": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "notes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "newest": {
+                  "type": "string"
+                },
+                "last_import": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "person": {
+                "type": "string"
+              },
+              "as_of": {
+                "type": "string"
+              },
+              "counts": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "sources": {
+                "type": "array",
+                "items": {
+                  "required": [
+                    "source",
+                    "records"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "source": {
+                      "type": "string"
+                    },
+                    "records": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "newest": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "section": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "type": "string"
+                          },
+                          "detail": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name"
+                        ]
+                      }
+                    },
+                    "more": {
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "section",
+                    "items",
+                    "more"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "person",
+              "as_of",
+              "counts",
+              "sources",
+              "sections"
+            ]
+          }
+        },
+        "required": [
+          "people"
+        ]
+      },
+      "annotations": {
+        "title": "Household and person summary",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "medrec_search",
+      "title": "Search records",
+      "description": "Finds documents, records, studies and notes holding every word of query, best first; labs or blood tests also finds every lab result. Use it when a question names a doctor, test, medicine or clinic. Returns items with person, kind, id, date, title and snippet.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Words that must all appear."
+          },
+          "person": {
+            "type": "string",
+            "description": "A name, alias or id."
+          },
+          "since": {
+            "type": "string",
+            "description": "YYYY-MM-DD, inclusive."
+          },
+          "until": {
+            "type": "string",
+            "description": "YYYY-MM-DD, inclusive."
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 200,
+            "minimum": 1,
+            "description": "Most records to return, 1 to 200 (default 25)."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "The `next_cursor` of the previous page of this same query, to continue it; omit for the first page."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "`concise` (default): the fields a person reads. `detailed`: adds ids, timestamps and provider detail."
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "snippet": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "person",
+                "kind",
+                "id",
+                "title",
+                "snippet"
+              ]
+            }
+          },
+          "returned": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "hint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "returned"
+        ]
+      },
+      "annotations": {
+        "title": "Search records",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "medrec_records",
+      "title": "List records by kind",
+      "description": "Lists one kind of record, newest first; results with name is one test over time. Use active for current medicines or conditions. Returns items with kind, person, date, title, detail, status, source and id, plus value, unit, range and flag for results, amount_due and due_date for bills, and has_text for documents.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "medications",
+              "conditions",
+              "allergies",
+              "immunizations",
+              "visits",
+              "procedures",
+              "results",
+              "tests",
+              "reports",
+              "claims",
+              "coverage",
+              "bills",
+              "documents",
+              "notes",
+              "timeline"
+            ],
+            "description": "`visits` are encounters; `tests` is the latest result of each test; `bills` are statements filed as documents; `timeline` is everything."
+          },
+          "person": {
+            "type": "string",
+            "description": "A name, alias or id."
+          },
+          "since": {
+            "type": "string",
+            "description": "YYYY-MM-DD, inclusive."
+          },
+          "until": {
+            "type": "string",
+            "description": "YYYY-MM-DD, inclusive."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Only those not stopped, completed or resolved."
+          },
+          "name": {
+            "type": "string",
+            "description": "A code (`4548-4`) or words of the name (`a1c`)."
+          },
+          "doc_type": {
+            "type": "string",
+            "description": "For `documents`: `lab_report`, `visit_summary`, `bill`, `eob`..."
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 200,
+            "minimum": 1,
+            "description": "Most records to return, 1 to 200 (default 25)."
+          },
+          "cursor": {
+            "type": "string",
+            "description": "The `next_cursor` of the previous page of this same query, to continue it; omit for the first page."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "`concise` (default): the fields a person reads. `detailed`: adds ids, timestamps and provider detail."
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "person": {
+                  "type": "string"
+                },
+                "date": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "range": {
+                  "type": "string"
+                },
+                "flag": {
+                  "type": "string"
+                },
+                "results": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "amount_due": {
+                  "type": "string"
+                },
+                "due_date": {
+                  "type": "string"
+                },
+                "doc_type": {
+                  "type": "string"
+                },
+                "has_text": {
+                  "type": "boolean"
+                },
+                "fields": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "kind",
+                "person",
+                "title",
+                "id"
+              ]
+            }
+          },
+          "returned": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "hint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "returned"
+        ]
+      },
+      "annotations": {
+        "title": "List records by kind",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "medrec_document",
+      "title": "Read a document's text",
+      "description": "Returns a filed document's extracted text (PDF text or a scan's OCR) with its title, date, type and organization. Use it to read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset back as offset, or page to jump.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The document's id."
+          },
+          "page": {
+            "type": "integer",
+            "description": "Start at this page (from 1).",
+            "minimum": 0
+          },
+          "offset": {
+            "type": "integer",
+            "description": "Start at a previous answer's `next_offset`.",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "person": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "doc_type": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "amount_due": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "text_chars": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next_offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "first_page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "last_page": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "text_pages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "text": {
+            "type": "string"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "person",
+          "text_chars",
+          "offset",
+          "first_page",
+          "last_page",
+          "text_pages",
+          "text"
+        ]
+      },
+      "annotations": {
+        "title": "Read a document's text",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

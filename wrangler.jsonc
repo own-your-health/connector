@@ -1,0 +1,22 @@
+// The connector's Worker. Nothing here is a household's: the account id comes
+// from CLOUDFLARE_ACCOUNT_ID (GitHub's `production` environment, or
+// connector.local.json on your computer), the KV namespace and D1 database
+// are created by the first deploy, and the household's settings are Worker
+// secrets (README, "Set it up").
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "records-connector",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-01",
+  // global_fetch_strictly_public: an assistant's client metadata document
+  // (CIMD) can only be fetched from the public internet.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "kv_namespaces": [{ "binding": "OAUTH_KV" }],
+  "d1_databases": [{ "binding": "AUDIT", "database_name": "records-connector-audit" }],
+  // Daily: expired grants out of KV, audit rows past 400 days out of D1.
+  "triggers": { "crons": ["17 4 * * *"] },
+  // No request logs: a log line could carry a URL with a code in it.
+  "observability": { "enabled": false }
+}

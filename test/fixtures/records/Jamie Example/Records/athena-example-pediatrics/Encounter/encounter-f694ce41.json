@@ -1,0 +1,16 @@
+{
+  "resourceType": "Encounter",
+  "id": "encounter-f694ce41",
+  "meta": {
+    "lastUpdated": "2026-06-15T08:00:00Z"
+  },
+  "status": "finished",
+  "type": [
+    {
+      "text": "Newborn visit"
+    }
+  ],
+  "period": {
+    "start": "2026-06-05T15:00:00Z"
+  }
+}

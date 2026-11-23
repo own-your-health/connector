@@ -1,0 +1,41 @@
+{
+  "name": "own-your-health-connector",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "A read-only MCP connector over a medrec records folder in Google Drive, as a Cloudflare Worker in your own account",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev --local --ip 127.0.0.1 --port 8787",
+    "setup": "node scripts/setup.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "grants": "node scripts/grants.mjs",
+    "audit": "node scripts/audit.mjs",
+    "golden": "node scripts/golden.mjs",
+    "bench": "node scripts/bench.mjs",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "verify": "npm run typecheck && npm test && node scripts/check-copies.mjs && node scripts/no-personal-data.mjs && npm run build"
+  },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "1.2.4",
+    "@modelcontextprotocol/sdk": "1.32.2"
+  },
+  "devDependencies": {
+    "@cfworker/json-schema": "4.1.1",
+    "@cloudflare/workers-types": "5.20261123.1",
+    "@types/node": "24.19.2",
+    "typescript": "5.9.3",
+    "vitest": "5.1.1",
+    "wrangler": "4.166.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "workerd@1.20261119.1": true,
+    "fsevents": false
+  }
+}

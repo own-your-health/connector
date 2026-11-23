@@ -1,0 +1,16 @@
+{
+  "resourceType": "Encounter",
+  "id": "encounter-4a7801f4",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "finished",
+  "type": [
+    {
+      "text": "Well child visit, 7 years"
+    }
+  ],
+  "period": {
+    "start": "2025-01-13T13:00:00Z"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "resourceType": "Immunization",
+  "id": "immunization-71e20cda",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "not-done",
+  "statusReason": {
+    "text": "Patient declined"
+  },
+  "vaccineCode": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "309"
+      }
+    ],
+    "text": "COVID-19 vaccine"
+  },
+  "occurrenceDateTime": "2025-10-04"
+}

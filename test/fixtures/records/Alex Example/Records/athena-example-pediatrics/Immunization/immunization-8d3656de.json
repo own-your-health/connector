@@ -1,0 +1,18 @@
+{
+  "resourceType": "Immunization",
+  "id": "immunization-8d3656de",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "completed",
+  "vaccineCode": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "133"
+      }
+    ],
+    "text": "Pneumococcal conjugate PCV 13"
+  },
+  "occurrenceDateTime": "2018-03-05"
+}

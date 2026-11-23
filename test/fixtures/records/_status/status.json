@@ -1,0 +1,289 @@
+{
+  "schema": "medrec-status/v1",
+  "format": 1,
+  "updated_at": "2026-11-22T19:58:00Z",
+  "refresher": {
+    "medrec_version": "0.3.0",
+    "machine": "h_zjqczygxdhchlbeoy2pv",
+    "last_pass_at": "2026-11-22T19:58:00Z",
+    "next_pass_at": "2026-11-22T20:03:00Z",
+    "pass_every_secs": 300,
+    "heartbeat_every_secs": 3600
+  },
+  "sources": [
+    {
+      "source": "s_odljb2zaec4qvcbrepln",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "mychart",
+      "organization": "example-health",
+      "auto": true,
+      "paused": null,
+      "failures": 0,
+      "min_interval_secs": 86400,
+      "next_run_at": "2026-11-23T17:00:00Z",
+      "sign_in": {
+        "state": "ok",
+        "expires_at": "2027-06-10T20:00:00Z",
+        "checked_at": "2026-11-22T16:59:00Z",
+        "needs_person": null
+      },
+      "last_attempt": {
+        "attempt": "t_edbne22extaoskh4sc5k",
+        "started_at": "2026-11-22T16:59:00Z",
+        "finished_at": "2026-11-22T17:00:00Z",
+        "trigger": "request",
+        "requests": [
+          "x_e3eq2mmny4qy6rrw2fzp"
+        ],
+        "outcome": "ok",
+        "exit_code": 0,
+        "error": null,
+        "import": "i_6z5ay44av3yq6cb3m4c3"
+      },
+      "last_success": {
+        "attempt": "t_edbne22extaoskh4sc5k",
+        "finished_at": "2026-11-22T17:00:00Z",
+        "import": "i_6z5ay44av3yq6cb3m4c3",
+        "counts": {
+          "records_added": 2,
+          "records_updated": 0,
+          "records_unchanged": 41,
+          "records_older": 0,
+          "resources_written": 2,
+          "resources_unchanged": 41,
+          "documents_added": 1,
+          "documents_duplicate": 0,
+          "documents_unchanged": 0,
+          "documents_same_statement": 0
+        },
+        "withheld_types": [
+          "ExplanationOfBenefit"
+        ]
+      }
+    },
+    {
+      "source": "s_m2hp2blyhdngeilmbj7z",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "uhc",
+      "organization": "example-health-plan",
+      "auto": true,
+      "paused": null,
+      "failures": 0,
+      "min_interval_secs": 86400,
+      "next_run_at": null,
+      "sign_in": {
+        "state": "signed_out",
+        "expires_at": null,
+        "checked_at": "2026-11-22T12:00:00Z",
+        "needs_person": {
+          "reason": "sign_in",
+          "since": "2026-11-22T12:00:00Z",
+          "command": "medrec refresh sign-in s_m2hp2blyhdngeilmbj7z"
+        }
+      },
+      "last_attempt": {
+        "attempt": "t_jrsi3yne2vvusfobf3n4",
+        "started_at": "2026-11-22T12:00:00Z",
+        "finished_at": "2026-11-22T12:01:00Z",
+        "trigger": "schedule",
+        "requests": [],
+        "outcome": "needs_person",
+        "exit_code": 3,
+        "error": {
+          "code": "needs_person",
+          "message": "The member site session has expired. Sign in with `uhc auth login --browser --profile <provider profile> --overwrite`.",
+          "remedy": "Run `uhc auth login`, then import again."
+        },
+        "import": null
+      },
+      "last_success": null
+    },
+    {
+      "source": "s_e2ocktqcc75b55gjsygb",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "oneblood",
+      "organization": "example-blood-center",
+      "auto": true,
+      "paused": null,
+      "failures": 0,
+      "min_interval_secs": 86400,
+      "next_run_at": null,
+      "sign_in": {
+        "state": "expired",
+        "expires_at": null,
+        "checked_at": "2026-11-22T14:00:00Z",
+        "renews": false,
+        "lasts_secs": 3600,
+        "needs_person": {
+          "reason": "sign_in",
+          "since": "2026-11-22T14:00:00Z",
+          "command": "medrec refresh sign-in s_e2ocktqcc75b55gjsygb"
+        }
+      },
+      "last_attempt": {
+        "attempt": "t_m3o5ivud4nsfbxxjjrxw",
+        "started_at": "2026-11-22T14:00:00Z",
+        "finished_at": "2026-11-22T14:01:00Z",
+        "trigger": "schedule",
+        "requests": [],
+        "outcome": "needs_person",
+        "exit_code": 3,
+        "error": {
+          "code": "needs_person",
+          "message": "Session expired. Run `oneblood auth login --profile <provider profile>`.",
+          "remedy": "Sign in again with `oneblood auth login`."
+        },
+        "import": null
+      },
+      "last_success": null
+    },
+    {
+      "source": "s_zlmj2vo3tpdf2wjzuqz6",
+      "person": "p_wwezzed7kml67hnp6s7n",
+      "cli": "mychart",
+      "organization": "example-health",
+      "auto": true,
+      "paused": null,
+      "failures": 0,
+      "min_interval_secs": 86400,
+      "next_run_at": "2026-11-23T15:00:00Z",
+      "sign_in": {
+        "state": "expiring",
+        "expires_at": "2026-11-24T12:00:00Z",
+        "checked_at": "2026-11-22T14:59:00Z",
+        "needs_person": null
+      },
+      "last_attempt": {
+        "attempt": "t_l6q2frufoklidfyil5dh",
+        "started_at": "2026-11-22T14:59:00Z",
+        "finished_at": "2026-11-22T15:00:00Z",
+        "trigger": "schedule",
+        "requests": [],
+        "outcome": "ok",
+        "exit_code": 0,
+        "error": null,
+        "import": "i_5qtn5luogr3ovetbocqm"
+      },
+      "last_success": {
+        "attempt": "t_l6q2frufoklidfyil5dh",
+        "finished_at": "2026-11-22T15:00:00Z",
+        "import": "i_5qtn5luogr3ovetbocqm",
+        "counts": {
+          "records_added": 0,
+          "records_updated": 1,
+          "records_unchanged": 5,
+          "records_older": 0,
+          "resources_written": 1,
+          "resources_unchanged": 5,
+          "documents_added": 0,
+          "documents_duplicate": 0,
+          "documents_unchanged": 0,
+          "documents_same_statement": 0
+        },
+        "withheld_types": []
+      }
+    },
+    {
+      "source": "s_k3airwnmbx2pnhefn7fn",
+      "person": "p_wwezzed7kml67hnp6s7n",
+      "cli": "labcorp",
+      "organization": "example-lab",
+      "auto": true,
+      "paused": null,
+      "failures": 2,
+      "min_interval_secs": 86400,
+      "next_run_at": "2026-11-22T21:00:00Z",
+      "sign_in": {
+        "state": "ok",
+        "expires_at": null,
+        "checked_at": "2026-11-22T18:00:00Z",
+        "needs_person": null
+      },
+      "last_attempt": {
+        "attempt": "t_wbjrqens34g5z6hh7kmo",
+        "started_at": "2026-11-22T18:00:00Z",
+        "finished_at": "2026-11-22T18:01:00Z",
+        "trigger": "schedule",
+        "requests": [],
+        "outcome": "failed",
+        "exit_code": 5,
+        "error": {
+          "code": "upstream",
+          "message": "The lab site answered 503 three times.",
+          "remedy": "Nothing to do; the Mac tries again later."
+        },
+        "import": null
+      },
+      "last_success": null
+    },
+    {
+      "source": "s_lmiarlj5hvabrc33teti",
+      "person": "p_wwezzed7kml67hnp6s7n",
+      "cli": "peryourhealth",
+      "organization": "example-billing",
+      "auto": false,
+      "paused": {
+        "reason": "user",
+        "note": "Paused by hand on the Mac.",
+        "since": "2026-11-20T20:00:00Z"
+      },
+      "failures": 0,
+      "min_interval_secs": 86400,
+      "next_run_at": null,
+      "sign_in": {
+        "state": "unknown",
+        "expires_at": null,
+        "checked_at": "2026-11-20T20:00:00Z",
+        "needs_person": null
+      },
+      "last_attempt": null,
+      "last_success": null
+    },
+    {
+      "source": "s_zyx7rfb4ftctwkd3wfhn",
+      "person": "p_bjpnvyvnmxv74q335tk4",
+      "cli": "athena",
+      "organization": "example-pediatrics",
+      "auto": true,
+      "paused": null,
+      "failures": 0,
+      "min_interval_secs": 86400,
+      "next_run_at": "2026-11-23T17:34:00Z",
+      "sign_in": {
+        "state": "ok",
+        "expires_at": "2027-02-17T20:00:00Z",
+        "checked_at": "2026-11-21T17:59:00Z",
+        "needs_person": null
+      },
+      "last_attempt": {
+        "attempt": "t_sxlgikcz7ikjjeljdfpm",
+        "started_at": "2026-11-21T17:59:00Z",
+        "finished_at": "2026-11-21T18:00:00Z",
+        "trigger": "schedule",
+        "requests": [],
+        "outcome": "ok",
+        "exit_code": 0,
+        "error": null,
+        "import": "i_vgdqaad4hjj6uoy5afo6"
+      },
+      "last_success": {
+        "attempt": "t_sxlgikcz7ikjjeljdfpm",
+        "finished_at": "2026-11-21T18:00:00Z",
+        "import": "i_vgdqaad4hjj6uoy5afo6",
+        "counts": {
+          "records_added": 3,
+          "records_updated": 0,
+          "records_unchanged": 11,
+          "records_older": 0,
+          "resources_written": 3,
+          "resources_unchanged": 11,
+          "documents_added": 1,
+          "documents_duplicate": 0,
+          "documents_unchanged": 0,
+          "documents_same_statement": 0
+        },
+        "withheld_types": []
+      }
+    }
+  ]
+}

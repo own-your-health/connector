@@ -1,0 +1,26 @@
+{
+  "resourceType": "Encounter",
+  "id": "encounter-8fc353cc",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "finished",
+  "class": {
+    "code": "AMB",
+    "display": "ambulatory"
+  },
+  "type": [
+    {
+      "text": "Office visit"
+    }
+  ],
+  "period": {
+    "start": "2025-03-10T14:00:00Z",
+    "end": "2025-03-10T14:40:00Z"
+  },
+  "reasonCode": [
+    {
+      "text": "Annual physical"
+    }
+  ]
+}

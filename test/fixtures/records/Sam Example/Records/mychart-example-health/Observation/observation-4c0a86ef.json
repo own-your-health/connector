@@ -1,0 +1,46 @@
+{
+  "resourceType": "Observation",
+  "id": "observation-4c0a86ef",
+  "meta": {
+    "lastUpdated": "2026-11-22T08:00:00Z"
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "62292-8",
+        "display": "Vitamin D, 25-hydroxy"
+      }
+    ],
+    "text": "Vitamin D, 25-hydroxy"
+  },
+  "valueQuantity": {
+    "value": 24,
+    "unit": "ng/mL",
+    "system": "http://unitsofmeasure.org",
+    "code": "ng/mL"
+  },
+  "referenceRange": [
+    {
+      "text": "30-100 ng/mL"
+    }
+  ],
+  "interpretation": [
+    {
+      "text": "Low"
+    }
+  ],
+  "effectiveDateTime": "2026-07-09"
+}

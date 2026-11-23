@@ -1,0 +1,24 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "medicationrequest-99e51cc4",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "active",
+  "intent": "order",
+  "medicationCodeableConcept": {
+    "coding": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "314076"
+      }
+    ],
+    "text": "Lisinopril 10 mg tablet"
+  },
+  "authoredOn": "2025-03-12",
+  "dosageInstruction": [
+    {
+      "text": "Take 1 tablet by mouth once a day"
+    }
+  ]
+}

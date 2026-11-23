@@ -1,0 +1,18 @@
+{
+  "resourceType": "Immunization",
+  "id": "immunization-4e5ede18",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "completed",
+  "vaccineCode": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "08"
+      }
+    ],
+    "text": "Hep B, adolescent or pediatric"
+  },
+  "occurrenceDateTime": "2018-02-05"
+}

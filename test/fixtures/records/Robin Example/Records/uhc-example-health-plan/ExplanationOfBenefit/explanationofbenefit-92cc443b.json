@@ -1,0 +1,21 @@
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "explanationofbenefit-92cc443b",
+  "meta": {
+    "lastUpdated": "2026-11-19T08:00:00Z"
+  },
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "professional"
+      }
+    ]
+  },
+  "use": "claim",
+  "billablePeriod": {
+    "start": "2026-10-03",
+    "end": "2026-10-03"
+  },
+  "outcome": "complete"
+}

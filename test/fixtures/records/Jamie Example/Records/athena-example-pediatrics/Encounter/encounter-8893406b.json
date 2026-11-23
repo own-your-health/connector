@@ -1,0 +1,21 @@
+{
+  "resourceType": "Encounter",
+  "id": "encounter-8893406b",
+  "meta": {
+    "lastUpdated": "2026-06-15T08:00:00Z"
+  },
+  "status": "finished",
+  "class": {
+    "code": "IMP",
+    "display": "inpatient encounter"
+  },
+  "type": [
+    {
+      "text": "Birth hospital stay"
+    }
+  ],
+  "period": {
+    "start": "2026-06-01T06:10:00Z",
+    "end": "2026-06-03T15:00:00Z"
+  }
+}

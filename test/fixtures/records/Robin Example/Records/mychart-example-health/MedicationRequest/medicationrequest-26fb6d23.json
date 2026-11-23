@@ -1,0 +1,13 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "medicationrequest-26fb6d23",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "stopped",
+  "intent": "order",
+  "medicationCodeableConcept": {
+    "text": "Cetirizine 10 mg tablet"
+  },
+  "authoredOn": "2023-04-02"
+}

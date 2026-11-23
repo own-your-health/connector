@@ -1,0 +1,18 @@
+{
+  "resourceType": "Immunization",
+  "id": "immunization-015a5491",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "completed",
+  "vaccineCode": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "141"
+      }
+    ],
+    "text": "Influenza, seasonal, injectable"
+  },
+  "occurrenceDateTime": "2026-10-01"
+}

@@ -1,0 +1,13 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "medicationrequest-2104ac01",
+  "meta": {
+    "lastUpdated": "2026-11-22T08:00:00Z"
+  },
+  "status": "active",
+  "intent": "order",
+  "medicationCodeableConcept": {
+    "text": "Vitamin D3 2,000 unit capsule"
+  },
+  "authoredOn": "2026-04-03"
+}

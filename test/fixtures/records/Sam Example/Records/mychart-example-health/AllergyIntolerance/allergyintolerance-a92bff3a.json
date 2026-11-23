@@ -1,0 +1,30 @@
+{
+  "resourceType": "AllergyIntolerance",
+  "id": "allergyintolerance-a92bff3a",
+  "meta": {
+    "lastUpdated": "2026-11-22T08:00:00Z"
+  },
+  "clinicalStatus": {
+    "coding": [
+      {
+        "code": "active"
+      }
+    ]
+  },
+  "code": {
+    "text": "Peanuts"
+  },
+  "criticality": "high",
+  "reaction": [
+    {
+      "manifestation": [
+        {
+          "text": "Hives"
+        },
+        {
+          "text": "Swelling of the lips"
+        }
+      ]
+    }
+  ]
+}

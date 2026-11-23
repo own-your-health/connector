@@ -1,0 +1,22 @@
+{
+  "resourceType": "Observation",
+  "id": "observation-542702f7",
+  "meta": {
+    "lastUpdated": "2026-06-15T08:00:00Z"
+  },
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "29463-7",
+        "display": "Body weight"
+      }
+    ]
+  },
+  "valueQuantity": {
+    "value": 3.42,
+    "unit": "kg"
+  },
+  "effectiveDateTime": "2026-06-01"
+}

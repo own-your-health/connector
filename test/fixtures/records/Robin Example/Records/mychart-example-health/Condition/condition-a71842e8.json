@@ -1,0 +1,24 @@
+{
+  "resourceType": "Condition",
+  "id": "condition-a71842e8",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "clinicalStatus": {
+    "coding": [
+      {
+        "code": "resolved"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "J30.2"
+      }
+    ]
+  },
+  "onsetDateTime": "2019-05-01",
+  "abatementDateTime": "2024-06-01"
+}

@@ -1,0 +1,3245 @@
+{
+  "schema": "medrec-index/v1",
+  "person": "p_xo4em46i7yj3hphlpajo",
+  "rev": 9,
+  "documents": [
+    {
+      "id": "d_yxneikjpr2ku6f473zde",
+      "path": "Robin Example/Claims/2026/2026-10-20_eob_example_health_plan_eob_2026-10.pdf",
+      "sha256": "e6603c9c8db6a584a0e5f80d13bc259b685ca25cd497b5bbd93f49d0b81e1417",
+      "md5": "e7b1b3aef2fb9c6e70326a7881d542ee",
+      "size": 155589,
+      "media_type": "application/pdf",
+      "pages": 2,
+      "original_name": "eob_2026-10.pdf",
+      "title": "Explanation of Benefits",
+      "doc_type": "eob",
+      "date": "2026-10-20",
+      "organization": "Example Health Plan",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "name": "eob_2026-10.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 140,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "portal",
+          "cli": "uhc",
+          "cli_version": "0.7.1",
+          "organization_id": "example-health-plan"
+        },
+        "method": "portal",
+        "source_resource": {
+          "type": "Binary",
+          "id": "binary-4f3d86a6",
+          "last_updated": "2026-11-02T08:00:00Z"
+        },
+        "fetched_at": "2026-11-02T20:00:00Z",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "raw_path": "Robin Example/Records/uhc-example-health-plan/Binary/binary-4f3d86a6.json",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_76ujctibnfxzik6dlxdr",
+      "path": "Robin Example/Documents/2026/2026-10-01_visit_summary_example_health_after_visit_summary.pdf",
+      "sha256": "ced7ae8ac06c310034d9c03fe1eeaa1a00de11b39696402b1b6a452e1f158014",
+      "md5": "51c58499f6717678e70c40da1ba71176",
+      "size": 71856,
+      "media_type": "application/pdf",
+      "pages": 3,
+      "original_name": "after_visit_summary.pdf",
+      "title": "After visit summary",
+      "doc_type": "visit_summary",
+      "date": "2026-10-01",
+      "organization": "Example Health",
+      "filed_at": "2026-11-14T20:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "name": "after_visit_summary.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 217,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "mychart",
+          "cli_version": "0.7.1",
+          "organization_id": "example-health",
+          "fhir_base": "https://fhir.example.org/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "Binary",
+          "id": "binary-1e93d0a5",
+          "last_updated": "2026-11-14T08:00:00Z"
+        },
+        "fetched_at": "2026-11-14T20:00:00Z",
+        "filed_at": "2026-11-14T20:00:00Z",
+        "raw_path": "Robin Example/Records/mychart-example-health/Binary/binary-1e93d0a5.json",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_yln4rknhb7kdpgotfnme",
+      "path": "Robin Example/Documents/2026/2026-10-01_lab_report_example_health_lipid_panel.pdf",
+      "sha256": "f9d9e4a54c754476982d72c2a17f66710c8cbf436ed6a04fb0743570e71a5df9",
+      "md5": "d2323f14d1201432589c2c6263238aed",
+      "size": 101260,
+      "media_type": "application/pdf",
+      "pages": 2,
+      "original_name": "lipid_panel.pdf",
+      "title": "Lipid panel",
+      "doc_type": "lab_report",
+      "date": "2026-10-01",
+      "organization": "Example Health",
+      "filed_at": "2026-11-14T20:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "name": "lipid_panel.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 125,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "mychart",
+          "cli_version": "0.7.1",
+          "organization_id": "example-health",
+          "fhir_base": "https://fhir.example.org/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "Binary",
+          "id": "binary-a447500e",
+          "last_updated": "2026-11-14T08:00:00Z"
+        },
+        "fetched_at": "2026-11-14T20:00:00Z",
+        "filed_at": "2026-11-14T20:00:00Z",
+        "raw_path": "Robin Example/Records/mychart-example-health/Binary/binary-a447500e.json",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_pv57tjsi5ot4237rjcdf",
+      "path": "Robin Example/Claims/2026/2026-10-01_bill_example_health_statement_oct.pdf",
+      "sha256": "213dedfd86d0d82840a350baa5da4d80d2973d5fc29e0449144eacfa72b2d65f",
+      "md5": "ef452b1311332f54ea7e048a31ac7175",
+      "size": 218060,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "statement_oct.pdf",
+      "title": "Statement from Example Health",
+      "doc_type": "bill",
+      "date": "2026-10-01",
+      "organization": "Example Health",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "statement_oct.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 96,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "statement": {
+        "statement_date": "2026-10-20",
+        "amount_due": {
+          "amount": "53.68",
+          "currency": "USD"
+        },
+        "due_date": "2026-11-19",
+        "account": "****0000"
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_hzeiaz4ooaflblkav63m",
+      "path": "Robin Example/Claims/2025/2025-04-02_bill_example_health_statement_apr_2025.pdf",
+      "sha256": "8ee267f0124c852328e38b1e0d0fe67ad701aabbc8c38adb091b4f936167ca39",
+      "md5": "9ed694cd95254588e09ee1fa9409b9a5",
+      "size": 69783,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "statement_apr_2025.pdf",
+      "title": "Statement from Example Health",
+      "doc_type": "bill",
+      "date": "2025-04-02",
+      "organization": "Example Health",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "statement_apr_2025.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 96,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "statement": {
+        "statement_date": "2025-04-02",
+        "amount_due": {
+          "amount": "51.18",
+          "currency": "USD"
+        },
+        "due_date": "2025-05-02",
+        "account": "****0000"
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_zzo4v2idv4mi6fkh7s2b",
+      "path": "Robin Example/Documents/2025/2025-04-20_receipt_example_health_receipt_apr_2025.pdf",
+      "sha256": "33d2d26e67dda49fde0ebb5187969598136b323417544ff1562c248f6cd363df",
+      "md5": "548a9d8a8de9b57da4a0daf3c14e6ea5",
+      "size": 142445,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "receipt_apr_2025.pdf",
+      "title": "Payment receipt from Example Health",
+      "doc_type": "receipt",
+      "date": "2025-04-20",
+      "organization": "Example Health",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "receipt_apr_2025.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 77,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_kbw3kvi6dmg664qsv4aa",
+      "path": "Robin Example/Claims/2026/2026-10-28_bill_example_lab_lab_statement.pdf",
+      "sha256": "f53b674e768a3a5dd619db1652837e76931a96f6f59a2d422099ae32e901c0f9",
+      "md5": "c1b48aefa115ceb5a41fa727c7824a33",
+      "size": 99474,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "lab_statement.pdf",
+      "title": "Statement from Example Lab",
+      "doc_type": "bill",
+      "date": "2026-10-28",
+      "organization": "Example Lab",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "lab_statement.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 87,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "statement": {
+        "statement_date": "2026-10-28",
+        "amount_due": {
+          "amount": "19.28",
+          "currency": "USD"
+        },
+        "due_date": "2026-11-27",
+        "account": "****1111"
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_t35vywrysx5zuezwtnki",
+      "path": "Robin Example/Documents/2024/2024-02-11_immunization_record_example_health_scan_0007.pdf",
+      "sha256": "1e37044098608270130a17c37c006036dd3fabd988a6c925e31d35ba2f5b78bd",
+      "md5": "65e4937643f3df44eb2d62ff0551ac42",
+      "size": 227766,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "scan_0007.pdf",
+      "title": "Vaccination card",
+      "doc_type": "immunization_record",
+      "date": "2024-02-11",
+      "organization": "Example Health",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "scan_0007.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 36,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_giwq36ury7q3rqb6d52e",
+      "path": "Robin Example/Documents/2026/2026-11-18_lab_report_example_health_basic_metabolic_panel.pdf",
+      "sha256": "773f35af98018bf54864a65ed6af283148178ea0099ed2e43f6196936a4290ce",
+      "md5": "c44f14bdfd8399d310aada4c898ad633",
+      "size": 53967,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "basic_metabolic_panel.pdf",
+      "title": "Basic metabolic panel",
+      "doc_type": "lab_report",
+      "date": "2026-11-18",
+      "organization": "Example Health",
+      "filed_at": "2026-11-22T17:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "name": "basic_metabolic_panel.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 73,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "mychart",
+          "cli_version": "0.7.1",
+          "organization_id": "example-health",
+          "fhir_base": "https://fhir.example.org/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "Binary",
+          "id": "binary-0d9c77e9",
+          "last_updated": "2026-11-22T08:00:00Z"
+        },
+        "fetched_at": "2026-11-22T17:00:00Z",
+        "filed_at": "2026-11-22T17:00:00Z",
+        "raw_path": "Robin Example/Records/mychart-example-health/Binary/binary-0d9c77e9.json",
+        "filed_by": "medrec 0.2.11"
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "r_mzewhpjngag4bpi7fxy5",
+      "kind": "result",
+      "key": "result|http://loinc.org|13457-7|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "13457-7",
+        "display": "Cholesterol in LDL, calculated"
+      },
+      "display": "LDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 162,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "<130 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory",
+        "issued": "2025-03-10T15:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-43d3d3ef",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-43d3d3ef.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_njr5bn3ny7hbkldddwhu",
+      "kind": "result",
+      "key": "result|http://loinc.org|13457-7|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "13457-7",
+        "display": "Cholesterol in LDL, calculated"
+      },
+      "display": "LDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 141,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "<130 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory",
+        "issued": "2025-09-15T15:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-ec09ba9e",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-ec09ba9e.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_mugawodplpyyrkwuijrm",
+      "kind": "result",
+      "key": "result|http://loinc.org|13457-7|2026-03-20",
+      "date": "2026-03-20",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "13457-7",
+        "display": "Cholesterol in LDL, calculated"
+      },
+      "display": "LDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2026-03-20",
+        "value": {
+          "value": 118,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "<130 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory",
+        "issued": "2026-03-20T15:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-6ac26d84",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-6ac26d84.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_cw4anzs7ixp46oezjny4",
+      "kind": "result",
+      "key": "result|http://loinc.org|13457-7|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "13457-7",
+        "display": "Cholesterol in LDL, calculated"
+      },
+      "display": "LDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 104,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "<130 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory",
+        "issued": "2026-10-01T15:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-140ecf1c",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-140ecf1c.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_bmkeag5zxtlx3ibab3ys",
+      "kind": "result",
+      "key": "result|http://loinc.org|2345-7|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2345-7",
+        "display": "Glucose [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Glucose",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 94,
+          "unit": "mg/dL"
+        },
+        "reference_range": "70-99 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-211be6d3",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-211be6d3.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_qpya5zjdlfqxahylgzdz",
+      "kind": "result",
+      "key": "result|http://loinc.org|2345-7|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2345-7",
+        "display": "Glucose [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Glucose",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 101,
+          "unit": "mg/dL"
+        },
+        "reference_range": "70-99 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-92545bf5",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-92545bf5.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_2jiwk7nvol47xz66nb7f",
+      "kind": "result",
+      "key": "result|http://loinc.org|2345-7|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2345-7",
+        "display": "Glucose [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Glucose",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 92,
+          "unit": "mg/dL"
+        },
+        "reference_range": "70-99 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-4e205917",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-4e205917.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_zky5r26mgj6ntawieyvj",
+      "kind": "result",
+      "key": "result|http://loinc.org|4548-4|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "4548-4",
+        "display": "Hemoglobin A1c/Hemoglobin.total in Blood"
+      },
+      "display": "Hemoglobin A1c",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 5.4,
+          "unit": "%"
+        },
+        "reference_range": "4.0-5.6 %",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-05331a31",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-05331a31.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_bmixb2jhf642gxn524it",
+      "kind": "result",
+      "key": "result|http://loinc.org|2093-3|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2093-3",
+        "display": "Cholesterol [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Cholesterol, total",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 238,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<200 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-3160dc66",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-3160dc66.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_bwlwn4tzuqx67v76q4ls",
+      "kind": "result",
+      "key": "result|http://loinc.org|2571-8|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2571-8",
+        "display": "Triglyceride [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Triglycerides",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 168,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<150 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-b3a5613a",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-b3a5613a.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_l63e6du6bncuoti3youm",
+      "kind": "result",
+      "key": "result|http://loinc.org|2085-9|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2085-9",
+        "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+      },
+      "display": "HDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 44,
+          "unit": "mg/dL"
+        },
+        "reference_range": ">39 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-45f472bd",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-45f472bd.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_6u6tprxsrc6dj26kgvwi",
+      "kind": "result",
+      "key": "result|http://loinc.org|2093-3|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2093-3",
+        "display": "Cholesterol [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Cholesterol, total",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 214,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<200 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-92b76e4d",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-92b76e4d.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_tr3fbbxcedozpzpcaq42",
+      "kind": "result",
+      "key": "result|http://loinc.org|2571-8|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2571-8",
+        "display": "Triglyceride [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Triglycerides",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 152,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<150 mg/dL",
+        "interpretation": "High",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-ec5a9159",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-ec5a9159.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_fkavarhvnpzq5bisc5vn",
+      "kind": "result",
+      "key": "result|http://loinc.org|2085-9|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2085-9",
+        "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+      },
+      "display": "HDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 46,
+          "unit": "mg/dL"
+        },
+        "reference_range": ">39 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-b9d7d644",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-b9d7d644.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_moqd5fez3jthqu5qjkkf",
+      "kind": "result",
+      "key": "result|http://loinc.org|2093-3|2026-03-20",
+      "date": "2026-03-20",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2093-3",
+        "display": "Cholesterol [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Cholesterol, total",
+      "status": "final",
+      "fields": {
+        "when": "2026-03-20",
+        "value": {
+          "value": 189,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<200 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-c76f19d6",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-c76f19d6.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_fjkm35txqicrsx4ks7rk",
+      "kind": "result",
+      "key": "result|http://loinc.org|2571-8|2026-03-20",
+      "date": "2026-03-20",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2571-8",
+        "display": "Triglyceride [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Triglycerides",
+      "status": "final",
+      "fields": {
+        "when": "2026-03-20",
+        "value": {
+          "value": 128,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<150 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-63d63b24",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-63d63b24.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_zy74sazpmf2mwnhpjpfh",
+      "kind": "result",
+      "key": "result|http://loinc.org|2085-9|2026-03-20",
+      "date": "2026-03-20",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2085-9",
+        "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+      },
+      "display": "HDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2026-03-20",
+        "value": {
+          "value": 48,
+          "unit": "mg/dL"
+        },
+        "reference_range": ">39 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-13711221",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-13711221.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_frjiw4amv4cnzzymokjr",
+      "kind": "result",
+      "key": "result|http://loinc.org|2093-3|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2093-3",
+        "display": "Cholesterol [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Cholesterol, total",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 176,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<200 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-0f85aa69",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-0f85aa69.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_4eg2srysqochewfejhae",
+      "kind": "result",
+      "key": "result|http://loinc.org|2571-8|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2571-8",
+        "display": "Triglyceride [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Triglycerides",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 117,
+          "unit": "mg/dL"
+        },
+        "reference_range": "<150 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-03bcd420",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-03bcd420.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_23cehcgjawumfom34hjo",
+      "kind": "result",
+      "key": "result|http://loinc.org|2085-9|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2085-9",
+        "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+      },
+      "display": "HDL cholesterol",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 51,
+          "unit": "mg/dL"
+        },
+        "reference_range": ">39 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-633c3831",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-633c3831.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_j632ex63tz27lw7xdpcf",
+      "kind": "result",
+      "key": "result|http://loinc.org|2823-3|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2823-3",
+        "display": "Potassium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Potassium",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 4.4,
+          "unit": "mmol/L"
+        },
+        "reference_range": "3.5-5.1 mmol/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-ffbbf72a",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-ffbbf72a.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_yj64qrvnxx4sea6vkfj6",
+      "kind": "result",
+      "key": "result|http://loinc.org|2160-0|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2160-0",
+        "display": "Creatinine [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Creatinine",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 0.8,
+          "unit": "mg/dL"
+        },
+        "reference_range": "0.6-1.2 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-00afd996",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-00afd996.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_mjs2anm34tmrtqwdsxsd",
+      "kind": "result",
+      "key": "result|http://loinc.org|2951-2|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2951-2",
+        "display": "Sodium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Sodium",
+      "status": "final",
+      "fields": {
+        "when": "2025-03-10",
+        "value": {
+          "value": 140,
+          "unit": "mmol/L"
+        },
+        "reference_range": "136-145 mmol/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-b5a08b2c",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-b5a08b2c.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_rad4al7mh3tiim4xmgml",
+      "kind": "result",
+      "key": "result|http://loinc.org|2823-3|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2823-3",
+        "display": "Potassium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Potassium",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 4.6,
+          "unit": "mmol/L"
+        },
+        "reference_range": "3.5-5.1 mmol/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-5fac0048",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-5fac0048.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_mcfx2wajjvpibxnab6zt",
+      "kind": "result",
+      "key": "result|http://loinc.org|2160-0|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2160-0",
+        "display": "Creatinine [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Creatinine",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 0.9,
+          "unit": "mg/dL"
+        },
+        "reference_range": "0.6-1.2 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-98957a96",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-98957a96.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_jyuebh6utmeh7226pmeu",
+      "kind": "result",
+      "key": "result|http://loinc.org|2951-2|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2951-2",
+        "display": "Sodium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Sodium",
+      "status": "final",
+      "fields": {
+        "when": "2025-09-15",
+        "value": {
+          "value": 139,
+          "unit": "mmol/L"
+        },
+        "reference_range": "136-145 mmol/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-8c71be44",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-8c71be44.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_2vzuewf4srectrg5i4x3",
+      "kind": "result",
+      "key": "result|http://loinc.org|2823-3|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2823-3",
+        "display": "Potassium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Potassium",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 4.9,
+          "unit": "mmol/L"
+        },
+        "reference_range": "3.5-5.1 mmol/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-1b71b48e",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-1b71b48e.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_4ejffnzg26vce3wfdavh",
+      "kind": "result",
+      "key": "result|http://loinc.org|2160-0|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2160-0",
+        "display": "Creatinine [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Creatinine",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 0.9,
+          "unit": "mg/dL"
+        },
+        "reference_range": "0.6-1.2 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-db81ae5a",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-db81ae5a.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ri2rxwqxwzylf6i6c5hq",
+      "kind": "result",
+      "key": "result|http://loinc.org|2951-2|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2951-2",
+        "display": "Sodium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Sodium",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-01",
+        "value": {
+          "value": 141,
+          "unit": "mmol/L"
+        },
+        "reference_range": "136-145 mmol/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-ae514b4a",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-ae514b4a.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_aadfrgir3efr7kc7xelw",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99396|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99396",
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-03-10",
+        "class": "ambulatory",
+        "practitioner": "Dr. Jordan Sample",
+        "location": "Example Health Main Clinic",
+        "reason": "Annual physical",
+        "period": {
+          "start": "2025-03-10T14:00:00Z",
+          "end": "2025-03-10T14:40:00Z"
+        }
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-8fc353cc",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Encounter/encounter-8fc353cc.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_xg4egjewerq2z3hkgdfs",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99396|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99396",
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-09-15",
+        "class": "ambulatory",
+        "practitioner": "Dr. Jordan Sample",
+        "location": "Example Health Main Clinic",
+        "reason": "Follow-up",
+        "period": {
+          "start": "2025-09-15T14:00:00Z",
+          "end": "2025-09-15T14:40:00Z"
+        }
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-f3f884a3",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Encounter/encounter-f3f884a3.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_lj43uwdj7asa4yqv73kl",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99396|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99396",
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2026-10-01",
+        "class": "ambulatory",
+        "practitioner": "Dr. Jordan Sample",
+        "location": "Example Health Main Clinic",
+        "reason": "Annual physical",
+        "period": {
+          "start": "2026-10-01T14:00:00Z",
+          "end": "2026-10-01T14:40:00Z"
+        }
+      },
+      "documents": [
+        "d_76ujctibnfxzik6dlxdr"
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-6ac12ed8",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Encounter/encounter-6ac12ed8.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_d5j2pc6xngtnzlxzykci",
+      "kind": "condition",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|I10|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "I10",
+        "display": "Essential (primary) hypertension"
+      },
+      "display": "High blood pressure",
+      "status": "active",
+      "fields": {
+        "when": "2025-03-10",
+        "verification_status": "confirmed",
+        "category": "Problem list item"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Condition",
+            "id": "condition-4cb660de",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Condition/condition-4cb660de.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_fgoi2dyi5ckm4re3pomq",
+      "kind": "condition",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|J30.2|2019-05-01",
+      "date": "2019-05-01",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "J30.2",
+        "display": "Other seasonal allergic rhinitis"
+      },
+      "display": "Seasonal allergies",
+      "status": "resolved",
+      "fields": {
+        "when": "2019-05-01",
+        "verification_status": "confirmed",
+        "abatement": "2024-06-01"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Condition",
+            "id": "condition-a71842e8",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Condition/condition-a71842e8.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_5hdb56dm5f46xrqx5ovz",
+      "kind": "medication",
+      "key": "medication|http://www.nlm.nih.gov/research/umls/rxnorm|314076|2025-03-12",
+      "date": "2025-03-12",
+      "code": {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "314076",
+        "display": "lisinopril 10 MG Oral Tablet"
+      },
+      "display": "Lisinopril 10 mg tablet",
+      "status": "active",
+      "fields": {
+        "when": "2025-03-12",
+        "dosage": "Take 1 tablet by mouth once a day",
+        "prescriber": "Dr. Jordan Sample",
+        "intent": "order",
+        "source": "request"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationRequest",
+            "id": "medicationrequest-99e51cc4",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/MedicationRequest/medicationrequest-99e51cc4.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ctwssd77qny2ietw76dy",
+      "kind": "medication",
+      "key": "medication|http://www.nlm.nih.gov/research/umls/rxnorm|1014678|2023-04-02",
+      "date": "2023-04-02",
+      "code": {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "1014678",
+        "display": "cetirizine hydrochloride 10 MG Oral Tablet"
+      },
+      "display": "Cetirizine 10 mg tablet",
+      "status": "stopped",
+      "fields": {
+        "when": "2023-04-02",
+        "dosage": "Take 1 tablet daily as needed",
+        "source": "request"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationRequest",
+            "id": "medicationrequest-26fb6d23",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/MedicationRequest/medicationrequest-26fb6d23.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_7lgfazbb7fjkz6vrv2cp",
+      "kind": "medication",
+      "key": "medication|http://www.nlm.nih.gov/research/umls/rxnorm|314076|2026-08-14",
+      "date": "2026-08-14",
+      "code": {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "314076",
+        "display": "lisinopril 10 MG Oral Tablet"
+      },
+      "display": "Lisinopril 10 mg tablet",
+      "status": "completed",
+      "fields": {
+        "when": "2026-08-14",
+        "dosage": "Take 1 tablet by mouth once a day",
+        "quantity": "90 tablet",
+        "days_supply": 90,
+        "pharmacy": "Example Pharmacy",
+        "prescriber": "Dr. Jordan Sample",
+        "source": "dispense"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationDispense",
+            "id": "medicationdispense-da5b93a2",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/MedicationDispense/medicationdispense-da5b93a2.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_37l5dnabfwsdyfqhd5ue",
+      "kind": "medication",
+      "key": "medication|http://www.nlm.nih.gov/research/umls/rxnorm|314076|2026-11-12",
+      "date": "2026-11-12",
+      "code": {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "314076",
+        "display": "lisinopril 10 MG Oral Tablet"
+      },
+      "display": "Lisinopril 10 mg tablet",
+      "status": "completed",
+      "fields": {
+        "when": "2026-11-12",
+        "dosage": "Take 1 tablet by mouth once a day",
+        "quantity": "90 tablet",
+        "days_supply": 90,
+        "pharmacy": "Example Pharmacy",
+        "prescriber": "Dr. Jordan Sample",
+        "source": "dispense"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationDispense",
+            "id": "medicationdispense-b52fd099",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/MedicationDispense/medicationdispense-b52fd099.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ltwnrzvqvzrnv7qb3oeb",
+      "kind": "allergy",
+      "key": "allergy|http://snomed.info/sct|300916003|2016-08-01",
+      "date": "2016-08-01",
+      "code": {
+        "system": "http://snomed.info/sct",
+        "code": "300916003",
+        "display": "Latex allergy"
+      },
+      "display": "Latex",
+      "status": "inactive",
+      "fields": {
+        "when": "2016-08-01",
+        "criticality": "low",
+        "reaction": [
+          "Itching"
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "AllergyIntolerance",
+            "id": "allergyintolerance-4417c721",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/AllergyIntolerance/allergyintolerance-4417c721.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_edt5msllnacvo3lbah7s",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|309|2025-10-04",
+      "date": "2025-10-04",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "309",
+        "display": "COVID-19, mRNA, 2024-2025 formula"
+      },
+      "display": "COVID-19 vaccine",
+      "status": "not-done",
+      "fields": {
+        "when": "2025-10-04"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-71e20cda",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Immunization/immunization-71e20cda.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_z3thkgr6cawjzk4rk73n",
+      "kind": "allergy",
+      "key": "allergy|http://snomed.info/sct|91939003|2012-01-01",
+      "date": "2012-01-01",
+      "code": {
+        "system": "http://snomed.info/sct",
+        "code": "91939003",
+        "display": "Allergy to sulfonamide"
+      },
+      "display": "Sulfa drugs",
+      "status": "active",
+      "fields": {
+        "when": "2012-01-01",
+        "criticality": "low",
+        "reaction": [
+          "Rash"
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "AllergyIntolerance",
+            "id": "allergyintolerance-68cba775",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/AllergyIntolerance/allergyintolerance-68cba775.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ssmq7nmp52iwnxyg6vbj",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|141|2025-10-04",
+      "date": "2025-10-04",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "141",
+        "display": "Influenza, seasonal, injectable"
+      },
+      "display": "Influenza, seasonal, injectable",
+      "status": "completed",
+      "fields": {
+        "when": "2025-10-04",
+        "performer": "Example Health Main Clinic",
+        "lot_number": "LOT510E",
+        "site": "Left arm"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-eaff48df",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Immunization/immunization-eaff48df.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_winzxykjfkxdfry6rost",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|141|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "141",
+        "display": "Influenza, seasonal, injectable"
+      },
+      "display": "Influenza, seasonal, injectable",
+      "status": "completed",
+      "fields": {
+        "when": "2026-10-01",
+        "performer": "Example Health Main Clinic",
+        "lot_number": "LOT12B5",
+        "site": "Left arm"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-015a5491",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Immunization/immunization-015a5491.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_t3m2q5crlmknfoafwvpe",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|115|2024-02-11",
+      "date": "2024-02-11",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "115",
+        "display": "Tdap"
+      },
+      "display": "Tdap",
+      "status": "completed",
+      "fields": {
+        "when": "2024-02-11",
+        "performer": "Example Health Main Clinic",
+        "lot_number": "LOT01D9",
+        "site": "Left arm"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-9081c041",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Immunization/immunization-9081c041.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_sfdta43ydnr77zowo3ks",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-11-18",
+      "date": "2026-11-18",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit claim",
+      "status": "active",
+      "fields": {
+        "when": "2026-11-18",
+        "provider": "Example Health",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-11-18",
+          "end": "2026-11-18"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "180.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "112.50",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "87.50",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "25.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "25.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "87.50",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-8ee439a8",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-8ee439a8.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_rx2v5tnmayyxpfaelcgm",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-10-03",
+      "date": "2026-10-03",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Lab work claim",
+      "status": "active",
+      "fields": {
+        "when": "2026-10-03",
+        "provider": "Example Lab",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-10-03",
+          "end": "2026-10-03"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "220.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "96.40",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "77.12",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "19.28",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "19.28",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "77.12",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-92cc443b",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-92cc443b.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_5h7uopdwecf27wv7jdq5",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-10-01",
+      "date": "2026-10-01",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit claim",
+      "status": "active",
+      "fields": {
+        "when": "2026-10-01",
+        "provider": "Example Health",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-10-01",
+          "end": "2026-10-01"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "412.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "268.40",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "214.72",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "53.68",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "53.68",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "214.72",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "benefit_balance": [
+          {
+            "category": "1",
+            "network": "in",
+            "unit": "individual",
+            "term": "annual",
+            "financial": [
+              {
+                "type": "Deductible",
+                "allowed": {
+                  "amount": "1500.00",
+                  "currency": "USD"
+                },
+                "used": {
+                  "amount": "1120.40",
+                  "currency": "USD"
+                }
+              },
+              {
+                "type": "Out-of-pocket limit",
+                "allowed": {
+                  "amount": "4000.00",
+                  "currency": "USD"
+                },
+                "used": {
+                  "amount": "1356.10",
+                  "currency": "USD"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "documents": [
+        "d_yxneikjpr2ku6f473zde"
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-b60d6bd5",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-b60d6bd5.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_xzhhkr3inpg3vht4xfuj",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2025-09-15",
+      "date": "2025-09-15",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit claim",
+      "status": "active",
+      "fields": {
+        "when": "2025-09-15",
+        "provider": "Example Health",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2025-09-15",
+          "end": "2025-09-15"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "189.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "121.10",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "121.10",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "121.10",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-7185e57e",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-7185e57e.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_tporkmvaajfc6fw3xpbc",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2025-03-10",
+      "date": "2025-03-10",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit claim",
+      "status": "active",
+      "fields": {
+        "when": "2025-03-10",
+        "provider": "Example Health",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2025-03-10",
+          "end": "2025-03-10"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "398.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "255.90",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "204.72",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "51.18",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "51.18",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "204.72",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-999e9443",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-999e9443.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_27hwlsasluzk4kq5hooh",
+      "kind": "coverage",
+      "key": "coverage|http://terminology.hl7.org/CodeSystem/v3-ActCode|HIP|2026-01-01",
+      "date": "2026-01-01",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "HIP",
+        "display": "health insurance plan policy"
+      },
+      "display": "Example Health Plan PPO",
+      "status": "active",
+      "fields": {
+        "when": "2026-01-01",
+        "payer": "Example Health Plan",
+        "period": {
+          "start": "2026-01-01"
+        },
+        "relationship": "self",
+        "plan": "PPO Choice",
+        "group": "GRP-000000"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Coverage",
+            "id": "coverage-b5551394",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/Coverage/coverage-b5551394.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_l2tse2sd2msiix2kzx62",
+      "kind": "result",
+      "key": "result|http://loinc.org|718-7|2025-06-01",
+      "date": "2025-06-01",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood"
+      },
+      "display": "Hemoglobin",
+      "status": "final",
+      "fields": {
+        "when": "2025-06-01",
+        "value": {
+          "value": 13.9,
+          "unit": "g/dL"
+        },
+        "category": "Donation screening"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "oneblood",
+            "cli_version": "0.7.1",
+            "organization_id": "example-blood-center"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-68bd1066",
+            "last_updated": "2026-11-10T08:00:00Z"
+          },
+          "fetched_at": "2026-11-10T19:59:00Z",
+          "filed_at": "2026-11-10T19:59:00Z",
+          "raw_path": "Robin Example/Records/oneblood-example-blood-center/Observation/observation-68bd1066.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_jnhsovhf4esnoempvov2",
+      "kind": "result",
+      "key": "result|http://loinc.org|718-7|2025-12-02",
+      "date": "2025-12-02",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood"
+      },
+      "display": "Hemoglobin",
+      "status": "final",
+      "fields": {
+        "when": "2025-12-02",
+        "value": {
+          "value": 14.2,
+          "unit": "g/dL"
+        },
+        "category": "Donation screening"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "oneblood",
+            "cli_version": "0.7.1",
+            "organization_id": "example-blood-center"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-fe6ca6e4",
+            "last_updated": "2026-11-10T08:00:00Z"
+          },
+          "fetched_at": "2026-11-10T19:59:00Z",
+          "filed_at": "2026-11-10T19:59:00Z",
+          "raw_path": "Robin Example/Records/oneblood-example-blood-center/Observation/observation-fe6ca6e4.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_bd2pbun6yr2qetkdjgp4",
+      "kind": "result",
+      "key": "result|http://loinc.org|718-7|2026-06-05",
+      "date": "2026-06-05",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood"
+      },
+      "display": "Hemoglobin",
+      "status": "final",
+      "fields": {
+        "when": "2026-06-05",
+        "value": {
+          "value": 14,
+          "unit": "g/dL"
+        },
+        "category": "Donation screening"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "oneblood",
+            "cli_version": "0.7.1",
+            "organization_id": "example-blood-center"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-dbb9e1c8",
+            "last_updated": "2026-11-10T08:00:00Z"
+          },
+          "fetched_at": "2026-11-10T19:59:00Z",
+          "filed_at": "2026-11-10T19:59:00Z",
+          "raw_path": "Robin Example/Records/oneblood-example-blood-center/Observation/observation-dbb9e1c8.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_epil5r55bnskgio225qk",
+      "kind": "result",
+      "key": "result|http://loinc.org|2823-3|2026-11-18",
+      "date": "2026-11-18",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2823-3",
+        "display": "Potassium [Moles/volume] in Serum or Plasma"
+      },
+      "display": "Potassium",
+      "status": "final",
+      "fields": {
+        "when": "2026-11-18",
+        "value": {
+          "value": 5.4,
+          "unit": "mmol/L"
+        },
+        "reference_range": "3.5-5.1 mmol/L",
+        "interpretation": "High",
+        "category": "Laboratory",
+        "issued": "2026-11-19T16:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-2d85820b",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T17:00:00Z",
+          "filed_at": "2026-11-22T17:00:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-2d85820b.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_gdbfi4hfyshulxlnomh2",
+      "kind": "result",
+      "key": "result|http://loinc.org|2160-0|2026-11-18",
+      "date": "2026-11-18",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2160-0",
+        "display": "Creatinine [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Creatinine",
+      "status": "final",
+      "fields": {
+        "when": "2026-11-18",
+        "value": {
+          "value": 0.9,
+          "unit": "mg/dL"
+        },
+        "reference_range": "0.6-1.2 mg/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory",
+        "issued": "2026-11-19T16:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-a06f6c78",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T17:00:00Z",
+          "filed_at": "2026-11-22T17:00:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Observation/observation-a06f6c78.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_gah7u2624gbdxmmpbj3l",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99213|2026-11-18",
+      "date": "2026-11-18",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99213",
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2026-11-18",
+        "class": "ambulatory",
+        "practitioner": "Dr. Jordan Sample",
+        "location": "Example Health Main Clinic",
+        "reason": "Blood pressure follow-up",
+        "period": {
+          "start": "2026-11-18T15:00:00Z",
+          "end": "2026-11-18T15:20:00Z"
+        }
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-30990749",
+            "last_updated": "2026-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-11-14T19:59:00Z",
+          "filed_at": "2026-11-14T19:59:00Z",
+          "raw_path": "Robin Example/Records/mychart-example-health/Encounter/encounter-30990749.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    }
+  ],
+  "studies": [],
+  "imports": [
+    {
+      "id": "i_6z5ay44av3yq6cb3m4c3",
+      "source_dir": "Robin Example/Records/mychart-example-health",
+      "stream_sha256": "e8fb0af57de1a672699bdd30e4703a5f4e79b1f3165e5aa0f5bf57e97e9fa33e",
+      "stream_bytes": 777551,
+      "cli": "mychart",
+      "cli_version": "0.7.1",
+      "organization": "example-health",
+      "patient_id": "pat-6e833c",
+      "pulled_at": "2026-11-22T17:00:00Z",
+      "imported_at": "2026-11-22T17:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 43
+      },
+      "records_added": 2,
+      "records_updated": 0,
+      "records_unchanged": 41,
+      "records_older": 0,
+      "resources_written": 2,
+      "resources_unchanged": 41,
+      "documents_added": 1
+    },
+    {
+      "id": "i_eoqmj7b35q6loluzixar",
+      "source_dir": "Robin Example/Records/mychart-example-health",
+      "stream_sha256": "a254edd707500c10de22c35e6f3806398a35b22d965ad5be357f50b1abd375a9",
+      "stream_bytes": 270833,
+      "cli": "mychart",
+      "cli_version": "0.7.1",
+      "organization": "example-health",
+      "patient_id": "pat-6e833c",
+      "pulled_at": "2026-11-14T20:00:00Z",
+      "imported_at": "2026-11-14T20:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 41
+      },
+      "records_added": 5,
+      "records_updated": 1,
+      "records_unchanged": 36,
+      "records_older": 0,
+      "resources_written": 6,
+      "resources_unchanged": 36,
+      "documents_added": 0
+    },
+    {
+      "id": "i_yrqnvktysqhtx7oqqbwt",
+      "source_dir": "Robin Example/Records/uhc-example-health-plan",
+      "stream_sha256": "2be60bdd1be4e2f44e7b8f88169fd9e88dd1db66eca319495e3bf41e5c4aa3f8",
+      "stream_bytes": 913904,
+      "cli": "uhc",
+      "cli_version": "0.3.2",
+      "organization": "example-health-plan",
+      "patient_id": "pat-afa7da",
+      "pulled_at": "2026-11-19T20:00:00Z",
+      "imported_at": "2026-11-19T20:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 4
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 3,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 3,
+      "documents_added": 0
+    },
+    {
+      "id": "i_qeokjzfv3f6zoknzdcgv",
+      "source_dir": "Robin Example/Records/oneblood-example-blood-center",
+      "stream_sha256": "9d550979e07d6b7b918da6ce714f7f71e81f0a83e6f9e4d8e404121e7e51079d",
+      "stream_bytes": 137993,
+      "cli": "oneblood",
+      "cli_version": "0.1.1",
+      "organization": "example-blood-center",
+      "patient_id": "pat-342add",
+      "pulled_at": "2026-11-20T20:00:00Z",
+      "imported_at": "2026-11-20T20:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 3
+      },
+      "records_added": 0,
+      "records_updated": 0,
+      "records_unchanged": 3,
+      "records_older": 0,
+      "resources_written": 0,
+      "resources_unchanged": 3,
+      "documents_added": 0
+    }
+  ]
+}

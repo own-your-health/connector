@@ -1,0 +1,41 @@
+{
+  "resourceType": "Observation",
+  "id": "observation-a452f7b3",
+  "meta": {
+    "lastUpdated": "2026-06-15T08:00:00Z"
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "laboratory",
+          "display": "Laboratory"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "42719-5",
+        "display": "Bilirubin, total"
+      }
+    ],
+    "text": "Bilirubin, total"
+  },
+  "valueQuantity": {
+    "value": 7.2,
+    "unit": "mg/dL",
+    "system": "http://unitsofmeasure.org",
+    "code": "mg/dL"
+  },
+  "referenceRange": [
+    {
+      "text": "1.0-12.0 mg/dL"
+    }
+  ],
+  "effectiveDateTime": "2026-06-02"
+}

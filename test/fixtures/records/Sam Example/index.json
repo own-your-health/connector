@@ -1,0 +1,880 @@
+{
+  "schema": "medrec-index/v1",
+  "person": "p_wwezzed7kml67hnp6s7n",
+  "rev": 9,
+  "documents": [
+    {
+      "id": "d_x3qad3sdurwcpiioun23",
+      "path": "Sam Example/Documents/2026/2026-05-20_visit_summary_example_health_visit_note.pdf",
+      "sha256": "67409163e7f0b0caa9b85d76960829b2b4c82c563cd9df1df960709d98058141",
+      "md5": "18b21b6b5b54c5bc6e9a4eb28e9cde21",
+      "size": 215114,
+      "media_type": "application/pdf",
+      "pages": 2,
+      "original_name": "visit_note.pdf",
+      "title": "Sports medicine visit note",
+      "doc_type": "visit_summary",
+      "date": "2026-05-20",
+      "organization": "Example Health",
+      "filed_at": "2026-06-25T20:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "name": "visit_note.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 189,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "mychart",
+          "cli_version": "0.7.1",
+          "organization_id": "example-health",
+          "fhir_base": "https://fhir.example.org/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "Binary",
+          "id": "binary-80be1fd6",
+          "last_updated": "2026-06-25T08:00:00Z"
+        },
+        "fetched_at": "2026-06-25T20:00:00Z",
+        "filed_at": "2026-06-25T20:00:00Z",
+        "raw_path": "Sam Example/Records/mychart-example-health/Binary/binary-80be1fd6.json",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_egwxdwkc3pbo3ensizj3",
+      "path": "Sam Example/Claims/2026/2026-07-09_bill_example_billing_statement.pdf",
+      "sha256": "35f3109c430dda647d9e75fa25a6a150fdb3ecd91ac035e2a5619e16e6d611a7",
+      "md5": "64fa4cce6ef1d44f75a7cbc0e82657c4",
+      "size": 233845,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "statement.pdf",
+      "title": "Statement from Example Billing",
+      "doc_type": "bill",
+      "date": "2026-07-09",
+      "organization": "Example Billing",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "statement.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 99,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "statement": {
+        "statement_date": "2026-08-01",
+        "amount_due": {
+          "amount": "120.00",
+          "currency": "USD"
+        },
+        "due_date": "2026-08-31",
+        "account": "EX-000000"
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "r_6fuke5cpxye44bgdlsem",
+      "kind": "result",
+      "key": "result|http://loinc.org|62292-8|2026-04-02",
+      "date": "2026-04-02",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "62292-8",
+        "display": "25-Hydroxyvitamin D2+D3 [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Vitamin D, 25-hydroxy",
+      "status": "final",
+      "fields": {
+        "when": "2026-04-02",
+        "value": {
+          "value": 18,
+          "unit": "ng/mL"
+        },
+        "reference_range": "30-100 ng/mL",
+        "interpretation": "Low",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-622d6529",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Observation/observation-622d6529.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_wdcfeoqm64y7te3j2rz4",
+      "kind": "result",
+      "key": "result|http://loinc.org|62292-8|2026-07-09",
+      "date": "2026-07-09",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "62292-8",
+        "display": "25-Hydroxyvitamin D2+D3 [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Vitamin D, 25-hydroxy",
+      "status": "final",
+      "fields": {
+        "when": "2026-07-09",
+        "value": {
+          "value": 24,
+          "unit": "ng/mL"
+        },
+        "reference_range": "30-100 ng/mL",
+        "interpretation": "Low",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-4c0a86ef",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Observation/observation-4c0a86ef.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_pmyt7qaxanldszgnxut3",
+      "kind": "result",
+      "key": "result|http://loinc.org|62292-8|2026-10-12",
+      "date": "2026-10-12",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "62292-8",
+        "display": "25-Hydroxyvitamin D2+D3 [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Vitamin D, 25-hydroxy",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-12",
+        "value": {
+          "value": 33,
+          "unit": "ng/mL"
+        },
+        "reference_range": "30-100 ng/mL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-5423f8f3",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Observation/observation-5423f8f3.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_t7o3hd7qkaukzypu32u5",
+      "kind": "result",
+      "key": "result|http://loinc.org|3016-3|2026-07-09",
+      "date": "2026-07-09",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "3016-3",
+        "display": "Thyrotropin [Units/volume] in Serum or Plasma"
+      },
+      "display": "TSH",
+      "status": "final",
+      "fields": {
+        "when": "2026-07-09",
+        "value": {
+          "value": 2.1,
+          "unit": "mIU/L"
+        },
+        "reference_range": "0.4-4.0 mIU/L",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-9c1420a9",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-9c1420a9.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_loks2bzuyhkgmdsbxiim",
+      "kind": "result",
+      "key": "result|http://loinc.org|718-7|2026-07-09",
+      "date": "2026-07-09",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood"
+      },
+      "display": "Hemoglobin",
+      "status": "final",
+      "fields": {
+        "when": "2026-07-09",
+        "value": {
+          "value": 11.2,
+          "unit": "g/dL"
+        },
+        "reference_range": "12.0-15.5 g/dL",
+        "interpretation": "Low",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-5f22a2b7",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-5f22a2b7.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_cxktbdqss5olab7jvwhi",
+      "kind": "result",
+      "key": "result|http://loinc.org|6690-2|2026-07-09",
+      "date": "2026-07-09",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "6690-2",
+        "display": "Leukocytes [#/volume] in Blood by Automated count"
+      },
+      "display": "White blood cells",
+      "status": "final",
+      "fields": {
+        "when": "2026-07-09",
+        "value": {
+          "value": 6.1,
+          "unit": "10*3/uL"
+        },
+        "reference_range": "4.5-11.0 10*3/uL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-7fc57d61",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-7fc57d61.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_37m7inb7v4ayxigadjmo",
+      "kind": "result",
+      "key": "result|http://loinc.org|777-3|2026-07-09",
+      "date": "2026-07-09",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "777-3",
+        "display": "Platelets [#/volume] in Blood by Automated count"
+      },
+      "display": "Platelets",
+      "status": "final",
+      "fields": {
+        "when": "2026-07-09",
+        "value": {
+          "value": 245,
+          "unit": "10*3/uL"
+        },
+        "reference_range": "150-400 10*3/uL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-baf76f0e",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-baf76f0e.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ed2vxgyu5x4epii2gais",
+      "kind": "result",
+      "key": "result|http://loinc.org|718-7|2026-10-12",
+      "date": "2026-10-12",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "718-7",
+        "display": "Hemoglobin [Mass/volume] in Blood"
+      },
+      "display": "Hemoglobin",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-12",
+        "value": {
+          "value": 11.8,
+          "unit": "g/dL"
+        },
+        "reference_range": "12.0-15.5 g/dL",
+        "interpretation": "Low",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-7b0c89a9",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-7b0c89a9.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_rjhnkgt2kousvani33kp",
+      "kind": "result",
+      "key": "result|http://loinc.org|6690-2|2026-10-12",
+      "date": "2026-10-12",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "6690-2",
+        "display": "Leukocytes [#/volume] in Blood by Automated count"
+      },
+      "display": "White blood cells",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-12",
+        "value": {
+          "value": 5.8,
+          "unit": "10*3/uL"
+        },
+        "reference_range": "4.5-11.0 10*3/uL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-d3201a9c",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-d3201a9c.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_gxlxebjiq6wviq4fvrpm",
+      "kind": "result",
+      "key": "result|http://loinc.org|777-3|2026-10-12",
+      "date": "2026-10-12",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "777-3",
+        "display": "Platelets [#/volume] in Blood by Automated count"
+      },
+      "display": "Platelets",
+      "status": "final",
+      "fields": {
+        "when": "2026-10-12",
+        "value": {
+          "value": 260,
+          "unit": "10*3/uL"
+        },
+        "reference_range": "150-400 10*3/uL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "labcorp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-lab"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-78a66095",
+            "last_updated": "2026-11-13T08:00:00Z"
+          },
+          "fetched_at": "2026-11-13T19:59:00Z",
+          "filed_at": "2026-11-13T19:59:00Z",
+          "raw_path": "Sam Example/Records/labcorp-example-lab/Observation/observation-78a66095.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_7n2y34p2fxtxt65hwfge",
+      "kind": "condition",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|E55.9|2026-04-02",
+      "date": "2026-04-02",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "E55.9",
+        "display": "Vitamin D deficiency, unspecified"
+      },
+      "display": "Vitamin D deficiency",
+      "status": "active",
+      "fields": {
+        "when": "2026-04-02",
+        "verification_status": "confirmed",
+        "category": "Problem list item"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Condition",
+            "id": "condition-123c8adc",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Condition/condition-123c8adc.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_xz26u2s5cqakzyb7hamd",
+      "kind": "condition",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|S93.401A|2026-05-20",
+      "date": "2026-05-20",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "S93.401A",
+        "display": "Sprain of unspecified ligament of right ankle, initial encounter"
+      },
+      "display": "Right ankle sprain",
+      "status": "resolved",
+      "fields": {
+        "when": "2026-05-20",
+        "verification_status": "confirmed",
+        "category": "Encounter diagnosis",
+        "abatement": "2026-07-01"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Condition",
+            "id": "condition-a519b84d",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Condition/condition-a519b84d.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_bv3mgjsnnv24ci24wkhp",
+      "kind": "allergy",
+      "key": "allergy|http://snomed.info/sct|91935009|2001-03-01",
+      "date": "2001-03-01",
+      "code": {
+        "system": "http://snomed.info/sct",
+        "code": "91935009",
+        "display": "Allergy to peanut"
+      },
+      "display": "Peanuts",
+      "status": "active",
+      "fields": {
+        "when": "2001-03-01",
+        "criticality": "high",
+        "reaction": [
+          "Hives",
+          "Swelling of the lips"
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "AllergyIntolerance",
+            "id": "allergyintolerance-a92bff3a",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/AllergyIntolerance/allergyintolerance-a92bff3a.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_qmqp62crnidvgh3bn2cc",
+      "kind": "medication",
+      "key": "medication|ibuprofen 200 mg tablet|2026-05-20",
+      "date": "2026-05-20",
+      "display": "Ibuprofen 200 mg tablet",
+      "status": "completed",
+      "fields": {
+        "when": "2026-05-20",
+        "dosage": "2 tablets by mouth every 6 hours as needed for pain",
+        "source": "statement"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationStatement",
+            "id": "medicationstatement-f59e1ac9",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/MedicationStatement/medicationstatement-f59e1ac9.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_w6imaxtgdjxe3tonkuoo",
+      "kind": "medication",
+      "key": "medication|vitamin d3 2,000 unit capsule|2026-04-03",
+      "date": "2026-04-03",
+      "display": "Vitamin D3 2,000 unit capsule",
+      "status": "active",
+      "fields": {
+        "when": "2026-04-03",
+        "dosage": "Take 1 capsule by mouth once a day",
+        "prescriber": "Dr. Casey Placeholder",
+        "source": "request"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationRequest",
+            "id": "medicationrequest-2104ac01",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/MedicationRequest/medicationrequest-2104ac01.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_7vbpun34uoqnf4r4gwe3",
+      "kind": "encounter",
+      "key": "encounter|sports medicine visit|2026-05-20",
+      "date": "2026-05-20",
+      "display": "Sports medicine visit",
+      "status": "finished",
+      "fields": {
+        "when": "2026-05-20",
+        "class": "ambulatory",
+        "practitioner": "Dr. Casey Placeholder",
+        "location": "Example Health Orthopedics",
+        "reason": "Ankle sprain"
+      },
+      "documents": [
+        "d_x3qad3sdurwcpiioun23"
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-cdc3b03e",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Encounter/encounter-cdc3b03e.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    }
+  ],
+  "studies": [
+    {
+      "id": "m_5jqhmt3omkqdefbiui5y",
+      "study_uid": "2.25.24667805403782425646",
+      "path": "Sam Example/Imaging/2026-05-20_xr_ankle_example_imaging/",
+      "date": "2026-05-20",
+      "modalities": [
+        "DX"
+      ],
+      "body_part": "ANKLE",
+      "description": "XR ankle, 3 views",
+      "facility": "Example Imaging",
+      "accession": "ACC9CA09F",
+      "series": [
+        {
+          "uid": "2.25.3861427421",
+          "number": 1,
+          "modality": "DX",
+          "description": "AP",
+          "instances": {
+            "2.25.4082849646": "S001/00001.dcm"
+          }
+        },
+        {
+          "uid": "2.25.932510195",
+          "number": 2,
+          "modality": "DX",
+          "description": "Lateral",
+          "instances": {
+            "2.25.1727794194": "S002/00001.dcm"
+          }
+        },
+        {
+          "uid": "2.25.3608975167",
+          "number": 3,
+          "modality": "DX",
+          "description": "Oblique",
+          "instances": {
+            "2.25.1740444461": "S003/00001.dcm"
+          }
+        }
+      ],
+      "instances": 3,
+      "size": 21402118,
+      "filed_at": "2026-09-23T20:00:00Z",
+      "provenance": [
+        {
+          "source": {
+            "kind": "media"
+          },
+          "method": "media",
+          "filed_at": "2026-09-23T20:00:00Z",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    }
+  ],
+  "imports": [
+    {
+      "id": "i_5qtn5luogr3ovetbocqm",
+      "source_dir": "Sam Example/Records/mychart-example-health",
+      "stream_sha256": "871210316a45044e6515bbdbe5a61a4095a828d20424c210659cab004d188c08",
+      "stream_bytes": 743210,
+      "cli": "mychart",
+      "cli_version": "0.7.1",
+      "organization": "example-health",
+      "patient_id": "pat-44a34d",
+      "pulled_at": "2026-11-22T15:00:00Z",
+      "imported_at": "2026-11-22T15:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 5
+      },
+      "records_added": 0,
+      "records_updated": 1,
+      "records_unchanged": 5,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 5,
+      "documents_added": 0
+    },
+    {
+      "id": "i_hwj5qd7e6uhnjzca55pg",
+      "source_dir": "Sam Example/Records/labcorp-example-lab",
+      "stream_sha256": "18285aad733b6b77f57c0de1dd3061322900890e07c69a3d921cfca4a340464f",
+      "stream_bytes": 129483,
+      "cli": "labcorp",
+      "cli_version": "0.2.1",
+      "organization": "example-lab",
+      "patient_id": "pat-971097",
+      "pulled_at": "2026-11-13T20:00:00Z",
+      "imported_at": "2026-11-13T20:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    }
+  ]
+}

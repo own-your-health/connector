@@ -1,0 +1,18 @@
+{
+  "resourceType": "Immunization",
+  "id": "immunization-9081c041",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "completed",
+  "vaccineCode": {
+    "coding": [
+      {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "115"
+      }
+    ],
+    "text": "Tdap"
+  },
+  "occurrenceDateTime": "2024-02-11"
+}
