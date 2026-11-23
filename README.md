@@ -194,8 +194,8 @@ rm ~/Downloads/client_secret_….json
 `npm run setup` sends everything to the Worker in one
 `wrangler secret bulk` over stdin. No value is printed or passed as an
 argument. It sets `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
-`ALLOWED_ACCOUNTS`, `FOLDER_ID`, and optionally `TIME_ZONE` (for "past due"),
-`ASSISTANTS` and `DRIVE_SCOPE`. Deploys never change them. After editing
+`ALLOWED_ACCOUNTS`, `FOLDER_ID` (once `folder_id` is filled in), and
+optionally `TIME_ZONE` (for "past due"), `ASSISTANTS` and `DRIVE_SCOPE`. Deploys never change them. After editing
 `connector.local.json`, run `npm run setup -- --settings-only`.
 
 `FOLDER_ID` is the records folder's Drive id: the part after `/folders/` in

@@ -32,6 +32,9 @@ import {
 } from '../records/views';
 import {
   VIEWS_DIR,
+  HAY_ITEMS,
+  personDir,
+  storedName,
   viewName,
   VIEWS_INDEX,
   VIEWS_SCHEMA,
@@ -102,30 +105,34 @@ class PersonReader {
     return name !== undefined && this.v.files[name] !== undefined;
   }
 
-  async check(path: string): Promise<void> {
+  /**
+   * Where the view at `path` (as `paths` names it) is stored, checked: the
+   * survey has a file by that name, with the MD5 views.json gives it.
+   */
+  async check(path: string): Promise<string> {
     const name = viewName(this.p.id, path);
     const want = name === undefined ? undefined : this.v.files[name];
-    const [got] = await this.folder.md5([path]);
-    if (want === undefined || got !== want) throw preparing(this.p);
+    if (want === undefined) throw preparing(this.p);
+    const stored = personDir(this.p.id) + storedName(name!, want);
+    const [got] = await this.folder.md5([stored]);
+    if (got !== want) throw preparing(this.p);
+    return stored;
   }
 
   async json<T>(path: string): Promise<T> {
-    await this.check(path);
-    const x = await this.folder.parsed<T>(path);
+    const x = await this.folder.parsed<T>(await this.check(path));
     if (x === null) throw preparing(this.p);
     return x;
   }
 
   async binary(path: string): Promise<Uint8Array> {
-    await this.check(path);
-    const b = await this.folder.binary(path);
+    const b = await this.folder.binary(await this.check(path));
     if (!b) throw preparing(this.p);
     return b;
   }
 
   async bytes(path: string, start: number, end: number): Promise<Uint8Array> {
-    await this.check(path);
-    const b = await this.folder.bytes(path, start, end);
+    const b = await this.folder.bytes(await this.check(path), start, end);
     if (!b || b.length !== end - start) throw preparing(this.p);
     return b;
   }
@@ -221,7 +228,7 @@ export class ViewsStore implements Store {
         const v = await this.views(h, p).then(
           (r) => r?.v ?? null,
           async (e: unknown) => {
-            const last = e instanceof ToolError && e.unavailable ? (await this.state(h)).index?.people[p.id] : undefined;
+            const last = e instanceof ToolError && e.unavailable === p.id ? (await this.state(h)).index?.people[p.id] : undefined;
             if (last) return last;
             throw e;
           },
@@ -385,11 +392,10 @@ export class ViewsStore implements Store {
     const r = await this.views(h, p);
     if (!r) return this.raw.search(h, p, terms, range, want);
     const labs = LAB_QUERIES.includes(terms.join(' '));
-    const hay = paths.hay(p.id);
-    // Refused here rather than at the snippets, so a question about everyone can leave this person out.
-    await r.check(hay);
 
     const items = await this.items(r);
+    // Refused here rather than at the snippets, so a question about everyone can leave this person out.
+    for (let k = 0; k * HAY_ITEMS < items.n; k++) await r.check(paths.hay(p.id, k));
     const [lo, hi] = runOf(items, range);
     // Items holding every term, each as a word prefix: occurrences, and the first one's byte.
     const scores = new Float64Array(items.n);
@@ -438,7 +444,18 @@ export class ViewsStore implements Store {
       const ord = -key % 2 ** 26;
       const [date, kind, id, title] = items.meta(ord);
       const [start, end] = items.text(ord);
-      const c: ViewsCandidate = { kind, id, date: date ?? undefined, title, score: scores[ord]!, hay: { path: hay, start, bytes: end - start, at: firstAt[ord]!, reader: r }, snippet: () => this.snippet(c) };
+      // Offsets count over every pack; a pack starts at its first item's text.
+      const k = Math.floor(ord / HAY_ITEMS);
+      const base = items.text(k * HAY_ITEMS)[0];
+      const c: ViewsCandidate = {
+        kind,
+        id,
+        date: date ?? undefined,
+        title,
+        score: scores[ord]!,
+        hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: firstAt[ord]!, reader: r },
+        snippet: () => this.snippet(c),
+      };
       ranked.push({ c, seq });
     });
 
@@ -469,7 +486,7 @@ export class ViewsStore implements Store {
     return out;
   }
 
-  /** Reads the bytes the hits' snippets need from each person's search-hay.bin: near ones as one range, and as many ranges as the call may still make. */
+  /** Reads the bytes the hits' snippets need from each person's hay packs: near ones as one range, and as many ranges as the call may still make. */
   async prepare(hits: Candidate[]): Promise<void> {
     const wanted = new Map<string, [number, number][]>();
     const readers = new Map<string, PersonReader>();
@@ -509,7 +526,7 @@ export class ViewsStore implements Store {
 
 interface Items {
   n: number;
-  /** Item i's text: its first byte in search-hay.bin and the byte after its last. */
+  /** Item i's text: its first byte over the hay packs and the byte after its last. */
   text(i: number): [number, number];
   meta(i: number): ItemMeta;
 }

@@ -12,7 +12,7 @@ import { DriveSource, SUBREQUESTS } from '../src/records/drive-source';
 import { Folder, ParsedCache } from '../src/records/folder';
 import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
-import { VIEWS_INDEX, hex, paths, prefixOf } from '../src/views/format';
+import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
@@ -33,6 +33,16 @@ beforeAll(() => {
   writeViewsAt(demo);
 }, 120_000);
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
+
+/** Where a view is stored in a prepared folder: `paths` names it, views.json gives its MD5 (storedName). */
+function stored(root: string, path: string): string {
+  const [, pid, name] = path.split('/');
+  const index = JSON.parse(readFileSync(join(root, VIEWS_INDEX), 'utf8')) as ViewsIndex;
+  return join(root, personDir(pid!) + storedName(name!, index.people[pid!]!.files[name!]!));
+}
+
+const personId = (root: string, name: string) =>
+  (JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] }).people.find((p) => p.name === name)!.id;
 
 /** A copy of a prepared folder, to change. */
 function copy(from: string, name: string): string {
@@ -140,6 +150,28 @@ describe('the views store', () => {
     expect(sam.warnings).toBeUndefined();
   });
 
+  it("leaves out a person whose snippets cannot be read after all, and ranks again without them", async () => {
+    const sam = personId(large, 'Sam Example');
+    // Drive returns short reads of Sam's hay, as when a file goes mid-call.
+    class Short extends LocalSource {
+      override async bytes(path: string, start: number, end: number) {
+        const b = await super.bytes(path, start, end);
+        return path.startsWith(`views/${sam}/search-hay-`) && b ? b.subarray(0, Math.max(0, b.length - 1)) : b;
+      }
+    }
+    const store = new ViewsStore(new Folder(new Short(large), new ParsedCache(), large));
+    const r = (await callTool('medrec_search', { query: 'cholesterol' }, { store, today: TODAY }))!;
+    expect(r.isError ?? false).toBe(false);
+    const page = r.structuredContent as { items: { person: string; snippet: string }[]; warnings?: { code: string; message: string }[] };
+    expect(page.items.length).toBeGreaterThan(0);
+    expect(page.items.some((x) => x.person === 'Sam Example')).toBe(false);
+    expect(page.items.every((x) => x.snippet.length > 0)).toBe(true);
+    expect(page.warnings).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Sam Example's records are being prepared/) }]);
+    // Asked about Sam by name, the error is the answer.
+    const named = (await callTool('medrec_search', { query: 'cholesterol', person: 'Sam' }, { store: new ViewsStore(new Folder(new Short(large), new ParsedCache(), large)), today: TODAY }))!;
+    expect(named.isError).toBe(true);
+  });
+
   it('gives the error when no one in a question about everyone can be read', async () => {
     const root = copy(large, 'large-stale-all');
     // Only the two large people, and a changed household.json makes both stale.
@@ -203,29 +235,48 @@ describe('the views store', () => {
     expect(missing.r.content[0]!.text).toMatch(/Robin Example's records changed/);
   });
 
-  it('never mixes a view from a pass still arriving with the views.json before it', async () => {
-    const root = copy(large, 'large-mixed');
-    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
-    const sam = household.people.find((p) => p.name === 'Sam Example')!.id;
-    // The next pass's newest results shard arrives first: valid, but not the one views.json names.
-    const dir = join(root, 'views', sam);
-    const newest = readdirSync(dir).filter((f) => /^records-result-\d+\.json$/.test(f)).sort((a, b) => Number(/\d+/.exec(b)![0]) - Number(/\d+/.exec(a)![0]))[0]!;
-    const shard = JSON.parse(readFileSync(join(dir, newest), 'utf8')) as unknown[];
-    writeFileSync(join(dir, newest), JSON.stringify(shard.slice(1)));
-    const { r } = await ask(root, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+  it('reads one pass only, in whichever order the next one arrives', async () => {
+    const sam = personId(large, 'Sam Example');
+    // The next pass: one new result for Sam.
+    const next = copy(large, 'large-next');
+    const at = join(next, 'Sam Example/index.json');
+    const index = JSON.parse(readFileSync(at, 'utf8'));
+    index.records.push({ id: 'rec_next_pass_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } });
+    writeFileSync(at, JSON.stringify(index));
+    writeViewsAt(next);
+    const newViews = readdirSync(join(next, 'views', sam));
+
+    // Its views first: new names beside the old ones, which the old views.json still reads.
+    const early = copy(large, 'large-next-early');
+    for (const f of newViews) cpSync(join(next, 'views', sam, f), join(early, 'views', sam, f));
+    const before = await ask(early, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+    expect(before.r).toEqual(await raw(large, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 }));
+
+    // Its index.json and views.json first: the views they name are not there yet.
+    const late = copy(large, 'large-next-late');
+    cpSync(at, join(late, 'Sam Example/index.json'));
+    cpSync(join(next, VIEWS_INDEX), join(late, VIEWS_INDEX));
+    const { r } = await ask(late, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/Sam Example's records are being prepared for assistants right now/);
+    // Robin's views did not change, so their names did not either.
+    const robin = await ask(late, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
+    expect(robin.r).toEqual(await raw(late, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 }));
+  });
+
+  it('refuses a view whose content is not the MD5 views.json gives it', async () => {
+    const root = copy(large, 'large-foreign');
+    const sam = personId(root, 'Sam Example');
+    const file = stored(root, paths.tests(sam));
+    writeFileSync(file, '[]');
+    const { r } = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
-    const tests = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
-    expect(tests.r.isError).toBe(true);
-    // Everyone else answers.
-    const robin = await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
-    expect(robin.r).toEqual(await raw(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 }));
   });
 
   it('says the records are being prepared when a view is missing', async () => {
     const root = copy(large, 'large-missing');
-    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
-    rmSync(join(root, paths.summary(household.people.find((p) => p.name === 'Sam Example')!.id)));
+    rmSync(stored(root, paths.summary(personId(root, 'Sam Example'))));
     const { r } = await ask(root, 'medrec_summary', { person: 'Sam' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
@@ -297,33 +348,36 @@ describe('planning byte ranges', () => {
 });
 
 describe('rewriting the views after a new record', () => {
-  it('changes only the newest shards and the search shards of its words', () => {
+  it('changes only the newest shards, the last hay pack and the search shards of its words', () => {
     const root = copy(large, 'large-append');
-    const household = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string; folder: string }[] };
-    const robin = household.people.find((p) => p.name === 'Robin Example')!;
-    const dir = join(root, 'views', robin.id);
-    const snapshot = () => new Map(readdirSync(dir).map((f) => [f, createHash('md5').update(readFileSync(join(dir, f))).digest('hex')]));
-    const before = snapshot();
-    const at = join(root, robin.folder, 'index.json');
+    const robin = personId(root, 'Robin Example');
+    const files = () => (JSON.parse(readFileSync(join(root, VIEWS_INDEX), 'utf8')) as ViewsIndex).people[robin]!.files;
+    const before = files();
+    const at = join(root, 'Robin Example/index.json');
     const index = JSON.parse(readFileSync(at, 'utf8'));
-    const record = { id: 'rec_appended_test_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } };
-    index.records.push(record);
+    index.records.push({ id: 'rec_appended_test_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } });
     writeFileSync(at, JSON.stringify(index));
     writeViewsAt(root);
-    const after = snapshot();
-    const changed = [...after].filter(([f, m]) => before.get(f) !== m).map(([f]) => f);
+    const after = files();
+    const changed = Object.keys(after).filter((f) => before[f] !== after[f]);
     const words = fold('Zinc\nQuixotic').split(' ');
     const allowed = new Set(words.flatMap((w) => [`search-${hex(prefixOf(w))}.json`, `search-1-${hex(prefixOf(w, 1))}.json`]));
-    const shardsOf = (prefix: string) => [...after.keys()].filter((f) => f.startsWith(prefix) && /-\d+\.json$/.test(f)).map((f) => Number(/-(\d+)\.json$/.exec(f)![1]));
-    const newest = (prefix: string) => Math.max(...shardsOf(prefix));
+    const numbered = (prefix: string) => Object.keys(after).filter((f) => f.startsWith(prefix) && /-\d+\.(json|bin)$/.test(f)).map((f) => Number(/-(\d+)\.(json|bin)$/.exec(f)![1]));
+    const newest = (prefix: string) => Math.max(...numbered(prefix));
+    const n = (f: string) => Number(/-(\d+)\.(json|bin)$/.exec(f)![1]);
     for (const f of changed) {
-      if (f.startsWith('search-') && f.endsWith('.json') && !f.startsWith('search-labs-')) expect(allowed.has(f), f).toBe(true);
-      else if (f.startsWith('records-result-')) expect(Number(/-(\d+)\.json$/.exec(f)![1]), f).toBeGreaterThanOrEqual(newest('records-result-') - 1);
-      else if (f.startsWith('timeline-')) expect(Number(/-(\d+)\.json$/.exec(f)![1]), f).toBeGreaterThanOrEqual(newest('timeline-') - 1);
-      else expect(['summary.json', 'names-result.json', 'tests.json', 'search-items.bin', 'search-hay.bin', 'documents.json', f.startsWith('search-labs-') ? f : ''], f).toContain(f);
+      if (f.startsWith('search-hay-')) expect(n(f), f).toBe(newest('search-hay-'));
+      else if (f.startsWith('search-labs-')) expect(n(f), f).toBe(newest('search-labs-'));
+      else if (f.startsWith('search-') && f.endsWith('.json')) expect(allowed.has(f), f).toBe(true);
+      else if (f.startsWith('records-result-')) expect(n(f), f).toBeGreaterThanOrEqual(newest('records-result-') - 1);
+      else if (f.startsWith('timeline-')) expect(n(f), f).toBeGreaterThanOrEqual(newest('timeline-') - 1);
+      else expect(['summary.json', 'names-result.json', 'tests.json', 'search-items.bin', 'documents.json'], f).toContain(f);
     }
-    // Of hundreds of views, a few dozen at most.
+    // Of hundreds of views, a few dozen at most, and each is stored under a new name.
     expect(changed.length).toBeLessThan(20);
-    expect(after.size).toBeGreaterThan(200);
+    expect(Object.keys(after).length).toBeGreaterThan(200);
+    const dir = readdirSync(join(root, personDir(robin)));
+    for (const f of Object.keys(after)) expect(dir).toContain(storedName(f, after[f]!));
+    expect(dir).toHaveLength(Object.keys(after).length);
   });
 });

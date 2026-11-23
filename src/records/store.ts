@@ -12,7 +12,6 @@
 // Lists are async iterables in their final order, so a tool reads only as
 // many items as the page it answers needs.
 
-import { ToolError } from '../mcp/errors';
 import type { Folder } from './folder';
 import type { DocumentEntry, Household, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
@@ -55,6 +54,14 @@ export interface Candidate {
   snippet(): Promise<string>;
 }
 
+/**
+ * What the tools read. A person-scoped method that cannot read that person's
+ * records right now, while nothing else is wrong (views stale, still
+ * arriving, or in a layout this connector does not know), throws a ToolError
+ * made with `personUnavailable(p.id)`. A question about everyone then
+ * answers without them (partial.ts). Every other failure, a corrupt file, a
+ * Drive sign-in or the request budget, is never so marked, and fails the call.
+ */
 export interface Store {
   household(): Promise<Household>;
   people(h: Household): Promise<PersonRow[]>;
@@ -140,70 +147,6 @@ export function rankHits(perPerson: Candidate[][], want: number): Candidate[] {
     .slice(0, want);
 }
 
-/** A list's note on rows it may lack, as pk-cli-mcp's `warnings` carry it. */
-export interface Warning {
-  code: string;
-  message: string;
-}
-
-/** The warning code for a person whose records cannot be read right now. */
-export const PERSON_UNAVAILABLE = 'person-unavailable';
-
-/**
- * Who a question about everyone answers without. A person whose records
- * cannot be read right now (ToolError.unavailable) is left out with a
- * warning, unless no one can be read; then the first such error is the
- * answer. A question about one named person (`tolerant` false) gets the
- * error itself.
- */
-export class LeftOut {
-  /** Each person left out: why, and whether some of their rows made the list. */
-  private readonly left = new Map<string, { e: ToolError; some: boolean }>();
-
-  constructor(private readonly tolerant: boolean) {}
-
-  /** `f`'s answer for the person, or `none` when they are left out. */
-  async of<T>(p: Person, f: () => Promise<T>, none: T): Promise<T> {
-    try {
-      return await f();
-    } catch (e) {
-      this.leave(p, e, false);
-      return none;
-    }
-  }
-
-  /** The person's rows, ending where they cannot be read. */
-  async *rows<T>(p: Person, xs: AsyncIterable<T>): AsyncIterable<T> {
-    let some = false;
-    try {
-      for await (const x of xs) {
-        some = true;
-        yield x;
-      }
-    } catch (e) {
-      this.leave(p, e, some);
-    }
-  }
-
-  private leave(p: Person, e: unknown, some: boolean): void {
-    if (!this.tolerant || !(e instanceof ToolError && e.unavailable === p.id)) throw e;
-    this.left.set(p.id, { e, some });
-  }
-
-  /**
-   * The warnings, in household order, once every person has been asked. When
-   * everyone was left out, the first person's error instead.
-   */
-  done(people: Person[]): Warning[] {
-    const left = people.filter((p) => this.left.has(p.id)).map((p) => this.left.get(p.id)!);
-    if (left.length > 0 && left.length === people.length) throw left[0]!.e;
-    return left.map(({ e, some }) => ({
-      code: PERSON_UNAVAILABLE,
-      message: `${e.message.replace(/[.]$/, '')}; ${some ? 'some of them are' : 'they are'} missing from this list.${e.fix ? ` ${e.fix}.` : ''}`,
-    }));
-  }
-}
-
 /** The people's `want` best hits for the terms, ranked together (rankHits), each with whose it is. */
 export async function searchHousehold(
   store: Store,
@@ -212,9 +155,10 @@ export async function searchHousehold(
   terms: string[],
   range: Range,
   want: number,
-  left: LeftOut = new LeftOut(false),
+  /** Asks one person, or leaves them out (partial.ts LeftOut.of); by default the person's error is the answer. */
+  each: <T>(p: Person, f: () => Promise<T>, none: T) => Promise<T> = (_p, f) => f(),
 ): Promise<{ p: Person; c: Candidate }[]> {
-  const found = await Promise.all(people.map((p) => left.of(p, () => store.search(h, p, terms, range, want), [])));
+  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want), [])));
   const owner = new Map(found.flatMap((cs, i) => cs.map((c) => [c, people[i]!] as const)));
   return rankHits(found, want).map((c) => ({ p: owner.get(c)!, c }));
 }

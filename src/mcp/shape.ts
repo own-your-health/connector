@@ -85,6 +85,9 @@ export class PageRequest {
     readonly offset: number,
     private readonly fingerprint: bigint,
     private readonly budget: number,
+    /** Who the page this cursor came from left out (`leftOut` below), or null when no one, or no cursor. */
+    private readonly cursorLeft: bigint | null = null,
+    private readonly cursorGiven = false,
   ) {}
 
   /**
@@ -108,8 +111,10 @@ export class PageRequest {
       const sep = rest.indexOf(':');
       if (sep === -1) throw foreignCursor();
       const off = rest.slice(0, sep);
-      const fp = rest.slice(sep + 1);
-      if (!/^\+?\d+$/.test(off) || !/^[0-9a-fA-F]{1,16}$/.test(fp)) throw foreignCursor();
+      // This connector's own addition: `:L<hex>` after a page that left people out (partial.ts).
+      const [fp, left, ...more] = rest.slice(sep + 1).split(':');
+      if (more.length > 0 || left === '' || (left !== undefined && !/^L[0-9a-f]{1,16}$/.test(left))) throw foreignCursor();
+      if (!/^\+?\d+$/.test(off) || !/^[0-9a-fA-F]{1,16}$/.test(fp!)) throw foreignCursor();
       offset = Number(off);
       if (offset > MAX_OFFSET) throw foreignCursor();
       if (BigInt(`0x${fp}`) !== fingerprint) {
@@ -117,6 +122,7 @@ export class PageRequest {
           'cursor belongs to a query with different filters; repeat the filters of the call that returned it, or omit cursor to start over',
         );
       }
+      return new PageRequest(limit, offset, fingerprint, budget, left === undefined ? null : BigInt(`0x${left.slice(1)}`), true);
     }
     return new PageRequest(limit, offset, fingerprint, budget);
   }
@@ -126,7 +132,19 @@ export class PageRequest {
     return this.offset + this.limit + 1;
   }
 
-  page<T>(matched: T[], narrow: string): Page<T> {
+  /**
+   * `leftOut`: the ids of people this answer leaves out (partial.ts). The
+   * rows are counted over the list without them, so a cursor binds them: a
+   * later page that leaves out anyone else counts over another list, and
+   * refuses the cursor.
+   */
+  page<T>(matched: T[], narrow: string, leftOut: string[] = []): Page<T> {
+    const left = leftOut.length > 0 ? fnv1a(encoder.encode([...leftOut].sort().join(','))) : null;
+    if (this.cursorGiven && left !== this.cursorLeft) {
+      throw ToolError.usage(
+        "the records this list can read changed since the page that returned cursor (someone's views were stale or still arriving, and now are not, or the reverse); omit cursor to start over",
+      );
+    }
     const available = Math.max(0, matched.length - this.offset);
     const rows = matched.slice(this.offset, this.offset + this.limit);
     const itemBudget = Math.max(0, this.budget - ENVELOPE_RESERVE);
@@ -147,7 +165,7 @@ export class PageRequest {
     const truncated = kept < Math.min(this.limit, available);
     const more = kept < available;
     const page: Page<T> = { items, returned: kept };
-    if (more) page.next_cursor = toHex(`${CURSOR_VERSION}:${this.offset + kept}:${hex16(this.fingerprint)}`);
+    if (more) page.next_cursor = toHex(`${CURSOR_VERSION}:${this.offset + kept}:${hex16(this.fingerprint)}${left === null ? '' : `:L${hex16(left)}`}`);
     if (truncated) page.truncated = true;
     if (truncated) {
       page.hint = `Stopped at ${kept} records to stay under the ${this.budget}-character result budget. Pass next_cursor as cursor for the rest, or narrow with ${narrow} or response_format=concise.`;

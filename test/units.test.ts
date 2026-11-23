@@ -13,6 +13,7 @@ import { isLab, memberShare, moneyForTests, recordDetail } from '../src/records/
 import { FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, LocalSource } from './support';
 import { RawStore, searchHousehold, type Candidate, type Store } from '../src/records/store';
+import { LeftOut } from '../src/records/partial';
 import type { Household, Person } from '../src/records/model';
 
 describe('paging', () => {
@@ -277,5 +278,73 @@ describe('searching the household', () => {
     const tied: Record<string, Candidate[]> = { p_a: [hit('a', 1, '2020-01-01')], p_b: [hit('b', 1, '2020-01-01')] };
     const s = { search: async (_h: Household, p: Person) => tied[p.id]! } as unknown as Store;
     expect((await searchHousehold(s, h, people, ['x'], {}, 2)).map(({ c }) => c.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('leaving a person out of a question about everyone', () => {
+  const a = { id: 'p_a', name: 'A' } as Person;
+  const b = { id: 'p_b', name: 'B' } as Person;
+  const gone = (p: Person) => ToolError.upstream(`${p.name}'s records are being prepared for assistants right now`).withFix('Ask again in a minute').personUnavailable(p.id);
+  async function* failsAfter<T>(xs: T[], e: unknown): AsyncIterable<T> {
+    yield* xs;
+    throw e;
+  }
+  const all = async <T>(xs: AsyncIterable<T>) => {
+    const out: T[] = [];
+    for await (const x of xs) out.push(x);
+    return out;
+  };
+
+  it('keeps rows read before the person failed, and says some are missing', async () => {
+    const left = new LeftOut(true);
+    expect(await all(left.rows(b, failsAfter([1, 2], gone(b))))).toEqual([1, 2]);
+    expect(left.done([a, b])).toEqual([{ code: 'person-unavailable', message: "B's records are being prepared for assistants right now; some of them are missing from this list. Ask again in a minute." }]);
+    expect(left.ids()).toEqual(['p_b']);
+  });
+
+  it('says all are missing when nothing was read', async () => {
+    const left = new LeftOut(true);
+    expect(await left.of(b, async () => Promise.reject(gone(b)), [])).toEqual([]);
+    expect(left.done([a, b])[0]!.message).toContain('; they are missing from this list.');
+  });
+
+  it('passes any other error on', async () => {
+    const left = new LeftOut(true);
+    await expect(all(left.rows(b, failsAfter([1], ToolError.auth('Google sign-in ended'))))).rejects.toThrow('Google sign-in ended');
+    // Marked for someone else: not this person's to leave out.
+    await expect(left.of(b, async () => Promise.reject(gone(a)), [])).rejects.toThrow("A's records");
+  });
+
+  it('passes the error on for a question about one person', async () => {
+    const left = new LeftOut(false);
+    await expect(all(left.rows(b, failsAfter([1], gone(b))))).rejects.toThrow("B's records");
+  });
+
+  it('gives the first person in household order\'s error when no one can be read', async () => {
+    const left = new LeftOut(true);
+    await left.of(b, async () => Promise.reject(gone(b)), []);
+    await left.of(a, async () => Promise.reject(gone(a)), []);
+    expect(() => left.done([a, b])).toThrow("A's records");
+  });
+});
+
+describe('a cursor after a page that left someone out', () => {
+  const filters = { query: 'x', person: null };
+  const rows = Array.from({ length: 60 }, (_, i) => ({ i }));
+
+  it('binds who was left out: the same people continue, anyone else starts over', () => {
+    const first = PageRequest.create({}, filters).page(rows, 'person', ['p_b']);
+    expect(first.next_cursor).toBeDefined();
+    const same = PageRequest.create({ cursor: first.next_cursor! }, filters);
+    expect(same.page(rows, 'person', ['p_b']).items[0]).toEqual({ i: 25 });
+    expect(() => PageRequest.create({ cursor: first.next_cursor! }, filters).page(rows, 'person', [])).toThrow(/omit cursor to start over/);
+    // And the reverse: a cursor from a page that left no one out.
+    const whole = PageRequest.create({}, filters).page(rows, 'person');
+    expect(() => PageRequest.create({ cursor: whole.next_cursor! }, filters).page(rows, 'person', ['p_b'])).toThrow(/omit cursor to start over/);
+  });
+
+  it("still refuses a cursor from other filters at once, in medrec's words", () => {
+    const first = PageRequest.create({}, filters).page(rows, 'person', ['p_b']);
+    expect(() => PageRequest.create({ cursor: first.next_cursor! }, { query: 'y', person: null })).toThrow(/cursor belongs to a query with different filters/);
   });
 });

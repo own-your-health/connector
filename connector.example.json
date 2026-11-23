@@ -3,7 +3,7 @@
   "account_id": "the Cloudflare account id (dashboard, Workers & Pages, right-hand column)",
   "worker_url": "https://records-connector.<your-subdomain>.workers.dev",
   "allowed_accounts": ["you@example.com"],
-  "folder_id": "the Drive id of the records folder, the one holding household.json",
+  "folder_id": "the Drive id of the records folder, the one holding household.json (may wait until the folder exists; assistants can connect before)",
   "time_zone": "the IANA time zone of the household's dates, for what is past due (UTC if left out)",
   "assistants": "claude,chatgpt,gemini,loopback",
   "drive_scope": "drive.file"
