@@ -140,7 +140,7 @@ class PersonReader {
 
 export class ViewsStore implements Store {
   private readonly raw: RawStore;
-  private state_: Promise<{ index: ViewsIndex | null; newer?: string; fresh: Set<string> }> | null = null;
+  private state_: Promise<{ index: ViewsIndex | null; newer?: string; older?: string; fresh: Set<string> }> | null = null;
   /** Byte ranges fetched for snippets this call, by file: each one's first byte, and the bytes. */
   private windows = new Map<string, { start: number; bytes: Uint8Array }[]>();
 
@@ -157,9 +157,11 @@ export class ViewsStore implements Store {
     this.state_ ??= (async () => {
       const index = await this.folder.parsed<ViewsIndex>(VIEWS_INDEX);
       if (!index || index.schema !== VIEWS_SCHEMA) {
-        // A later layout (medrec-views/v2 on) needs a later connector; anything else is no views at all.
-        const v = /^medrec-views\/v(\d+)$/.exec(index?.schema ?? '');
-        return { index: null, ...(v && Number(v[1]) > 1 ? { newer: index!.schema } : {}), fresh: new Set<string>() };
+        // A later layout needs a later connector, and an earlier one a new pass of the writer; anything else is no views at all.
+        const v = Number(/^medrec-views\/v(\d+)$/.exec(index?.schema ?? '')?.[1] ?? NaN);
+        const current = Number(VIEWS_SCHEMA.slice(VIEWS_SCHEMA.lastIndexOf('v') + 1));
+        const skew = v > current ? { newer: index!.schema } : v < current ? { older: index!.schema } : {};
+        return { index: null, ...skew, fresh: new Set<string>() };
       }
       const files = ['household.json', ...h.people.flatMap((p) => [`${p.folder}/index.json`, `${p.folder}/text.json`])];
       // One request: these files' MD5s, everyone's notes.md, and every view.
@@ -189,6 +191,11 @@ export class ViewsStore implements Store {
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads, and they are too large to read here without it`).withFix(
         "Tell the user the connector needs updating: its README's Updating section has the steps",
+      ).personUnavailable(p.id);
+    }
+    if (st.older) {
+      throw ToolError.upstream(`${p.name}'s records were prepared for assistants in an older layout (${st.older}) than this connector reads, and they are too large to read here without it`).withFix(
+        "Tell the user medrec 0.8.0 or later prepares them in the current one on its next pass (medrec refresh), or `npm run views` does if they use it; then ask again",
       ).personUnavailable(p.id);
     }
     if (!st.index?.people[p.id]) {

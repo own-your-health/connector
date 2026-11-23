@@ -31,7 +31,12 @@ import type { Bill, Listed, ResultRow, SourceRow, SummaryLine, Vaccine } from '.
 import type { Coding, DocumentEntry, Json, JsonObject } from '../records/model';
 
 export const VIEWS_DIR = 'views';
-export const VIEWS_SCHEMA = 'medrec-views/v1';
+/**
+ * The layout. v1 (connector #1 only, never written by medrec) stored views
+ * under their plain names with one search-hay.bin; v2 stores them under
+ * content-addressed names with hay in packs.
+ */
+export const VIEWS_SCHEMA = 'medrec-views/v2';
 export const VIEWS_INDEX = `${VIEWS_DIR}/views.json`;
 
 /** A person's views directory, with the trailing slash. */

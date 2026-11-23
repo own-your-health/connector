@@ -74,7 +74,7 @@ MD5 (hex) of each source file, exactly as stored, that the views were made
 from, and of every view it describes:
 
 ```json
-{"schema":"medrec-views/v1","medrec":"0.8.0","household":"<md5>",
+{"schema":"medrec-views/v2","medrec":"0.8.0","household":"<md5>",
  "people":{"p_…":{"index":"<md5>","text":"<md5>", …,
                   "files":{"summary.json":"<md5>","records-result-0.json":"<md5>", …}}}}
 ```
@@ -110,11 +110,17 @@ else in `views/` is touched.
 ### The schema
 
 `schema` names the layout. A change that a reader of the current layout
-would misread takes the next number (`medrec-views/v2`). A field that
+would misread takes the next number (`medrec-views/v3`). A field that
 readers may ignore does not. A reader that meets a later number than it
 knows reads small people's files whole. For anyone larger, it says the
-connector needs updating. A writer moves to a new number only in a release
-whose notes name the connector version that reads it.
+connector needs updating. Meeting an earlier number, it says the writer's
+next pass prepares the current layout. A writer moves to a new number only
+in a release whose notes name the connector version that reads it.
+
+This is `medrec-views/v2`. `v1` was written only by the connector's own
+`npm run views`, before medrec wrote views: plain names, and one
+`search-hay.bin`. A writer that finds a `v1` `views.json` also removes the
+files it names (the keys of each person's `files`).
 
 ## `views.json`, per person
 

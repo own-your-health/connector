@@ -206,7 +206,7 @@ describe('the views store', () => {
   it('ignores views of another schema', async () => {
     const root = copy(demo, 'demo-schema');
     const at = join(root, VIEWS_INDEX);
-    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v1', 'medrec-views/v2'));
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v3'));
     const { r } = await ask(root, 'medrec_records', { kind: 'conditions' });
     expect(r).toEqual(await raw(root, 'medrec_records', { kind: 'conditions' }));
   });
@@ -214,11 +214,21 @@ describe('the views store', () => {
   it('says a newer layout needs a newer connector, for a person too large to read whole', async () => {
     const root = copy(large, 'large-schema');
     const at = join(root, VIEWS_INDEX);
-    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v1', 'medrec-views/v2'));
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v3'));
     const { r } = await ask(root, 'medrec_summary', { person: 'Robin' });
     expect(r.isError).toBe(true);
-    expect(r.content[0]!.text).toMatch(/newer layout \(medrec-views\/v2\) than this connector reads/);
+    expect(r.content[0]!.text).toMatch(/newer layout \(medrec-views\/v3\) than this connector reads/);
     expect(r.content[0]!.text).toMatch(/connector needs updating/);
+  });
+
+  it("says an older layout needs a new pass of the writer, for a person too large to read whole", async () => {
+    const root = copy(large, 'large-old-schema');
+    const at = join(root, VIEWS_INDEX);
+    writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v1'));
+    const { r } = await ask(root, 'medrec_summary', { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/older layout \(medrec-views\/v1\) than this connector reads/);
+    expect(r.content[0]!.text).toMatch(/medrec 0\.8\.0 or later prepares them in the current one/);
   });
 
   it("finds another person's document while one person's views are stale", async () => {
