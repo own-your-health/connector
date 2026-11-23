@@ -103,9 +103,10 @@ which one listing of the folder gives.
 A pass writes only the stored names the folder lacks, and never changes a
 stored file. A view that did not change keeps its name, so it is not
 written again. Write `views.json` after the views it names. Then remove the
-stored files it no longer names, and the directories of people who left
+stored files it no longer names, including every view of a person who left
 `household.json`. Remove only files with the stored-name shape, so nothing
-else in `views/` is touched.
+else in `views/` is touched. A left person's directory may stay, empty: a
+reader lists only the directories of the people `household.json` names.
 
 ### The schema
 
