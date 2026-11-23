@@ -1,6 +1,7 @@
 // The pieces under the tools: paging, the redirect allowlist, the folder's
 // cache, and Drive as a FileSource.
 
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { redirectOwner } from '../src/auth/assistants';
 import { ToolError } from '../src/mcp/errors';
@@ -11,6 +12,7 @@ import { callTool } from '../src/records/tools';
 import { isLab, memberShare, moneyForTests, recordDetail } from '../src/records/views';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, LocalSource } from './support';
+import { RawStore } from '../src/records/store';
 
 describe('paging', () => {
   const filters = { query: 'a', person: null };
@@ -88,6 +90,17 @@ class Counting implements FileSource {
     this.reads.push(p);
     return this.files[p] ?? null;
   }
+  async bytes(p: string, start: number, end: number) {
+    const f = this.files[p];
+    return f === undefined ? null : new TextEncoder().encode(f).subarray(start, end);
+  }
+  async md5(ps: string[]) {
+    return ps.map((p) => (this.files[p] === undefined ? null : createHash('md5').update(this.files[p]!).digest('hex')));
+  }
+  async size(p: string) {
+    const f = this.files[p];
+    return f === undefined ? null : new TextEncoder().encode(f).length;
+  }
 }
 
 const HOUSEHOLD = JSON.stringify({ schema: 'medrec-household/v1', format: 1, people: [{ id: 'p_a', name: 'Ada Test', folder: 'Ada Test', adult: true }] });
@@ -123,7 +136,7 @@ describe('the folder and its cache', () => {
   });
   it("refuses an index that names another person", async () => {
     const src = new Counting({ 'household.json': HOUSEHOLD, 'Ada Test/index.json': '{"schema":"medrec-index/v1","person":"p_b"}' });
-    const r = await callTool('medrec_summary', { person: 'Ada' }, { folder: new Folder(src, new ParsedCache(), 's'), today: '2026-11-23' });
+    const r = await callTool('medrec_summary', { person: 'Ada' }, { store: new RawStore(new Folder(src, new ParsedCache(), 's')), today: '2026-11-23' });
     expect(r?.content[0]?.text).toMatch(/^other: Ada Test\/index.json names another person/);
   });
 });
@@ -143,8 +156,8 @@ describe('Drive as the folder', () => {
       ['medrec_search', { query: 'cholesterol' }],
       ['medrec_records', { kind: 'timeline', limit: 50 }],
     ] as const) {
-      const drive = await callTool(name, args, { folder: new Folder(new DriveSource(token, FOLDER_ID, g.fetch), new ParsedCache(), 'd'), today });
-      const disk = await callTool(name, args, { folder: new Folder(new LocalSource(DEMO), new ParsedCache(), 'l'), today });
+      const drive = await callTool(name, args, { store: new RawStore(new Folder(new DriveSource(token, FOLDER_ID, g.fetch), new ParsedCache(), 'd')), today });
+      const disk = await callTool(name, args, { store: new RawStore(new Folder(new LocalSource(DEMO), new ParsedCache(), 'l')), today });
       expect(drive).toEqual(disk);
     }
   });
@@ -152,7 +165,7 @@ describe('Drive as the folder', () => {
   it('lists the folder on every call but downloads only what changed', async () => {
     const { g, token } = signedIn();
     const cache = new ParsedCache();
-    const call = () => callTool('medrec_summary', { person: 'Robin' }, { folder: new Folder(new DriveSource(token, FOLDER_ID, g.fetch), cache, 'd'), today });
+    const call = () => callTool('medrec_summary', { person: 'Robin' }, { store: new RawStore(new Folder(new DriveSource(token, FOLDER_ID, g.fetch), cache, 'd')), today });
     await call();
     const first = g.seen.length;
     const downloads = g.seen.filter((s) => s.includes('/files/')).length;
@@ -170,7 +183,7 @@ describe('Drive as the folder', () => {
   ])('reports Drive %i %s without Drive\'s own words', async (status, reason, want) => {
     const { g, token } = signedIn();
     g.faults.push({ status, reason });
-    const r = await callTool('medrec_summary', {}, { folder: new Folder(new DriveSource(token, FOLDER_ID, g.fetch), new ParsedCache(), 'd'), today });
+    const r = await callTool('medrec_summary', {}, { store: new RawStore(new Folder(new DriveSource(token, FOLDER_ID, g.fetch), new ParsedCache(), 'd')), today });
     expect(r?.isError).toBe(true);
     expect(r?.content[0]?.text).toMatch(want);
     expect(r?.content[0]?.text).not.toMatch(/secret-file-name/);
@@ -178,7 +191,7 @@ describe('Drive as the folder', () => {
 
   it('says so when the folder id shows no records folder', async () => {
     const { g, token } = signedIn();
-    const r = await callTool('medrec_summary', {}, { folder: new Folder(new DriveSource(token, 'not-the-folder', g.fetch), new ParsedCache(), 'd'), today });
+    const r = await callTool('medrec_summary', {}, { store: new RawStore(new Folder(new DriveSource(token, 'not-the-folder', g.fetch), new ParsedCache(), 'd')), today });
     expect(r?.content[0]?.text).toMatch(/^other: household.json is missing/);
   });
 });

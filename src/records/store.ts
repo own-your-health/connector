@@ -1,0 +1,229 @@
+// What the tools read, one level above the files: a person's records of one
+// kind in the order the records tool lists them, a summary, the best search
+// hits, a document's text. Two stores answer it the same way:
+//
+// - RawStore reads household.json and each person's index.json, text.json
+//   and notes.md whole (medrec-cli docs/data-contract.md). Every answer of
+//   `medrec mcp` is reproduced from them.
+// - ViewsStore (src/views/store.ts) reads the small files medrec writes
+//   beside them for this connector, so a call parses kilobytes, not
+//   megabytes, and fits the Workers Free plan's 10 ms of CPU.
+//
+// Lists are async iterables in their final order, so a tool reads only as
+// many items as the page it answers needs.
+
+import type { Folder } from './folder';
+import type { DocumentEntry, Household, Note, Person, RecordEntry } from './model';
+import { clip, cmpOpt, cmpStr, day, fold } from './text';
+import {
+  CLIP,
+  LAB_QUERIES,
+  type Event,
+  type PersonRow,
+  type Range,
+  type ResultRow,
+  type Summary,
+  holds,
+  isEnded,
+  latestResults,
+  matchesCode,
+  newestFirst,
+  personRow,
+  searchables,
+  score,
+  snippetAt,
+  summarize,
+  timelineEvents,
+} from './views';
+
+export interface RecordFilter {
+  range: Range;
+  /** Leave out records whose status says they ended. */
+  active: boolean;
+  /** `matchesCode`: an exact code, or part of the name. */
+  name?: string;
+}
+
+/** A search hit before its snippet is made: only the hits a page returns get one. */
+export interface Candidate {
+  kind: string;
+  id: string;
+  date?: string;
+  title: string;
+  score: number;
+  snippet(): Promise<string>;
+}
+
+export interface Store {
+  household(): Promise<Household>;
+  people(h: Household): Promise<PersonRow[]>;
+  summary(h: Household, p: Person, today: string, perList: number): Promise<Summary>;
+  /** A person's records of one kind that pass the filter, ordered as the records tool lists them in that format. */
+  records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry>;
+  /** `latestResults` over the person's results that pass the filter. */
+  tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]>;
+  /** A person's documents, records, studies and notes as timeline events in the range, ordered as the records tool lists them. */
+  timeline(h: Household, p: Person, range: Range): AsyncIterable<Event>;
+  documents(p: Person): Promise<DocumentEntry[]>;
+  notes(p: Person): Promise<Note[]>;
+  /** The person's `want` best hits, best first (score, then date, newest first). */
+  search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]>;
+  documentText(p: Person, d: DocumentEntry): Promise<string>;
+  /** The names of the first 20 records filed from the document. */
+  documentRecords(p: Person, d: DocumentEntry): Promise<string[]>;
+  /** Fetch what the hits' snippets need in as few requests as the store can, before `snippet()` is called on each. */
+  prepare?(hits: Candidate[]): Promise<void>;
+}
+
+/** The records tool's order: date, newest first (the day only, unless detailed), then title. */
+export function recordOrder(detailed: boolean) {
+  const date = (r: RecordEntry) => (detailed ? (r.date ?? undefined) : day(r.date));
+  return (a: RecordEntry, b: RecordEntry) => cmpOpt(date(b), date(a)) || cmpStr(clip(a.display, CLIP), clip(b.display, CLIP));
+}
+
+/** The records tool's timeline order: medrec's sort by date, kind and title, then the tool's by date and clipped title. */
+export const eventOrder = (a: Event, b: Event) =>
+  cmpOpt(b.date, a.date) || cmpStr(clip(a.title, CLIP), clip(b.title, CLIP)) || cmpStr(a.kind, b.kind) || cmpStr(a.title, b.title);
+
+export function passes(r: RecordEntry, kind: string, f: RecordFilter): boolean {
+  return r.kind === kind && holds(f.range, r.date) && !(f.active && isEnded(r.status)) && (f.name === undefined || matchesCode(r, f.name));
+}
+
+/**
+ * The first `want` items of several ordered lists merged, ties to the earlier
+ * list: what a stable sort of their concatenation puts first.
+ */
+export async function takeMerged<T>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) => number, want: number, keep: (x: T) => boolean = () => true): Promise<T[]> {
+  const out: T[] = [];
+  if (want <= 0) return out;
+  for await (const x of merged(lists, cmp)) {
+    if (!keep(x)) continue;
+    out.push(x);
+    if (out.length >= want) break;
+  }
+  return out;
+}
+
+/** Ordered lists merged into one, ties to the earlier list, each read only as far as needed. */
+export async function* merged<T>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) => number): AsyncIterable<T> {
+  const its = lists.map((l) => l[Symbol.asyncIterator]());
+  const next = async (it: AsyncIterator<T>): Promise<T | undefined> => {
+    const r = await it.next();
+    return r.done ? undefined : r.value;
+  };
+  try {
+    const heads = await Promise.all(its.map(next));
+    for (;;) {
+      let best = -1;
+      for (let i = 0; i < heads.length; i++) {
+        const h = heads[i];
+        if (h === undefined) continue;
+        if (best === -1 || cmp(h, heads[best]!) < 0) best = i;
+      }
+      if (best === -1) return;
+      yield heads[best]!;
+      heads[best] = await next(its[best]!);
+    }
+  } finally {
+    await Promise.all(its.map((it) => it.return?.()));
+  }
+}
+
+async function* each<T>(xs: T[]): AsyncIterable<T> {
+  yield* xs;
+}
+
+/** Every person's best hits merged as medrec ranks them: score, then date, newest first; ties in household order. */
+export function rankHits(perPerson: Candidate[][], want: number): Candidate[] {
+  return perPerson
+    .flat()
+    .sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date))
+    .slice(0, want);
+}
+
+export function searchTerms(query: string): { terms: string[]; labs: boolean } {
+  const terms = fold(query)
+    .split(' ')
+    .filter((t) => t !== '');
+  return { terms, labs: LAB_QUERIES.includes(terms.join(' ')) };
+}
+
+/** The store over the records folder's own files, read whole. */
+export class RawStore implements Store {
+  constructor(readonly folder: Folder) {}
+
+  household(): Promise<Household> {
+    return this.folder.household();
+  }
+
+  people(h: Household): Promise<PersonRow[]> {
+    return Promise.all(h.people.map(async (p) => personRow(p, await this.folder.index(p), (await this.folder.notes(p)).length)));
+  }
+
+  async summary(h: Household, p: Person, today: string, perList: number): Promise<Summary> {
+    return summarize(h, p, await this.folder.index(p), (await this.folder.notes(p)).length, today, perList);
+  }
+
+  async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry> {
+    const rs = ((await this.folder.index(p)).records ?? []).filter((r) => passes(r, kind, filter));
+    yield* rs.sort(recordOrder(detailed));
+  }
+
+  async tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]> {
+    const rs = ((await this.folder.index(p)).records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && (filter.name === undefined || matchesCode(r, filter.name)));
+    return latestResults(h, newestFirst(rs));
+  }
+
+  async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {
+    yield* timelineEvents(h, p, await this.folder.index(p), await this.folder.notes(p), range).sort(eventOrder);
+  }
+
+  async documents(p: Person): Promise<DocumentEntry[]> {
+    return (await this.folder.index(p)).documents ?? [];
+  }
+
+  notes(p: Person): Promise<Note[]> {
+    return this.folder.notes(p);
+  }
+
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]> {
+    const labs = LAB_QUERIES.includes(terms.join(' '));
+    const items = await this.folder.derived(`search:${p.id}`, this.folder.personFiles(p), async () => {
+      const list = searchables(await this.folder.index(p), (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p));
+      return { value: list, size: list.reduce((n, x) => n + x.folded.length, 0) };
+    });
+    const found: Candidate[] = [];
+    for (const item of items) {
+      if (!holds(range, item.date)) continue;
+      // A lab query finds every lab record by its kind, after the items whose text holds it.
+      const m = score(item.folded, terms) ?? (labs && item.lab ? { score: 0, first: -1 } : null);
+      if (!m) continue;
+      found.push({
+        kind: item.kind,
+        id: item.id,
+        date: item.date,
+        title: item.title,
+        score: m.score,
+        snippet: async () => {
+          const idx = await this.folder.index(p);
+          if (m.first === -1) return item.lab!(idx);
+          return snippetAt(item.hay(idx, (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p)), m.first);
+        },
+      });
+    }
+    return found.sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date)).slice(0, want);
+  }
+
+  async documentText(p: Person, d: DocumentEntry): Promise<string> {
+    return (await this.folder.text(p)).texts?.[d.id] ?? '';
+  }
+
+  async documentRecords(p: Person, d: DocumentEntry): Promise<string[]> {
+    return ((await this.folder.index(p)).records ?? [])
+      .filter((r) => (r.documents ?? []).includes(d.id))
+      .slice(0, 20)
+      .map((r) => clip(r.display, CLIP));
+  }
+}
+
+export { each };

@@ -17,6 +17,16 @@ export interface FileSource {
   version(path: string): Promise<string | null>;
   /** The file's text, or null when it is missing. */
   read(path: string): Promise<string | null>;
+  /** Bytes `start` to `end` (exclusive) of the file, or null when it is missing. */
+  bytes(path: string, start: number, end: number): Promise<Uint8Array | null>;
+  /** The MD5 (hex) of each file's contents, null for one that is missing: in one request where the source can. */
+  md5(paths: string[]): Promise<(string | null)[]>;
+  /** The file's size in bytes, or null when it is missing. */
+  size(path: string): Promise<number | null>;
+  /** Learn every file in `dirs` and each of `files`, with MD5s, in as few requests as the source can. */
+  survey?(dirs: string[], files: string[]): Promise<void>;
+  /** How many more requests this call may make, where the source is limited. */
+  remaining?(): number;
 }
 
 interface Entry {
@@ -99,6 +109,47 @@ export class Folder {
     const value = await parse(text);
     this.cache.set(key, version, value, text.length);
     return value;
+  }
+
+  /** A JSON file parsed, from the cache while its version holds. */
+  parsed<T>(path: string): Promise<T | null> {
+    return this.json<T>(path);
+  }
+
+  bytes(path: string, start: number, end: number): Promise<Uint8Array | null> {
+    return this.source.bytes(path, start, end);
+  }
+
+  /** A binary file whole, from the cache while its version holds. */
+  async binary(path: string): Promise<Uint8Array | null> {
+    const version = await this.source.version(path);
+    if (version === null) return null;
+    const key = `${this.scope}\u0000bytes\u0000${path}`;
+    const hit = this.cache.get(key, version);
+    if (hit !== undefined) return hit as Uint8Array;
+    const size = await this.source.size(path);
+    if (size === null) return null;
+    const b = await this.source.bytes(path, 0, size);
+    if (b === null || b.length !== size) return null;
+    this.cache.set(key, version, b, b.length);
+    return b;
+  }
+
+  md5(paths: string[]): Promise<(string | null)[]> {
+    return this.source.md5(paths);
+  }
+
+  async survey(dirs: string[], files: string[]): Promise<void> {
+    await this.source.survey?.(dirs, files);
+  }
+
+  /** How many more requests this call may make. */
+  remaining(): number {
+    return this.source.remaining?.() ?? Number.POSITIVE_INFINITY;
+  }
+
+  size(path: string): Promise<number | null> {
+    return this.source.size(path);
   }
 
   private json<T>(path: string): Promise<T | null> {

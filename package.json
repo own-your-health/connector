@@ -19,6 +19,8 @@
     "typecheck": "tsc",
     "test": "vitest run",
     "build": "wrangler deploy --dry-run --outdir dist",
+    "views": "node scripts/views.mjs",
+    "bench:cpu": "vitest run --config bench/vitest.config.ts",
     "verify": "npm run typecheck && npm test && node scripts/check-copies.mjs && node scripts/no-personal-data.mjs && npm run build"
   },
   "dependencies": {
@@ -29,6 +31,7 @@
     "@cfworker/json-schema": "4.1.1",
     "@cloudflare/workers-types": "5.20261123.1",
     "@types/node": "24.19.2",
+    "esbuild": "0.28.2",
     "typescript": "5.9.3",
     "vitest": "5.1.1",
     "wrangler": "4.166.0"

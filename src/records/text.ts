@@ -139,6 +139,38 @@ export function rawOffset(raw: string, k: number): number {
   return byte;
 }
 
+/**
+ * Each word of `fold(raw)`, in order, with the UTF-8 byte offset in `raw`
+ * where it starts: `rawOffset` at every word start, in one pass.
+ */
+export function wordStarts(raw: string): number[] {
+  const out: number[] = [];
+  let space = true;
+  let byte = 0;
+  TOKEN.lastIndex = 0;
+  for (let m = TOKEN.exec(raw); m; m = TOKEN.exec(raw)) {
+    const t = m[0];
+    const c0 = t.charCodeAt(0);
+    if (c0 < 0x80 && isAsciiAlnum(c0)) {
+      if (space) out.push(byte);
+      byte += t.length;
+      space = false;
+    } else if (c0 < 0x80) {
+      space = true;
+      byte += t.length;
+    } else {
+      for (const g of foldWord(t)) {
+        if (g !== ' ') {
+          if (space) out.push(byte);
+          space = false;
+        } else space = true;
+      }
+      byte += utf8Length(t);
+    }
+  }
+  return out;
+}
+
 export function utf8Length(c: string): number {
   const p = c.codePointAt(0) ?? 0;
   return p < 0x80 ? 1 : p < 0x800 ? 2 : p < 0x10000 ? 3 : 4;

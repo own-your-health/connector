@@ -5,29 +5,20 @@
 import spec from '../../spec/medrec-tools.json';
 import { ToolError, type ServerInfo } from '../mcp/errors';
 import { HARD_LIMIT, PageRequest, chars, type ListArgs } from '../mcp/shape';
-import type { Folder } from './folder';
-import type { DocumentEntry, Household, JsonObject, RecordEntry } from './model';
+import { eventOrder, rankHits, recordOrder, searchTerms, takeMerged, type Store } from './store';
+import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
   CLIP,
   DOC_TYPES,
-  findDocument,
+  SUMMARY_LINES,
   isDocType,
-  isEnded,
   label,
-  latestResults,
-  matchesCode,
-  newestFirst,
-  notes,
-  people,
   recordDetail,
   recordSource,
   resolvePerson,
   resultRow,
-  search,
   selected,
-  summary,
-  timeline,
   checkIso,
   holds as holdsRange,
   valueText,
@@ -54,7 +45,6 @@ export interface ToolDef {
   annotations: Record<string, unknown>;
 }
 
-const SUMMARY_LINES = 25;
 const TEXT_CHUNK = 16_000;
 const DOCUMENT_BUDGET = 30_000;
 const NOTE_CLIP = 2_000;
@@ -83,9 +73,9 @@ export interface CallResult {
   isError: boolean;
 }
 
-/** What a call needs: the folder, and the household's today (`YYYY-MM-DD`). */
+/** What a call needs: the records, and the household's today (`YYYY-MM-DD`). */
 export interface Context {
-  folder: Folder;
+  store: Store;
   today: string;
 }
 
@@ -263,7 +253,7 @@ function listArgs(a: Args): ListArgs {
 }
 
 async function open(ctx: Context): Promise<Household> {
-  return ctx.folder.household();
+  return ctx.store.household();
 }
 
 // ---- medrec_summary ------------------------------------------------------------------------------
@@ -336,7 +326,7 @@ const PERSON_KEYS = ['id', 'name', 'birth_date', 'adult', 'documents', 'records'
 
 async function summaryTool(a: Args, ctx: Context): Promise<Record<string, unknown>> {
   const h = await open(ctx);
-  const rows = (await people(ctx.folder, h)).map((r) => ordered(r as unknown as Record<string, unknown>, PERSON_KEYS));
+  const rows = (await ctx.store.people(h)).map((r) => ordered(r as unknown as Record<string, unknown>, PERSON_KEYS));
   const q = given(a.person);
   if (q === undefined) return { people: rows };
   let p;
@@ -345,7 +335,7 @@ async function summaryTool(a: Args, ctx: Context): Promise<Record<string, unknow
   } catch (e) {
     throw personError(e);
   }
-  const s = await summary(ctx.folder, h, p, ctx.today, SUMMARY_LINES);
+  const s = await ctx.store.summary(h, p, ctx.today, SUMMARY_LINES);
   return { people: rows, summary: sections(s) };
 }
 
@@ -364,8 +354,24 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
       throw personError(e);
     }
   }
-  const hits = await search(ctx.folder, h, person, query, r, page.wanted());
-  const items = hits.map((x) => ordered({ person: x.person_name, kind: x.kind, id: x.id, date: x.date, title: clip(x.title, CLIP), snippet: x.snippet }, ['person', 'kind', 'id', 'date', 'title', 'snippet']));
+  const { terms } = searchTerms(query);
+  if (terms.length === 0) throw ToolError.usage('search needs at least one word');
+  const chosen = selected(h, person);
+  const want = page.wanted();
+  const found = await Promise.all(chosen.map(async (p) => (await ctx.store.search(h, p, terms, r, want)).map((c) => ({ p, c }))));
+  // rankHits sorts every person's candidates together; keep whose each one is.
+  const owner = new Map(found.flat().map(({ p, c }) => [c, p]));
+  const hits = rankHits(
+    found.map((xs) => xs.map((x) => x.c)),
+    want,
+  );
+  // Snippets only for the hits this page shows; the rest only tell the page where it stands.
+  const shown = hits.slice(page.offset, page.offset + page.limit);
+  await ctx.store.prepare?.(shown);
+  const items: Record<string, unknown>[] = hits.map(() => ({}));
+  for (const [i, c] of shown.entries()) {
+    items[page.offset + i] = ordered({ person: owner.get(c)!.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet() }, ['person', 'kind', 'id', 'date', 'title', 'snippet']);
+  }
   return pageJson(page.page(items, 'person, since/until, or more words'));
 }
 
@@ -451,36 +457,37 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const named = (title: string) => name === undefined || fold(title).includes(fold(name));
   const items: Item[] = [];
   const recordKind = KINDS[kind];
+  const filter = { range: r, active, name };
   if (kind === 'tests') {
     for (const p of chosen) {
-      const idx = await ctx.folder.index(p);
-      const results = newestFirst((idx.records ?? []).filter((x) => x.kind === 'result' && holdsRange(r, x.date) && (name === undefined || matchesCode(x, name))));
-      for (const row of latestResults(h, results)) {
+      for (const row of await ctx.store.tests(h, p, filter)) {
         items.push({ kind: 'result', person: p.name, date: row.date, title: row.test, source: row.source, id: '', code: row.code, value: row.value, unit: row.unit, range: row.range, flag: row.flag, results: row.results });
       }
     }
   } else if (recordKind) {
-    for (const p of chosen) {
-      for (const x of (await ctx.folder.index(p)).records ?? []) {
-        if (x.kind !== recordKind || !holdsRange(r, x.date) || (active && isEnded(x.status)) || (name !== undefined && !matchesCode(x, name))) continue;
-        items.push(recordItem(h, p.name, x, detailed));
-      }
-    }
+    // Each person's records come in the tool's order: merge them, reading only what the page needs.
+    const order = recordOrder(detailed);
+    const tagged = chosen.map((p) => tag(p, ctx.store.records(h, p, recordKind, filter, detailed)));
+    const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted());
+    return pageJson(page.page(top.map(({ p, x }) => item(recordItem(h, p.name, x, detailed))), 'person, since/until, active or name'));
   } else if (kind === 'notes') {
-    for (const n of await notes(ctx.folder, h, person, r)) {
+    const rows: { person_name: string; note: Note }[] = [];
+    for (const p of chosen) for (const n of await ctx.store.notes(p)) if (holdsRange(r, n.date)) rows.push({ person_name: p.name, note: n });
+    rows.sort((a, b) => cmpS(b.note.date, a.note.date));
+    for (const n of rows) {
       const text = trim(n.note.text);
       if (!named(text)) continue;
       items.push({ kind: 'note', person: n.person_name, date: n.note.date, title: firstLine(text, 120), detail: clip(text, NOTE_CLIP), source: n.note.author, id: n.note.id });
     }
   } else if (kind === 'timeline') {
-    for (const e of await timeline(ctx.folder, h, person, r)) {
-      if (!named(e.title)) continue;
-      items.push({ kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id });
-    }
+    const tagged = chosen.map((p) => tag(p, ctx.store.timeline(h, p, r)));
+    const top = await takeMerged(tagged, (a, b) => eventOrder(a.x, b.x), page.wanted(), ({ x }) => named(x.title));
+    const events = top.map(({ x: e }) => item({ kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
+    return pageJson(page.page(events, 'person, since/until, active or name'));
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
-      for (const d of (await ctx.folder.index(p)).documents ?? []) {
+      for (const d of await ctx.store.documents(p)) {
         const isBill = d.doc_type === 'bill';
         if ((bills && (!isBill || (d.same_statement_as !== null && d.same_statement_as !== undefined))) || (docType !== undefined && d.doc_type !== docType) || !holdsRange(r, d.date)) continue;
         const title = d.title ?? d.original_name ?? label(d.doc_type);
@@ -491,6 +498,10 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   }
   items.sort((x, y) => cmpOptS(y.date, x.date) || cmpS(x.title as string, y.title as string));
   return pageJson(page.page(items.map(item), 'person, since/until, active or name'));
+}
+
+async function* tag<T>(p: Person, xs: AsyncIterable<T>): AsyncIterable<{ p: Person; x: T }> {
+  for await (const x of xs) yield { p, x };
 }
 
 const cmpOptS = (a: unknown, b: unknown) => cmpOptRaw(a as string | undefined, b as string | undefined);
@@ -591,14 +602,17 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page !== undefined && offset !== undefined) throw ToolError.usage('pass page or offset, not both');
   if (page === 0) throw ToolError.usage('pages count from 1');
   const h = await open(ctx);
-  let found;
-  try {
-    found = await findDocument(ctx.folder, h, id);
-  } catch (e) {
-    throw e instanceof ToolError ? e.withFix('Find the id with medrec_search or medrec_records') : e;
+  let found: [Person, DocumentEntry] | undefined;
+  for (const p of h.people) {
+    const d = (await ctx.store.documents(p)).find((x) => x.id === id);
+    if (d) {
+      found = [p, d];
+      break;
+    }
   }
+  if (!found) throw ToolError.notFound(`no document \`${id}\`; \`medrec documents list\` shows them`).withFix('Find the id with medrec_search or medrec_records');
   const [p, d] = found;
-  const text = (await ctx.folder.text(p)).texts?.[d.id] ?? '';
+  const text = await ctx.store.documentText(p, d);
   const cs = Array.from(text);
   const breaks: number[] = [];
   cs.forEach((c, i) => {
@@ -610,10 +624,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page === 1 || (page === undefined && offset === undefined)) start = 0;
   else if (page !== undefined) start = breaks[page - 2]! + 1;
   else start = Math.min(offset!, cs.length);
-  const records = ((await ctx.folder.index(p)).records ?? [])
-    .filter((r) => (r.documents ?? []).includes(d.id))
-    .slice(0, 20)
-    .map((r) => clip(r.display, CLIP));
+  const records = await ctx.store.documentRecords(p, d);
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,

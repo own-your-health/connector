@@ -9,48 +9,8 @@ import { ParsedCache } from '../src/records/folder';
 import { callTool } from '../src/records/tools';
 import worker, { type Env } from '../src/worker';
 import { CLIENT_ID, CLIENT_SECRET, FOLDER_ID, FakeGoogle } from './fake-google';
-import { DEMO, folderAt } from './support';
-
-class MemoryKV {
-  data = new Map<string, { value: string; metadata?: unknown }>();
-  async get(key: string, opts?: unknown) {
-    const e = this.data.get(key);
-    if (!e) return null;
-    const type = typeof opts === 'string' ? opts : (opts as { type?: string } | undefined)?.type;
-    return type === 'json' ? JSON.parse(e.value) : e.value;
-  }
-  async put(key: string, value: string, opts?: { metadata?: unknown }) {
-    this.data.set(key, { value, metadata: opts?.metadata });
-  }
-  async delete(key: string) {
-    this.data.delete(key);
-  }
-  async list(opts: { prefix?: string; cursor?: string; limit?: number } = {}) {
-    const keys = [...this.data.keys()].filter((k) => k.startsWith(opts.prefix ?? '')).sort();
-    const start = opts.cursor ? Number(opts.cursor) : 0;
-    const limit = opts.limit ?? 1000;
-    const page = keys.slice(start, start + limit);
-    const done = start + limit >= keys.length;
-    return { keys: page.map((name) => ({ name, metadata: this.data.get(name)?.metadata })), list_complete: done, ...(done ? {} : { cursor: String(start + limit) }) };
-  }
-}
-
-class MemoryD1 {
-  rows: unknown[][] = [];
-  statements: string[] = [];
-  prepare(sql: string) {
-    this.statements.push(sql);
-    const run = async (args: unknown[]) => {
-      if (sql.startsWith('INSERT INTO audit')) this.rows.push(args);
-      return { success: true };
-    };
-    return { bind: (...args: unknown[]) => ({ run: () => run(args) }), run: () => run([]) };
-  }
-  async exec(sql: string) {
-    this.statements.push(sql);
-    return { count: 1 };
-  }
-}
+import { DEMO, MemoryD1, MemoryKV, folderAt } from './support';
+import { RawStore } from '../src/records/store';
 
 const BASE = 'https://records.example.workers.dev';
 const CLAUDE = 'https://claude.ai/api/mcp/auth_callback';
@@ -268,7 +228,7 @@ describe('using the tools', () => {
     const list = await mcp(access_token, 'tools/list');
     expect((list.body?.result?.tools as { name: string }[]).map((t) => t.name)).toEqual(['medrec_summary', 'medrec_search', 'medrec_records', 'medrec_document']);
     const call = await mcp(access_token, 'tools/call', { name: 'medrec_summary', arguments: { person: 'Robin' } });
-    const local = await callTool('medrec_summary', { person: 'Robin' }, { folder: folderAt(DEMO, new ParsedCache()), today: new Intl.DateTimeFormat('en-CA', { timeZone: 'Pacific/Auckland' }).format(new Date()) });
+    const local = await callTool('medrec_summary', { person: 'Robin' }, { store: new RawStore(folderAt(DEMO, new ParsedCache())), today: new Intl.DateTimeFormat('en-CA', { timeZone: 'Pacific/Auckland' }).format(new Date()) });
     expect(call.body?.result).toEqual(local);
     expect(call.res.headers.get('Cache-Control')).toBe('no-store');
   });
