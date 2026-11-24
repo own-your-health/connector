@@ -17,6 +17,7 @@ import { fold } from '../src/records/text';
 import { names } from '../src/records/private';
 import { newestFirst, recordSource, seriesKey } from '../src/records/views';
 import type { Household, RecordEntry } from '../src/records/model';
+import { ToolError } from '../src/mcp/errors';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
@@ -800,27 +801,21 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   it('ignores what a later medrec adds to the views: a file, a field on a summary line and one in views.json', async () => {
     const root = copy(demo, 'later-medrec');
     const { people } = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
-    let keyed = 0;
+    let changed = 0;
     for (const p of people) {
       const summary = JSON.parse(readFileSync(stored(root, paths.summary(p.id)), 'utf8')) as { conditions: { items: Record<string, unknown>[] } };
       for (const line of summary.conditions.items) {
-        line.name_key = 'icd10cm|Z00.00';
-        keyed++;
+        line.later_field = 'a later field';
+        changed++;
       }
       setView(root, p.name, 'summary.json', summary as unknown as Record<string, unknown>);
-      setView(root, p.name, 'code-names.json', {
-        schema: 'medrec-code-names/v1',
-        person: p.id,
-        table: { id: 'icd10cm', version: 'FY2027', date: '2026-06-01' },
-        codes: { 'icd10cm|Z00.00': { name: 'An invented plain name' } },
-        private_codes: { 'icd10cm|Z00.01': { name: 'An invented private name' } },
-      });
+      setView(root, p.name, 'later-view.json', { schema: 'medrec-later-view/v1', person: p.id, items: { 'a later view': true } });
     }
     const at = join(root, VIEWS_INDEX);
     const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
-    for (const v of Object.values(index.people)) (v as unknown as Record<string, unknown>).code_table = 'icd10cm FY2027';
+    for (const v of Object.values(index.people)) Object.assign(v, { later_note: 'a later note', code_table: 'icd10cm FY2027' });
     writeFileSync(at, JSON.stringify(index));
-    expect(keyed).toBeGreaterThan(0);
+    expect(changed).toBeGreaterThan(0);
     const { calls } = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/calls.json'), 'utf8')) as { calls: Record<string, unknown>[] };
     const made = calls.filter((c) => c.folder === 'demo' && c.arguments !== undefined && c.cursor_from === undefined && c.id_from === undefined);
     expect(made.length).toBeGreaterThan(100);
@@ -832,9 +827,116 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     for (const c of made) {
       const [was, now] = await Promise.all([demo, root].map((folder) => ask(folder, c.name as string, c.arguments as Record<string, unknown>)));
       expect(now!.r, JSON.stringify(c)).toEqual(was!.r);
-      expect(JSON.stringify(now!.r)).not.toMatch(/invented (?:plain|private) name|name_key|code_table/);
-      expect(now!.read.some((f) => f.includes('code-names'))).toBe(false);
+      expect(JSON.stringify(now!.r)).not.toMatch(/later_field|later_note|a later (?:field|view|note)|code_table/);
+      expect(now!.read.some((f) => f.includes('later-view'))).toBe(false);
     }
+  });
+
+  describe('plain names of conditions, from code-names.json (medrec 0.9.4)', () => {
+    type Row = { id: string; title: string; plain_name?: string; private?: string; person: string };
+    const rows = (r: { structuredContent?: Record<string, unknown> }) => (r.structuredContent as { items: Row[] }).items;
+    const summaryRows = (r: { structuredContent?: Record<string, unknown> }) =>
+      (r.structuredContent as { summary: { sections: { section: string; items: (Omit<Row, 'title'> & { name: string })[] }[] } }).summary.sections.find((x) => x.section === 'conditions')!.items;
+    const pick = (xs: Row[], id: string) => xs.find((x) => x.id === id)!;
+    const pressure = 'r_d5j2pc6xngtnzlxzykci';
+    const anxiety = 'r_anxietydisorderaaaaa';
+    const codeNames = (root: string) => join(root, personDir(personId(root, 'Robin Example')) + storedName('code-names.json', (JSON.parse(readFileSync(join(root, VIEWS_INDEX), 'utf8')) as ViewsIndex).people[personId(root, 'Robin Example')]!.files['code-names.json']!));
+
+    it('labels a person\'s conditions, private ones included, beside the source\'s own words', async () => {
+      const r = rows((await ask(demo, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r);
+      expect(pick(r, pressure)).toMatchObject({ title: 'High blood pressure', plain_name: 'Sample pressure' });
+      expect(pick(r, anxiety)).toMatchObject({ title: 'Generalized anxiety disorder', plain_name: 'Sample worry', private: 'mental_health' });
+      const s = summaryRows((await ask(demo, 'medrec_summary', { person: 'Robin' })).r);
+      expect(s.find((x) => x.id === pressure)).toMatchObject({ name: 'High blood pressure', plain_name: 'Sample pressure' });
+      expect(s.find((x) => x.id === anxiety)).toMatchObject({ plain_name: 'Sample worry' });
+    });
+
+    it('gives a household-wide answer no name for a private item, even one the question names or whose code an open item shares', async () => {
+      const root = copy(demo, 'plain-private');
+      setView(root, 'Robin Example', 'code-names.json', {
+        schema: 'medrec-code-names/v1',
+        person: personId(root, 'Robin Example'),
+        table: { id: 'icd10cm', version: 'invented', date: '2000-01-01' },
+        codes: { 'icd10cm|I10': { name: 'Sample pressure' }, 'icd10cm|F41.1': { name: 'Sample shared worry' } },
+        private_codes: {},
+      });
+      const r = rows((await ask(root, 'medrec_records', { kind: 'conditions' })).r);
+      expect(pick(r, pressure)).toMatchObject({ plain_name: 'Sample pressure' });
+      expect(pick(r, anxiety)).toBeUndefined();
+      const asked = rows((await ask(root, 'medrec_records', { kind: 'conditions', name: 'generalized anxiety' })).r);
+      expect(pick(asked, anxiety)).toMatchObject({ private: 'mental_health' });
+      expect(pick(asked, anxiety).plain_name).toBeUndefined();
+      const own = rows((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r);
+      expect(pick(own, anxiety).plain_name).toBe('Sample shared worry');
+    });
+
+    it('gives none where the person\'s private items are not known, in an answer about everyone', async () => {
+      const root = copy(demo, 'plain-unknown');
+      setView(root, 'Robin Example', 'private.json', undefined);
+      const asked = rows((await ask(root, 'medrec_records', { kind: 'conditions', name: 'high blood pressure' })).r);
+      expect(pick(asked, pressure)).toMatchObject({ title: 'High blood pressure' });
+      expect(pick(asked, pressure).plain_name).toBeUndefined();
+      expect(pick(rows((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r), pressure).plain_name).toBe('Sample pressure');
+    });
+
+    it('never finds, orders or pages by a plain name', async () => {
+      for (const args of [{ kind: 'conditions', name: 'Sample pressure' }, { kind: 'conditions', person: 'Robin', name: 'Sample worry' }, { kind: 'conditions', person: 'Casey', name: 'Sample pressure' }]) {
+        expect(rows((await ask(demo, 'medrec_records', args)).r), JSON.stringify(args)).toEqual([]);
+      }
+      const none = copy(demo, 'plain-none');
+      for (const name of ['Robin Example', 'Sam Example', 'Alex Example', 'Casey Example']) setView(none, name, 'code-names.json', undefined);
+      for (const args of [{ kind: 'conditions', limit: 1 }, { kind: 'conditions', person: 'Robin' }, { kind: 'conditions', response_format: 'detailed' }]) {
+        const [w, o] = [await ask(demo, 'medrec_records', args), await ask(none, 'medrec_records', args)];
+        const bare = (r: { structuredContent?: Record<string, unknown> }) => rows(r).map(({ plain_name: _, ...x }) => x);
+        expect(bare(w.r)).toEqual(rows(o.r));
+        expect(page(w.r).next_cursor).toBe(page(o.r).next_cursor);
+        expect(rows(o.r).some((x) => x.plain_name !== undefined)).toBe(false);
+        expect(page(o.r).warnings ?? []).toEqual(page(w.r).warnings ?? []);
+      }
+    });
+
+    it('reads code-names.json only for the people with a condition on the page', async () => {
+      const { read } = await ask(demo, 'medrec_records', { kind: 'conditions', limit: 1 });
+      expect(read.filter((f) => f.includes('code-names'))).toHaveLength(1);
+      for (const args of [{ kind: 'medications' }, { kind: 'conditions', person: 'Jamie' }, { kind: 'timeline', person: 'Robin' }]) {
+        expect((await ask(demo, 'medrec_records', args)).read.some((f) => f.includes('code-names')), JSON.stringify(args)).toBe(false);
+      }
+      expect((await ask(demo, 'medrec_search', { query: 'pressure' })).read.some((f) => f.includes('code-names'))).toBe(false);
+    });
+
+    it('keeps the source\'s words, with no warning, where names are stale, unreadable, another person\'s or in another layout', async () => {
+      const bad: [string, (root: string) => void][] = [
+        ['other-person', (root) => setView(root, 'Robin Example', 'code-names.json', { schema: 'medrec-code-names/v1', person: 'p_other', codes: { 'icd10cm|I10': { name: 'Wrong' } }, private_codes: {} })],
+        ['other-layout', (root) => setView(root, 'Robin Example', 'code-names.json', { schema: 'medrec-code-names/v2', person: personId(root, 'Robin Example'), codes: { 'icd10cm|I10': { name: 'Wrong' } }, private_codes: {} })],
+        ['odd-shape', (root) => setView(root, 'Robin Example', 'code-names.json', { schema: 'medrec-code-names/v1', person: personId(root, 'Robin Example'), codes: ['x'], private_codes: null })],
+        ['arriving', (root) => writeFileSync(codeNames(root), '{"schema":"medrec-code-names/v1","codes":{"icd10cm|I10":{"name":"Wrong"}}}')],
+      ];
+      for (const [name, change] of bad) {
+        const root = copy(demo, `plain-${name}`);
+        change(root);
+        for (const args of [{ kind: 'conditions', person: 'Robin' }, { kind: 'conditions' }]) {
+          const { r } = await ask(root, 'medrec_records', args);
+          expect(r.isError ?? false, name).toBe(false);
+          expect(pick(rows(r), pressure)).toMatchObject({ title: 'High blood pressure' });
+          expect(rows(r).some((x) => x.person === 'Robin Example' && x.plain_name !== undefined), name).toBe(false);
+          expect((page(r).warnings ?? []).map((w) => w.code), name).toEqual((page((await ask(demo, 'medrec_records', args)).r).warnings ?? []).map((w) => w.code));
+        }
+      }
+    });
+
+    it('answers without them when reading them fails', async () => {
+      class Failing extends LocalSource {
+        override async read(path: string): Promise<string | null> {
+          if (path.includes('code-names')) throw ToolError.usage('past the limit');
+          return super.read(path);
+        }
+      }
+      for (const [tool, args] of [['medrec_records', { kind: 'conditions', person: 'Robin' }], ['medrec_records', { kind: 'conditions' }], ['medrec_summary', { person: 'Robin' }]] as const) {
+        const r = (await callTool(tool, args as Record<string, unknown>, { store: new ViewsStore(new Folder(new Failing(demo), new ParsedCache(), demo)), today: TODAY }))!;
+        expect(r.isError ?? false).toBe(false);
+        expect(JSON.stringify(r)).not.toContain('plain_name');
+      }
+    });
   });
 
   it('says a bill is paid or what is left on it, and leaves settled bills out of the summary', async () => {

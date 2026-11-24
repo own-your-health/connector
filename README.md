@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.3 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.4 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 230 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 243 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
 
 | Tool | What it answers |
@@ -27,6 +27,13 @@ out. An answer about one person includes them, and so does one that names the
 item ("sertraline", not "tablets"). Each one it includes carries `private`,
 its area. This is discretion, not access control: anyone the connector lets
 in can ask about one person.
+
+A condition with a diagnosis code carries `plain_name` beside the source's
+own words when medrec 0.9.4 or later has the code's published name
+(`code-names.json`). Nothing is found, sorted or paged by it, and the source's
+words are always shown too. An answer about the whole household gives none to a
+private item, even one it names. Names that are missing or older than the
+records are left out, with no warning.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -85,22 +92,24 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
 | Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text, one record in 20 private | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
 | `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
-| `medrec_summary` of one person | 1.6 ms | 1.8 ms | 12 |
-| `medrec_search`, one word | 3.0 ms | 4.9 ms | 36 |
-| `medrec_search`, one word, 100 hits | 4.2 ms | 6.7 ms | 36 |
-| `medrec_search`, three words | 3.0 ms | 4.4 ms | 40 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.6 ms | 4.0 ms | 25 |
-| `medrec_search` for "labs" (every lab record, by kind) | 2.6 ms | 4.1 ms | 38 |
-| `medrec_records` results, 200 | 2.6 ms | 3.0 ms | 14 |
-| `medrec_records` tests, everyone | 4.3 ms | 5.2 ms | 22 |
-| `medrec_records` timeline of one person | 1.4 ms | 1.6 ms | 8 |
-| `medrec_records` timeline, everyone, 200 | 2.5 ms | 3.4 ms | 17 |
-| `medrec_records` bills, everyone | 2.1 ms | 2.3 ms | 16 |
-| `medrec_records` events, everyone | 3.4 ms | 3.9 ms | 12 |
-| `medrec_records` events of one person, detailed, 200 | 2.1 ms | 2.5 ms | 7 |
-| `medrec_records` events with a name, everyone, 200 | 4.2 ms | 8.7 ms | 12 |
-| `medrec_records` one event by `id` | 2.5 ms | 3.3 ms | 12 |
-| `medrec_document`, a page | 2.1 ms | 3.2 ms | 9 |
+| `medrec_summary` of one person | 1.8 ms | 2.2 ms | 14 |
+| `medrec_search`, one word | 2.8 ms | 3.9 ms | 38 |
+| `medrec_search`, one word, 100 hits | 4.0 ms | 6.8 ms | 38 |
+| `medrec_search`, three words | 3.1 ms | 3.5 ms | 42 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.3 ms | 4.2 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 3.2 ms | 3.9 ms | 42 |
+| `medrec_records` results, 200 | 2.7 ms | 3.5 ms | 15 |
+| `medrec_records` tests, everyone | 4.3 ms | 5.4 ms | 23 |
+| `medrec_records` timeline of one person | 1.7 ms | 2.3 ms | 8 |
+| `medrec_records` timeline, everyone, 200 | 3.0 ms | 3.4 ms | 19 |
+| `medrec_records` bills, everyone | 2.4 ms | 2.9 ms | 18 |
+| `medrec_records` conditions, everyone, 200, with plain names | 3.1 ms | 3.6 ms | 17 |
+| `medrec_records` conditions of one person, with plain names | 2.1 ms | 2.4 ms | 8 |
+| `medrec_records` events, everyone | 3.1 ms | 3.6 ms | 13 |
+| `medrec_records` events of one person, detailed, 200 | 2.2 ms | 2.5 ms | 7 |
+| `medrec_records` events with a name, everyone, 200 | 3.5 ms | 3.8 ms | 13 |
+| `medrec_records` one event by `id` | 2.6 ms | 3.0 ms | 13 |
+| `medrec_document`, a page | 2.0 ms | 2.5 ms | 9 |
 | for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-24, Apple
@@ -108,7 +117,7 @@ silicon, 20 calls each). The Worker answered in Node, through its own OAuth
 check, MCP framing, Drive client and views, with Node's own `fetch` work
 counted. Google was a local fake on another thread, whose work is not
 counted. A cold call is the first on a fresh isolate, which downloads and
-parses every file it needs. The machine was lightly loaded (load 6): the scale row
+parses every file it needs. The machine was busy (load 7): the scale row
 takes about 2.2 ms on a quiet one, and the medians spread with the load.
 Cloudflare's dashboard shows the deployed Worker's own CPU times.
 
@@ -165,8 +174,12 @@ At the limits:
   which a record came from. For someone with several sign-ins there, a list
   of records or tests names only the CLI (`athena`). The timeline and the
   summary name an organization: the right one when medrec 0.9.3 wrote the
-  views, and possibly another of those practices' before that. Views that
-  keep `organization_id` (`npm run views`) name the practice everywhere.
+  views, and possibly another of those practices' before that. Views from
+  medrec 0.9.4 and later, or from `npm run views`, keep `organization_id`
+  and name the practice everywhere.
+- **Plain names.** Each person with a coded condition on the page costs one
+  more request to Google, and one for a summary with any. When that request
+  fails, or would pass the limit, the answer comes without the names.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

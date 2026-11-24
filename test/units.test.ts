@@ -14,7 +14,8 @@ import { FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, LocalSource } from './support';
 import { RawStore, searchHousehold, type Candidate, type Store } from '../src/records/store';
 import { LeftOut } from '../src/records/partial';
-import type { Household, Person } from '../src/records/model';
+import { codeNamesOf, conditionKey, nameKey, plainName } from '../src/records/code-names';
+import type { Household, Person, RecordEntry } from '../src/records/model';
 
 describe('paging', () => {
   const filters = { query: 'a', person: null };
@@ -346,5 +347,55 @@ describe('a cursor after a page that left someone out', () => {
   it("still refuses a cursor from other filters at once, in medrec's words", () => {
     const first = PageRequest.create({}, filters).page(rows, 'person', ['p_b']);
     expect(() => PageRequest.create({ cursor: first.next_cursor! }, { query: 'y', person: null })).toThrow(/cursor belongs to a query with different filters/);
+  });
+});
+
+describe('the key of a condition\'s plain name (medrec 0.9.4)', () => {
+  const icd = 'http://hl7.org/fhir/sid/icd-10-cm';
+  it('is the code in one form of one system', () => {
+    for (const [code, want] of [
+      ['J30.9', 'icd10cm|J30.9'],
+      ['j309', 'icd10cm|J30.9'],
+      [' J30.9 ', 'icd10cm|J30.9'],
+      ['R51', 'icd10cm|R51'],
+      ['S72.001A', 'icd10cm|S72.001A'],
+    ] as const) {
+      expect(nameKey(icd, code), code).toBe(want);
+      expect(nameKey(` ${icd.toUpperCase()} `, code), code).toBe(want);
+    }
+    for (const [system, code] of [
+      [undefined, 'R51'],
+      [null, 'R51'],
+      [icd, undefined],
+      [icd, null],
+      [icd, ''],
+      [icd, 'R5'],
+      [icd, '123'],
+      [icd, 'J30.90000'],
+      ['http://hl7.org/fhir/sid/icd-10', 'R51'],
+      ['http://www.cms.gov/Medicare/Coding/ICD10', 'R51'],
+      ['urn:oid:2.16.840.1.113883.6.90', 'R51'],
+      ['http://hl7.org/fhir/sid/icd-9-cm', 'R51'],
+    ] as const) {
+      expect(nameKey(system, code), `${system} ${code}`).toBeUndefined();
+    }
+  });
+
+  it('gives an answer about the household only the names open items use, and a private item none', () => {
+    const n = codeNamesOf({ person: 'p_x', codes: { open: { name: 'Open' } }, private_codes: { shut: { name: 'Shut' } } }, 'p_x');
+    expect(plainName(n, 'open', true, false)).toBe('Open');
+    expect(plainName(n, 'open', true, true)).toBeUndefined();
+    expect(plainName(n, 'shut', true, false)).toBeUndefined();
+    expect(plainName(n, 'shut', true, true)).toBeUndefined();
+    expect(plainName(n, 'open', false, true)).toBe('Open');
+    expect(plainName(n, 'shut', false, true)).toBe('Shut');
+    expect(plainName(n, 'neither', false, false)).toBeUndefined();
+  });
+
+  it('is a condition\'s alone', () => {
+    const r = { id: 'r_x', display: 'x', code: { system: icd, code: 'R51' } };
+    expect(conditionKey({ ...r, kind: 'condition' } as RecordEntry)).toBe('icd10cm|R51');
+    expect(conditionKey({ ...r, kind: 'claim' } as RecordEntry)).toBeUndefined();
+    expect(conditionKey({ id: 'r_x', kind: 'condition', display: 'x' } as RecordEntry)).toBeUndefined();
   });
 });

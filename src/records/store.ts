@@ -12,6 +12,7 @@
 // Lists are async iterables in their final order, so a tool reads only as
 // many items as the page it answers needs.
 
+import { NO_NAMES, type CodeNames } from './code-names';
 import type { Folder } from './folder';
 import type { Privacy } from './private';
 import { ToolError } from '../mcp/errors';
@@ -136,6 +137,8 @@ export interface Store {
   privacy(h: Household, p: Person): Promise<Privacy>;
   /** What is paid and left on each of the person's bills by document id (bills.json, medrec 0.9.1 and later); null when not known. */
   bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null>;
+  /** The plain names of the person's condition codes (code-names.json, medrec 0.9.4 and later); none when missing or stale. */
+  codeNames(h: Household, p: Person): Promise<CodeNames>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -242,6 +245,11 @@ export class RawStore implements Store {
   /** So are payments. */
   async bills(_h: Household, _p: Person): Promise<ReadonlyMap<string, Standing> | null> {
     return null;
+  }
+
+  /** And the names of codes. */
+  async codeNames(_h: Household, _p: Person): Promise<CodeNames> {
+    return NO_NAMES;
   }
 
   household(): Promise<Household> {

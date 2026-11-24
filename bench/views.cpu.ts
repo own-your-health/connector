@@ -40,7 +40,7 @@ it('measures', async () => {
   const scratch = mkdtempSync(join(tmpdir(), 'oyh-views-bench-'));
   const root = synth(join(scratch, 'records'));
   const written = writeViewsAt(root);
-  // medrec's events, bills and private items for this folder, as medrec 0.9.3 wrote them; then one record in 20 private.
+  // medrec's events, bills and private items for this folder, and code names, as medrec wrote them; then one record in 20 private.
   addDerived(root, 'large');
   const privateRecords = markPrivate(root, 20);
   const all = files(root);
@@ -161,6 +161,8 @@ it('measures', async () => {
     ['records timeline Robin', call('medrec_records', { kind: 'timeline', person: 'Robin' })],
     ['records timeline, 2014', call('medrec_records', { kind: 'timeline', since: '2014-01-01', until: '2014-12-31', limit: 200 })],
     ['records medications, active', call('medrec_records', { kind: 'medications', active: true })],
+    ['records conditions, everyone, 200', call('medrec_records', { kind: 'conditions', limit: 200 })],
+    ['records conditions, Robin', call('medrec_records', { kind: 'conditions', person: 'Robin' })],
     ['records documents Sam', call('medrec_records', { kind: 'documents', person: 'Sam' })],
     ['records bills, everyone', call('medrec_records', { kind: 'bills' })],
     ['records timeline, everyone, 200', call('medrec_records', { kind: 'timeline', limit: 200 })],
