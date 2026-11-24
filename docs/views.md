@@ -47,6 +47,7 @@ views/<person id>/search-1-<hex>.json
 views/<person id>/search-items.bin
 views/<person id>/search-hay-<n>.bin
 views/<person id>/search-labs-<n>.json
+views/<person id>/events.json             medrec 0.9.0 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -288,3 +289,25 @@ These are results, reports, and claims with a lab line. Each row is
 `[item, date, kind, id, title, snippet]`, where `snippet` is the record's
 detail line. Rows are by item number, lowest first, 256 to a file. A reader
 reads them from the last file back.
+
+## `events.json` (medrec 0.9.0 and later)
+
+What happened, one event per visit, ER trip, stay, test or fill: medrec
+groups each person's claims, encounters, results and papers by its own
+matching rules. Its layout, `medrec-events/v1`, is medrec's, in medrec's
+`docs/data-contract.md`. The reference writer here does not write it.
+
+It is stored and listed in `files` like every view. Each person's entry in
+`views.json` also gives what else their events were made from, and only
+`events.json` depends on these:
+
+| Field | What |
+|---|---|
+| `overrides` | the MD5 of `<person folder>/overrides.json`, the household's "not the same visit" and "attach to this visit" decisions; `null` when there is none |
+| `linked` | for each person whose records the newborn rules read (a newborn's guardians, a guardian's newborns), `{"index": <md5>, "text": <md5>}` of their files, each `null` when absent |
+
+A reader serves a person's events only when their views are current and
+both of these still match. A reader that does not read `events.json`
+ignores them. Every person has an `events.json`, even with no events, so a
+missing one means medrec has not prepared them.
+

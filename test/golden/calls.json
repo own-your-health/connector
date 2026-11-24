@@ -1240,6 +1240,288 @@
       "arguments": {
         "person": "Robin"
       }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "label": "events"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      },
+      "label": "events-robin"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Sam",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Jamie",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "since": "2026-06-01",
+        "until": "2026-06-01"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "since": "2026-09-08",
+        "until": "2026-09-08",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "until": "2025-12-31",
+        "limit": 10
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "pharmacy"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "er"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "jordan sample"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "nothing like this"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 5
+      },
+      "label": "events-5"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 5
+      },
+      "cursor_from": "events-5"
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "events",
+        "item": 0
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "events-robin",
+        "item": 9
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "response_format": "detailed"
+      },
+      "id_from": {
+        "label": "events-robin",
+        "item": 6
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_aaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "r_aaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_aaaaaaaaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_aaaaaaaaaaaaaaaaaaaa",
+        "since": "2026-01-01"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "id": "e_aaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "active": true
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Nobody"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "since": "2026-13-01"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "label": "large-events"
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Sam",
+        "limit": 200,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "limit": 50
+      },
+      "label": "large-events-robin"
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "limit": 50
+      },
+      "cursor_from": "large-events-robin"
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "since": "2018-01-01",
+        "until": "2018-12-31",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "large-events",
+        "item": 10
+      }
     }
   ]
 }

@@ -17,7 +17,7 @@ import { fold } from '../src/records/text';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
-import { DEMO, LocalSource, folderAt } from './support';
+import { DEMO, LocalSource, addEvents, folderAt } from './support';
 
 const TODAY = '2026-11-23';
 let scratch = '';
@@ -389,5 +389,91 @@ describe('rewriting the views after a new record', () => {
     const dir = readdirSync(join(root, personDir(robin)));
     for (const f of Object.keys(after)) expect(dir).toContain(storedName(f, after[f]!));
     expect(dir).toHaveLength(Object.keys(after).length);
+  });
+});
+
+describe('events from the views (medrec 0.9.0)', () => {
+  const EVENTS = join(import.meta.dirname, 'fixtures/events/records');
+  let base = '';
+  beforeAll(() => {
+    base = copy(demo, 'demo-events');
+    addEvents(base, EVENTS);
+  });
+  const events = (root: string, args: Record<string, unknown> = {}) => ask(root, 'medrec_records', { kind: 'events', ...args });
+  const items = (r: { structuredContent?: Record<string, unknown> }) => (r.structuredContent as { items: { person: string; id: string }[] }).items;
+
+  it('reads a person\'s events from events.json alone while what they were made from is unchanged', async () => {
+    const { r, read } = await events(base, { person: 'Robin' });
+    expect(r.isError).toBe(false);
+    expect(items(r)).toHaveLength(15);
+    expect(whole(read)).toEqual([]);
+    expect(read.filter((f) => f.includes('/events.'))).toHaveLength(1);
+  });
+
+  it('makes only the events stale when overrides.json changes', async () => {
+    const root = copy(base, 'events-overrides');
+    writeFileSync(join(root, 'Robin Example/overrides.json'), JSON.stringify({ schema: 'medrec-overrides/v1', events: [] }));
+    const { r } = await events(root, { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/Robin Example's records changed after medrec last prepared their events for assistants/);
+    const results = await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
+    expect(results.r.isError).toBe(false);
+    expect(results.r).toEqual((await ask(base, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 })).r);
+  });
+
+  it("makes a guardian's events stale when a linked newborn's text changes, and leaves the others", async () => {
+    const root = copy(base, 'events-linked');
+    appendFileSync(join(root, 'Jamie Example/text.json'), ' ');
+    for (const who of ['Robin', 'Sam', 'Jamie']) {
+      const { r } = await events(root, { person: who });
+      expect(r.isError, who).toBe(true);
+    }
+    // Alex is linked to Robin and Sam only, whose files did not change.
+    expect((await events(root, { person: 'Alex' })).r.isError).toBe(false);
+    // Robin's other views do not depend on Jamie.
+    expect((await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 })).r.isError).toBe(false);
+  });
+
+  it('answers a question about everyone without the people whose events are stale, and says who', async () => {
+    const root = copy(base, 'events-everyone');
+    appendFileSync(join(root, 'Jamie Example/text.json'), ' ');
+    const { r } = await events(root, { limit: 200 });
+    expect(r.isError).toBe(false);
+    expect(new Set(items(r).map((x) => x.person))).toEqual(new Set(['Alex Example']));
+    const warnings = (r.structuredContent as { warnings: { code: string; message: string }[] }).warnings;
+    expect(warnings.map((w) => w.code)).toEqual(['person-unavailable', 'person-unavailable', 'person-unavailable']);
+    expect(warnings.map((w) => w.message.split("'")[0])).toEqual(['Robin Example', 'Sam Example', 'Jamie Example']);
+  });
+
+  it('says medrec 0.9.0 prepares events for views without them', async () => {
+    const { r } = await events(demo, { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/medrec has not prepared Robin Example's events for assistants.*medrec 0\.9\.0 or later prepares them/);
+    // Asked about everyone, with no one's events: the first person's error.
+    expect((await events(demo)).r.content[0]!.text).toMatch(/^upstream: medrec has not prepared Robin Example's events/);
+  });
+
+  it('refuses an events.json whose content is not the MD5 views.json gives it', async () => {
+    const root = copy(base, 'events-foreign');
+    writeFileSync(stored(root, paths.events(personId(root, 'Robin Example'))), '{"schema":"medrec-events/v1","events":[]}');
+    const { r } = await events(root, { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
+  });
+
+  it('says the connector needs updating for a later events layout', async () => {
+    const root = copy(base, 'events-newer');
+    const pid = personId(root, 'Robin Example');
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    rmSync(stored(root, paths.events(pid)));
+    const body = JSON.stringify({ schema: 'medrec-events/v2', events: [] });
+    const sum = createHash('md5').update(body).digest('hex');
+    writeFileSync(join(root, personDir(pid) + storedName('events.json', sum)), body);
+    index.people[pid]!.files['events.json'] = sum;
+    writeFileSync(at, JSON.stringify(index));
+    const { r } = await events(root, { person: 'Robin' });
+    expect(r.isError).toBe(true);
+    expect(r.content[0]!.text).toMatch(/events in a layout \(medrec-events\/v2\) this connector does not read/);
   });
 });

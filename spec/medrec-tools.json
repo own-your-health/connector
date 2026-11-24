@@ -303,7 +303,7 @@
     {
       "name": "medrec_records",
       "title": "List records by kind",
-      "description": "Lists one kind of record, newest first; results with name is one test over time. Use active for current medicines or conditions. Results carry value, unit, range and flag; bills amount_due and due_date; documents has_text.",
+      "description": "Lists one kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time, with its range and flag.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -324,9 +324,10 @@
               "bills",
               "documents",
               "notes",
-              "timeline"
+              "timeline",
+              "events"
             ],
-            "description": "`visits` are encounters; `tests` is the latest result of each test; `bills` are statements filed as documents; `timeline` is everything."
+            "description": "`visits` are encounters; `tests` each test's latest result; `bills` statements filed as documents; `timeline` everything."
           },
           "person": {
             "type": "string",
@@ -342,15 +343,19 @@
           },
           "active": {
             "type": "boolean",
-            "description": "Only those not stopped, completed or resolved."
+            "description": "Current ones only."
           },
           "name": {
             "type": "string",
-            "description": "A code (`4548-4`) or words of the name (`a1c`)."
+            "description": "A code (`4548-4`) or words (`a1c`)."
           },
           "doc_type": {
             "type": "string",
-            "description": "For `documents`: `lab_report`, `visit_summary`, `bill`, `eob`..."
+            "description": "`lab_report`, `bill`, `eob`... (`documents`)."
+          },
+          "id": {
+            "type": "string",
+            "description": "One event (`events`)."
           },
           "limit": {
             "type": "integer",
@@ -390,6 +395,9 @@
                   "type": "string"
                 },
                 "date": {
+                  "type": "string"
+                },
+                "end": {
                   "type": "string"
                 },
                 "title": {
@@ -437,6 +445,9 @@
                 },
                 "has_text": {
                   "type": "boolean"
+                },
+                "you_owe": {
+                  "type": "string"
                 },
                 "fields": {
                   "type": "object",

@@ -7,7 +7,7 @@ import { ToolError, type ServerInfo } from '../mcp/errors';
 import { HARD_LIMIT, PageRequest, chars, type ListArgs } from '../mcp/shape';
 import { LeftOut, type Warning } from './partial';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Store } from './store';
-import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
+import type { DocumentEntry, Household, Json, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
   CLIP,
@@ -52,7 +52,7 @@ const NOTE_CLIP = 2_000;
 
 /** medrec's own server instructions, after the standard ones (pk-cli-mcp `instructions`). */
 const MEDREC_INSTRUCTIONS =
-  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. For decisions about care, suggest the user ask their clinician.';
+  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. For decisions about care, suggest the user ask their clinician.';
 
 export const SERVER: ServerInfo & { host: string } = {
   host: "through the open-source Own Your Health connector, running in the household's own Cloudflare account, which reads their records folder in Google Drive with their own Google sign-in",
@@ -413,6 +413,7 @@ const ITEM_KEYS = [
   'kind',
   'person',
   'date',
+  'end',
   'title',
   'detail',
   'status',
@@ -428,6 +429,7 @@ const ITEM_KEYS = [
   'due_date',
   'doc_type',
   'has_text',
+  'you_owe',
   'fields',
 ] as const;
 type Item = Partial<Record<(typeof ITEM_KEYS)[number], unknown>>;
@@ -442,6 +444,9 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const docType = given(a.doc_type);
   const active = a.active === true;
   const r = range(a.since, a.until);
+  const id = given(a.id);
+  if (id !== undefined && kind !== 'events') throw ToolError.usage('id applies to kind `events` only');
+  if (active && kind === 'events') throw ToolError.usage('active does not apply to kind `events`; status says which are still waiting');
   if (docType !== undefined) {
     if (kind !== 'documents') throw ToolError.usage('doc_type applies to kind `documents` only');
     if (!isDocType(docType)) throw ToolError.usage(`\`${docType}\` is not a document type (known: ${DOC_TYPES.map(([c]) => c).join(', ')})`);
@@ -455,8 +460,10 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     active,
     name: name ?? null,
     doc_type: docType ?? null,
+    id: id ?? null,
   });
   const detailed = la.response_format === 'detailed';
+  if (kind === 'events') return eventsList(ctx, person, name, r, id, detailed, page);
   const h = await open(ctx);
   let chosen;
   try {
@@ -513,6 +520,96 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   items.sort((x, y) => cmpOptS(y.date, x.date) || cmpS(x.title as string, y.title as string));
   const warnings = left.done(chosen);
   return pageJson(page.page(items.map(item), hint, left.ids()), warnings);
+}
+
+/** `kind: "events"`: what happened, in events.json's order across people; `id` one event in full. */
+async function eventsList(ctx: Context, person: string | undefined, name: string | undefined, r: Range, id: string | undefined, detailed: boolean, page: PageRequest) {
+  if (id !== undefined) {
+    if (person !== undefined || name !== undefined || r.since !== undefined || r.until !== undefined) {
+      throw ToolError.usage('id names one event: pass it without person, name, since or until');
+    }
+    if (!/^e_[a-z2-7]{20}$/.test(id)) throw ToolError.usage(`\`${id}\` is not an event id (e_…)`);
+  }
+  const h = await open(ctx);
+  let chosen;
+  try {
+    chosen = selected(h, person);
+  } catch (e) {
+    throw personError(e);
+  }
+  const left = new LeftOut(person === undefined);
+  const rows: { p: Person; e: JsonObject }[] = [];
+  for (const p of chosen) {
+    for (const e of await left.of(p, () => ctx.store.events(h, p), [])) {
+      const start = str(e.start) ?? '';
+      const end = str(e.end) ?? '';
+      if ((r.since !== undefined && cmpS(end, r.since) < 0) || (r.until !== undefined && cmpS(start, r.until) > 0)) continue;
+      rows.push({ p, e });
+    }
+  }
+  const k = (e: JsonObject, f: string) => str(e[f]) ?? '';
+  rows.sort((a, b) => cmpS(k(b.e, 'start'), k(a.e, 'start')) || cmpS(k(b.e, 'end'), k(a.e, 'end')) || cmpS(k(a.e, 'id'), k(b.e, 'id')));
+  const n = name === undefined ? undefined : fold(name);
+  const texts = (e: JsonObject) => [...['kind', 'title', 'what', 'place'].map((f) => str(e[f])), ...strings(e.clinicians)].filter((t): t is string => t !== undefined);
+  const items = rows
+    .filter(({ e }) => id === undefined || e.id === id)
+    .filter(({ e }) => n === undefined || texts(e).some((t) => fold(t).includes(n)))
+    .map(({ p, e }) => item(eventItem(p.name, e, detailed || id !== undefined)));
+  if (id !== undefined && items.length === 0) {
+    // A question about everyone that left someone out may have missed it: say who, as a list would.
+    const warnings = left.done(chosen);
+    if (warnings.length > 0) return pageJson(page.page([], 'person, since/until or name', left.ids()), warnings);
+    throw ToolError.notFound(`no event ${id}`).withFix('List events with medrec_records kind events to find the id');
+  }
+  const warnings = left.done(chosen);
+  return pageJson(page.page(items, 'person, since/until or name', left.ids()), warnings);
+}
+
+const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
+const strings = (v: Json | undefined): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+
+const EXPECTED: Record<string, string> = { doctor_claims: "doctors' claims", facility_claim: "the facility's claim", claim: 'a claim', bill: 'a bill' };
+const EVENT_FIELDS = ['confidence', 'money', 'members', 'expected', 'differences', 'links', 'could_join'] as const;
+
+/**
+ * An events.json event as a list item, as medrec's `event_item`: `source` is
+ * where it happened, and `detail` what it was, who, how sure the grouping is
+ * and what is still expected. `detailed` adds its money, members and evidence
+ * in `fields`.
+ */
+function eventItem(person: string, e: JsonObject, detailed: boolean): Item {
+  const parts: string[] = [];
+  const what = str(e.what);
+  if (what !== undefined) parts.push(what);
+  const clinicians = strings(e.clinicians);
+  if (clinicians.length > 0) parts.push(clinicians.join(', '));
+  const confidence = str(e.confidence);
+  if (confidence !== undefined && confidence !== 'sure') parts.push(`grouping ${confidence}`);
+  const expected = (Array.isArray(e.expected) ? e.expected : [])
+    .map((x) => (x && typeof x === 'object' && !Array.isArray(x) ? str(x.what) : undefined))
+    .filter((w): w is string => w !== undefined)
+    .map((w) => EXPECTED[w] ?? w);
+  if (expected.length > 0) parts.push(`still expected: ${expected.join(', ')}`);
+  const m = e.money;
+  const owe = m && typeof m === 'object' && !Array.isArray(m) ? str(m.you_owe) : undefined;
+  const currency = m && typeof m === 'object' && !Array.isArray(m) ? (str(m.currency) ?? 'USD') : 'USD';
+  const start = str(e.start);
+  const end = str(e.end);
+  const fields: JsonObject = {};
+  if (detailed) for (const f of EVENT_FIELDS) if (e[f] !== undefined && e[f] !== null) fields[f] = e[f]!;
+  return {
+    kind: str(e.kind) ?? '',
+    person,
+    date: start,
+    end: end !== undefined && end !== start ? end : undefined,
+    title: str(e.title) ?? '',
+    detail: parts.length > 0 ? clip(parts.join('; '), CLIP) : undefined,
+    status: str(e.status),
+    source: str(e.place),
+    id: str(e.id) ?? '',
+    you_owe: owe === undefined ? undefined : `${owe} ${currency}`,
+    fields: detailed ? fields : undefined,
+  };
 }
 
 async function* tag<T>(p: Person, xs: AsyncIterable<T>): AsyncIterable<{ p: Person; x: T }> {

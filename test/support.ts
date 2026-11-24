@@ -1,9 +1,11 @@
 // Test helpers: a records folder on disk as the tools' FileSource.
 
 import { createHash } from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { open, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Folder, ParsedCache, type FileSource } from '../src/records/folder';
+import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 
 export const DEMO = join(import.meta.dirname, 'fixtures/records');
 
@@ -115,4 +117,31 @@ export class MemoryD1 {
     this.statements.push(sql);
     return { count: 1 };
   }
+}
+
+/**
+ * Gives views this connector wrote what medrec 0.9.0 adds for events: each
+ * person's events.json from `eventsDir` (medrec-built, `<person id>.json`),
+ * stored under its content-addressed name and listed in `files`, and the
+ * `overrides` and `linked` MD5s it was made from. `linked` follows medrec's
+ * own rule: a person with a birth date and their guardians, both ways.
+ */
+export function addEvents(root: string, eventsDir: string): void {
+  const md5 = (path: string) => (existsSync(path) ? createHash('md5').update(readFileSync(path)).digest('hex') : null);
+  const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string; birth_date?: string | null; guardians?: string[] }[] };
+  const at = join(root, VIEWS_INDEX);
+  const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+  for (const p of h.people) {
+    const v = index.people[p.id];
+    const file = join(eventsDir, `${p.id}.json`);
+    if (!v || !existsSync(file)) continue;
+    const body = readFileSync(file);
+    const sum = createHash('md5').update(body).digest('hex');
+    writeFileSync(join(root, personDir(p.id) + storedName('events.json', sum)), body);
+    v.files['events.json'] = sum;
+    v.overrides = md5(join(root, p.folder, 'overrides.json'));
+    const linked = h.people.filter((q) => q.id !== p.id && ((p.birth_date && p.guardians?.includes(q.id)) || (q.birth_date && q.guardians?.includes(p.id))));
+    v.linked = Object.fromEntries(linked.map((q) => [q.id, { index: md5(join(root, q.folder, 'index.json')), text: md5(join(root, q.folder, 'text.json')) }]));
+  }
+  writeFileSync(at, JSON.stringify(index));
 }

@@ -8,8 +8,8 @@
 
 import { ToolError } from '../mcp/errors';
 import type { Folder } from '../records/folder';
-import type { DocumentEntry, Household, Note, Person, RecordEntry } from '../records/model';
-import { RawStore, eventOrder, merged, passes, recordOrder, type Candidate, type RecordFilter, type Store } from '../records/store';
+import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from '../records/model';
+import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, type Candidate, type RecordFilter, type Store } from '../records/store';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -37,6 +37,7 @@ import {
   storedName,
   viewName,
   VIEWS_INDEX,
+  EVENTS_SCHEMA,
   VIEWS_SCHEMA,
   hex,
   paths,
@@ -164,10 +165,10 @@ export class ViewsStore implements Store {
         return { index: null, ...skew, fresh: new Set<string>() };
       }
       const files = ['household.json', ...h.people.flatMap((p) => [`${p.folder}/index.json`, `${p.folder}/text.json`])];
-      // One request: these files' MD5s, everyone's notes.md, and every view.
+      // One request: these files' MD5s, everyone's notes.md and overrides.json (for events), and every view.
       await this.folder.survey(
         h.people.map((p) => `${VIEWS_DIR}/${p.id}`),
-        [...files, ...h.people.map((p) => `${p.folder}/notes.md`)],
+        [...files, ...h.people.flatMap((p) => [`${p.folder}/notes.md`, `${p.folder}/overrides.json`])],
       );
       const md5 = await this.folder.md5(files);
       const fresh = new Set<string>();
@@ -180,6 +181,44 @@ export class ViewsStore implements Store {
       return { index, fresh };
     })();
     return this.state_;
+  }
+
+  async events(h: Household, p: Person): Promise<JsonObject[]> {
+    const st = await this.state(h);
+    if (st.newer) {
+      throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads`).withFix(
+        "Tell the user the connector needs updating: its README's Updating section has the steps",
+      ).personUnavailable(p.id);
+    }
+    const v = st.index?.people[p.id];
+    if (!v?.files || v.files['events.json'] === undefined) throw eventsNotPrepared(p);
+    if (!st.fresh.has(p.id) || !(await this.eventsFresh(h, p, v))) {
+      throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared their events for assistants`).withFix(
+        "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
+      ).personUnavailable(p.id);
+    }
+    const e = await new PersonReader(this.folder, p, v).json<{ schema?: string; events?: JsonObject[] }>(paths.events(p.id));
+    if (e.schema !== EVENTS_SCHEMA) {
+      throw ToolError.upstream(`medrec prepared ${p.name}'s events in a layout (${String(e.schema)}) this connector does not read`).withFix(
+        "Tell the user the connector needs updating: its README's Updating section has the steps",
+      ).personUnavailable(p.id);
+    }
+    return e.events ?? [];
+  }
+
+  /**
+   * Whether what else the person's events were made from is as they were:
+   * their overrides.json, and the index.json and text.json of each linked
+   * person (a newborn's guardians, a guardian's newborns). The survey holds
+   * every MD5 this asks for.
+   */
+  private async eventsFresh(h: Household, p: Person, v: PersonViews): Promise<boolean> {
+    const linked = Object.entries(v.linked ?? {});
+    const people = linked.map(([id]) => h.people.find((q) => q.id === id));
+    if (people.some((q) => q === undefined)) return false;
+    const md5 = await this.folder.md5([`${p.folder}/overrides.json`, ...people.flatMap((q) => [`${q!.folder}/index.json`, `${q!.folder}/text.json`])]);
+    if (md5[0] !== (v.overrides ?? null)) return false;
+    return linked.every(([, l], i) => md5[1 + 2 * i] === l.index && md5[2 + 2 * i] === l.text);
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */
