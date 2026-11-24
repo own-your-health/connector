@@ -312,4 +312,4 @@ Google is `test/fake-google.ts`. The Drive client is a pinned copy of
 
 ## License
 
-MIT
+Copyright (C) 2026 Own Your Health contributors. Licensed under the GNU Affero General Public License, version 3 only (AGPL-3.0-only); see LICENSE.
