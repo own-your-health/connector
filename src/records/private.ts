@@ -1,4 +1,5 @@
-// Private items (medrec 0.9.1 and later): records, documents and events about
+// Private items (medrec 0.9.1 and later): records, documents, events and, from
+// medrec 0.9.5, imaging studies (private when their report is) about
 // mental health, reproductive or sexual health or substance use, from each
 // person's private.json. It is discretion, not access control. An answer about
 // the whole household leaves them out unless the question names the item, and
@@ -13,7 +14,8 @@ import { fold } from './text';
 
 /**
  * What a reader knows of one person's private items. `areas` gives each
- * private item's area by id. `unknown` says why any of their items may be
+ * private item's area by id. `unjudged` names the imaging studies no report
+ * judges, held back without an area. `unknown` says why any of their items may be
  * private beyond those: medrec could not read their marks.json
  * (`marks-unreadable`), or this connector has no current private.json for
  * them (`not-prepared`, with why). Either way their items are held back from
@@ -21,6 +23,7 @@ import { fold } from './text';
  */
 export interface Privacy {
   areas: ReadonlyMap<string, string>;
+  unjudged?: ReadonlySet<string>;
   unknown?: { why: 'marks-unreadable' } | { why: 'not-prepared'; detail: string };
 }
 
@@ -37,8 +40,8 @@ const GENERIC = new Set([
   'history', 'chronic', 'acute', 'with', 'without', 'type', 'the', 'and', 'for', 'from',
 ]);
 
-/** The ids private.json can name: records, documents and events. */
-const HELD = /^[rde]_/;
+/** The ids private.json can name: records, documents, events and studies. */
+const HELD = /^[rdem]_/;
 
 const words = (s: string) => fold(s).split(/[^\p{Alphabetic}\p{N}]+/u).filter((w) => w !== '');
 
@@ -91,12 +94,14 @@ export class Gate {
 
   /**
    * Whether the item is one an answer about the whole household holds back:
-   * a private one, or any record, document or event of a person whose
-   * private items are not known (notes and studies are never private).
+   * a private one, a study no report judges, or any record, document, event
+   * or study of a person whose private items are not known (notes are never
+   * private).
    */
   heldBack(p: Person, id: string): boolean {
     const v = this.people.get(p.id);
-    return v !== undefined && (v.areas.has(id) || (v.unknown !== undefined && HELD.test(id)));
+    if (v === undefined) return false;
+    return v.areas.has(id) || (v.unjudged?.has(id) ?? false) || (v.unknown !== undefined && HELD.test(id));
   }
 
   /**
@@ -164,7 +169,7 @@ export class Gate {
       if (u?.why !== 'not-prepared') continue;
       out.push({
         code: 'private-not-prepared',
-        message: `medrec has not marked ${p.name}'s private items for assistants (${u.detail}): ${p.name}'s items are left out of household-wide answers until it does, and are not marked in answers about ${p.name}. Tell the user medrec 0.9.1 or later marks them on its next pass on the household's computer (medrec refresh)`,
+        message: `medrec has not marked ${p.name}'s private items for assistants (${u.detail}): ${p.name}'s items are left out of household-wide answers until it does, and may not all be marked in answers about ${p.name}. Tell the user medrec 0.9.5 or later marks them on its next pass on the household's computer (medrec refresh)`,
       });
     }
     return out;

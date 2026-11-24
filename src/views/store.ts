@@ -148,15 +148,20 @@ class PersonReader {
 }
 
 /** private.json as a reader needs it (medrec-private/v1). */
-export type PrivateView = { marks_unreadable?: boolean } & Partial<Record<'records' | 'documents' | 'events', Record<string, { area?: unknown }>>>;
+export type PrivateView = { marks_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
 
 /** The private items private.json gives, each by id with its area; all of the person's held back when their marks did not read. */
 export function privacyOf(view: PrivateView): Privacy {
   const areas = new Map<string, string>();
-  for (const kind of ['records', 'documents', 'events'] as const) {
+  for (const kind of ['records', 'documents', 'events', 'studies'] as const) {
     for (const [id, w] of Object.entries(view[kind] ?? {})) if (typeof w?.area === 'string') areas.set(id, w.area);
   }
-  return view.marks_unreadable === true ? { areas, unknown: { why: 'marks-unreadable' } } : { areas };
+  const unreported = view.unreported_studies ?? [];
+  if (view.studies === undefined || !Array.isArray(unreported) || !unreported.every((x) => typeof x === 'string')) {
+    // medrec 0.9.4 and earlier say of no document or study that a private record or report makes it private.
+    return { areas, unknown: { why: 'not-prepared', detail: 'the views medrec wrote for them do not cover linked documents and imaging studies' } };
+  }
+  return { areas, unjudged: new Set(unreported), ...(view.marks_unreadable === true ? { unknown: { why: 'marks-unreadable' as const } } : {}) };
 }
 
 /** bills.json as a reader needs it (medrec-bills/v1). */
@@ -281,7 +286,8 @@ export class ViewsStore implements Store {
   }
 
   async privacy(h: Household, p: Person): Promise<Privacy> {
-    const empty = JSON.stringify({ schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {} });
+    // As medrec 0.9.5 and later write it for a person with nothing private and no study without a report.
+    const empty = JSON.stringify({ schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {}, studies: {} });
     const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, empty);
     return 'not' in got ? { areas: new Map(), unknown: { why: 'not-prepared', detail: got.not } } : privacyOf(got.view);
   }

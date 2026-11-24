@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.4 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.5 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 243 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 251 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
 
 | Tool | What it answers |
@@ -19,14 +19,17 @@ this connector's answers, to the character.
 | `medrec_records` | One kind of record (medications, results, tests, visits, claims, bills, documents, notes, the timeline…), filtered and paged; `events`: what happened, one per visit, ER trip, stay or fill, with what the household owes; `bills`: whether each is paid, or what is left |
 | `medrec_document` | A document's extracted text, a part at a time |
 
-Records, documents and events about mental health, reproductive or sexual
-health or substance use are private: medrec 0.9.1 and later mark them in
-`private.json`, and the household can mark others. An answer about the whole
-household leaves them out, and its `warnings` say how many each page left
-out. An answer about one person includes them, and so does one that names the
-item ("sertraline", not "tablets"). Each one it includes carries `private`,
-its area. This is discretion, not access control: anyone the connector lets
-in can ask about one person.
+Records, documents, events and imaging studies about mental health,
+reproductive or sexual health or substance use are private: medrec marks them
+in `private.json`, and the household can mark others. A document is private
+when a private record links it, and a study when its report is. An answer
+about the whole household leaves them out, and its `warnings` say how many
+each page left out. An answer about one person includes them, and so does one
+that names the item ("sertraline", not "tablets"). Each one it includes
+carries `private`, its area. A study with no report is left out, counted and
+included the same way, but carries no area: nothing says what it is about.
+This is discretion, not access control: anyone the connector lets in can ask
+about one person.
 
 A condition with a diagnosis code carries `plain_name` beside the source's
 own words when medrec 0.9.4 or later has the code's published name
@@ -154,13 +157,15 @@ At the limits:
   linked newborn's or guardian's records, is left out of a question about
   everyone with a warning, and a question about them says why.
 - **Private items not known.** Only medrec marks private items, in the
-  `private.json` medrec 0.9.1 and later write. A person whose `private.json`
-  is missing (views from medrec 0.9.0 or earlier), older than their records,
-  `overrides.json`, `marks.json` or a linked person's records, or in a layout
-  this connector does not read, has all their records, documents and events
-  held back from answers about everyone. Their notes stay. A
-  `private-not-prepared` warning names them and says why. An answer about
-  that person includes everything, unmarked, with the same warning. A person
+  `private.json` medrec 0.9.5 and later write in full. A person whose
+  `private.json` is missing, older than their records, `overrides.json`,
+  `marks.json` or a linked person's records, in a layout this connector does
+  not read, or from medrec 0.9.4 or earlier (which says nothing about studies,
+  or of documents a private record links), has all their records, documents,
+  events and studies held back from answers about everyone. Their notes stay.
+  A `private-not-prepared` warning names them and says why. An answer about
+  that person includes everything, with the same warning, marked only as far
+  as a `private.json` from medrec 0.9.1 to 0.9.4 says. A person
   whose `marks.json` medrec could not read is held back the same way, with
   medrec's `private-marks-unreadable` warning. Each person with any private
   item costs one more request to Google. A series of tests is private when

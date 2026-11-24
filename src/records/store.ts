@@ -130,7 +130,7 @@ export interface Store {
    */
   events(h: Household, p: Person): Promise<JsonObject[]>;
   /**
-   * The person's private items (private.json, medrec 0.9.1 and later), or
+   * The person's private items (private.json, in full from medrec 0.9.5), or
    * why they are not known: never an error, since not knowing only holds
    * their items back from answers about everyone.
    */
