@@ -1,7 +1,7 @@
 {
   "schema": "medrec-index/v1",
   "person": "p_skrlw3od3nik2hkngezu",
-  "rev": 9,
+  "rev": 10,
   "documents": [
     {
       "id": "d_qsyl3gzsasuwaysqf7ll",
@@ -377,6 +377,262 @@
           "filed_at": "2026-06-15T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-021d5d27.json",
           "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_jamnboneaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-b8cfac24|2026-06-01",
+      "date": "2026-06-01",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Newborn care · Example Neonatal Physicians",
+      "status": "active",
+      "fields": {
+        "when": "2026-06-01",
+        "provider": "Example Neonatal Physicians",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-06-01",
+          "end": "2026-06-01"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "310.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "125.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "125.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "125.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "310.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "125.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "125.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99460",
+              "display": "Newborn care"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "310.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "125.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "125.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "visit"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-b8cfac24",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Jamie Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-b8cfac24.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_jamnbtwoaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-ccdf458e|2026-06-02",
+      "date": "2026-06-02",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Day of discharge · Example Neonatal Physicians",
+      "status": "active",
+      "fields": {
+        "when": "2026-06-02",
+        "provider": "Example Neonatal Physicians",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-06-02",
+          "end": "2026-06-02"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "310.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "125.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "125.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "125.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "310.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "125.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "125.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99238",
+              "display": "Day of discharge"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "310.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "125.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "125.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "visit"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-ccdf458e",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Jamie Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-ccdf458e.json",
+          "filed_by": "medrec 0.9.0"
         }
       ]
     }
