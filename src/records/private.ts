@@ -170,8 +170,12 @@ export class Gate {
     return out;
   }
 
-  /** The people whose items are all held back, for a cursor to bind: a later page asked once they are known would not line up. */
-  unknownIds(people: Person[]): string[] {
-    return people.filter((p) => this.people.get(p.id)?.unknown !== undefined).map((p) => `private:${p.id}`);
+  /**
+   * The people held back for want of a current private.json, for a cursor to
+   * bind: a later page asked once they have one would not line up. Those whose
+   * marks.json does not read are medrec's own case, and its cursors do not say.
+   */
+  notPreparedIds(people: Person[]): string[] {
+    return people.filter((p) => this.people.get(p.id)?.unknown?.why === 'not-prepared').map((p) => `private:${p.id}`);
   }
 }
