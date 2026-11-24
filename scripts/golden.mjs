@@ -11,7 +11,8 @@
 // profile, folder or credential.
 
 import { spawn, execFileSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -38,6 +39,24 @@ synth(folders.large);
 for (const [name, path] of Object.entries(folders)) {
   medrec('profiles', 'add', name);
   medrec('--profile', name, 'config', 'set', 'folder', path);
+  // medrec reads a code's plain name from the folder's views. The recorded
+  // views stand in for a machine with the published table.
+  medrec('--profile', name, 'views', 'write', '--json');
+  codeNames(path, join(ROOT, 'test/fixtures/code-names', name === 'demo' ? 'records' : name));
+}
+
+/** Puts the recorded code-names.json files in a folder's views. */
+function codeNames(folder, from) {
+  const at = join(folder, 'views/views.json');
+  const index = JSON.parse(readFileSync(at, 'utf8'));
+  for (const file of readdirSync(from)) {
+    const pid = file.replace(/\.json$/, '');
+    const bytes = readFileSync(join(from, file));
+    const md5 = createHash('md5').update(bytes).digest('hex');
+    writeFileSync(join(folder, 'views', pid, `code-names.${md5.slice(0, 12)}.json`), bytes);
+    index.people[pid].files['code-names.json'] = md5;
+  }
+  writeFileSync(at, JSON.stringify(index));
 }
 
 const version = medrec('--version').trim().split(' ').pop();

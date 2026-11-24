@@ -1875,6 +1875,113 @@
         "kind": "bills",
         "person": "Sam"
       }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Sam"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Alex"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Jamie"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin",
+        "active": true
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "limit": 2
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "name": "Sample pressure"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin",
+        "name": "Sample worry"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Sample worry"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Sample pressure",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin",
+        "limit": 5
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "limit": 5
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Casey"
+      }
     }
   ]
 }
