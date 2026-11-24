@@ -14,4 +14,7 @@ Added for medrec 0.9.3's private items, all invented:
 
 - Robin: a mental health condition and medicine, a sexual-health test, a visit from a behavioral-health record system, a claim and its portal visit in one private event, a letter from a counseling practice, and an older potassium result from that practice (a series whose latest result is not private);
 - Robin's `marks.json`: the household's private marks on the latex allergy and on a middle potassium result;
-- Casey: a person with two records and a `marks.json` that does not read.
+- Casey: a person with two records and a `marks.json` that does not read, on purpose;
+- payments the household marked: Sam's `marks.json` pays their only bill in full, and Robin's pays part of two, one of them past due.
+
+After changing this folder, run `node scripts/derived.mjs` and `node scripts/golden.mjs` with medrec 0.9.3 on `PATH`.
