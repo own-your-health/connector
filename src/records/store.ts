@@ -13,6 +13,7 @@
 // many items as the page it answers needs.
 
 import type { Folder } from './folder';
+import type { Privacy } from './private';
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
@@ -52,7 +53,34 @@ export interface Candidate {
   date?: string;
   title: string;
   score: number;
+  /** Ranked but held back from the answer (private.ts): counted where it ranks, never shown. */
+  held?: boolean;
   snippet(): Promise<string>;
+}
+
+/** Which hits a search holds back where they rank: private items a question about everyone does not name. */
+export type Skip = (c: { id: string; title: string }) => boolean;
+
+/**
+ * The first hits of `ranked` up to `want` not held back, with those held back
+ * (`skip`) that rank among them, flagged `held`.
+ */
+export function upTo<T extends { held?: boolean }>(ranked: T[], want: number, skip?: (x: T) => boolean): T[] {
+  const out: T[] = [];
+  let kept = 0;
+  for (const x of ranked) {
+    if (kept >= want) break;
+    if (x.held || skip?.(x)) x.held = true;
+    else kept++;
+    out.push(x);
+  }
+  return out;
+}
+
+/** What is paid and left on one bill, from the person's bills.json (medrec 0.9.1 and later). */
+export interface Standing {
+  settled: boolean;
+  left?: string;
 }
 
 /**
@@ -77,8 +105,12 @@ export interface Store {
   /** The document with this id, and whose it is; null when no one has it. */
   findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null>;
   notes(h: Household, p: Person): Promise<Note[]>;
-  /** The person's `want` best hits, best first (score, then date, newest first). */
-  search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]>;
+  /**
+   * The person's `want` best hits, best first (score, then date, newest
+   * first), not counting those `skip` holds back: these come where they
+   * rank, flagged `held` (upTo).
+   */
+  search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]>;
   documentText(h: Household, p: Person, d: DocumentEntry): Promise<string>;
   /** The names of the first 20 records filed from the document. */
   documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]>;
@@ -91,6 +123,14 @@ export interface Store {
    * personUnavailable error, however small their files.
    */
   events(h: Household, p: Person): Promise<JsonObject[]>;
+  /**
+   * The person's private items (private.json, medrec 0.9.1 and later), or
+   * why they are not known: never an error, since not knowing only holds
+   * their items back from answers about everyone.
+   */
+  privacy(h: Household, p: Person): Promise<Privacy>;
+  /** What is paid and left on each of the person's bills by document id (bills.json, medrec 0.9.1 and later); null when not known. */
+  bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -149,10 +189,10 @@ export async function* merged<T>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) =>
 
 /** Every person's best hits merged as medrec ranks them: score, then date, newest first; ties in household order. */
 export function rankHits(perPerson: Candidate[][], want: number): Candidate[] {
-  return perPerson
-    .flat()
-    .sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date))
-    .slice(0, want);
+  return upTo(
+    perPerson.flat().sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date)),
+    want,
+  );
 }
 
 /** The people's `want` best hits for the terms, ranked together (rankHits), each with whose it is. */
@@ -165,8 +205,10 @@ export async function searchHousehold(
   want: number,
   /** Asks one person, or leaves them out (partial.ts LeftOut.of); by default the person's error is the answer. */
   each: <T>(p: Person, f: () => Promise<T>, none: T) => Promise<T> = (_p, f) => f(),
+  /** Each person's hits held back where they rank. */
+  skip?: (p: Person) => Skip | undefined,
 ): Promise<{ p: Person; c: Candidate }[]> {
-  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want), [])));
+  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want, skip?.(p)), [])));
   const owner = new Map(found.flatMap((cs, i) => cs.map((c) => [c, people[i]!] as const)));
   return rankHits(found, want).map((c) => ({ p: owner.get(c)!, c }));
 }
@@ -185,6 +227,16 @@ export class RawStore implements Store {
   /** Events are medrec's alone, in its views, which this store does not read. */
   async events(_h: Household, p: Person): Promise<JsonObject[]> {
     throw eventsNotPrepared(p);
+  }
+
+  /** Private items are medrec's to mark, in its views, which this store does not read. */
+  async privacy(_h: Household, _p: Person): Promise<Privacy> {
+    return { areas: new Map(), unknown: { why: 'not-prepared', detail: 'this connector is reading their files, which do not say' } };
+  }
+
+  /** So are payments. */
+  async bills(_h: Household, _p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+    return null;
   }
 
   household(): Promise<Household> {
@@ -229,7 +281,7 @@ export class RawStore implements Store {
     return this.folder.notes(p);
   }
 
-  async search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]> {
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]> {
     const labs = LAB_QUERIES.includes(terms.join(' '));
     const items = await this.folder.derived(`search:${p.id}`, this.folder.personFiles(p), async () => {
       const list = searchables(await this.folder.index(p), (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p));
@@ -254,7 +306,11 @@ export class RawStore implements Store {
         },
       });
     }
-    return found.sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date)).slice(0, want);
+    return upTo(
+      found.sort((a, b) => b.score - a.score || cmpOpt(b.date, a.date)),
+      want,
+      skip,
+    );
   }
 
   async documentText(_h: Household, p: Person, d: DocumentEntry): Promise<string> {

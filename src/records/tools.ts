@@ -6,13 +6,16 @@ import spec from '../../spec/medrec-tools.json';
 import { ToolError, type ServerInfo } from '../mcp/errors';
 import { HARD_LIMIT, PageRequest, chars, type ListArgs } from '../mcp/shape';
 import { LeftOut, type Warning } from './partial';
-import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Store } from './store';
+import { Gate, names, type Privacy } from './private';
+import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Standing, type Store } from './store';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
   CLIP,
   DOC_TYPES,
   SUMMARY_LINES,
+  bills as billsOf,
+  cut,
   isDocType,
   label,
   recordDetail,
@@ -52,7 +55,7 @@ const NOTE_CLIP = 2_000;
 
 /** medrec's own server instructions, after the standard ones (pk-cli-mcp `instructions`). */
 const MEDREC_INSTRUCTIONS =
-  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. For decisions about care, suggest the user ask their clinician.';
+  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. For decisions about care, suggest the user ask their clinician.';
 
 export const SERVER: ServerInfo & { host: string } = {
   host: "through the open-source Own Your Health connector, running in the household's own Cloudflare account, which reads their records folder in Google Drive with their own Google sign-in",
@@ -265,6 +268,8 @@ interface Line {
   detail?: string;
   source?: string;
   id?: string;
+  /** Its area, for a private item in a person's summary (medrec 0.9.1 and later). */
+  private?: string;
 }
 
 /** An object with its keys in `order`, the absent ones left out, as serde skips `None`. */
@@ -274,12 +279,12 @@ function ordered(o: Record<string, unknown>, order: readonly string[]): Record<s
   return out;
 }
 
-const LINE_KEYS = ['name', 'date', 'detail', 'source', 'id'] as const;
+const LINE_KEYS = ['name', 'date', 'detail', 'source', 'id', 'private'] as const;
 const line = (l: Line) => ordered(l as unknown as Record<string, unknown>, LINE_KEYS);
 
 function fromSummaryLine(l: SummaryLine): Line {
   const detail = l.detail !== undefined && l.status !== undefined ? `${l.detail} (${l.status})` : (l.detail ?? l.status);
-  return { name: l.name, date: l.date, detail, source: l.source };
+  return { name: l.name, date: l.date, detail, source: l.source, id: l.id };
 }
 
 /** `5.4 % (H), range 4.0 – 5.6 %, 3 results since 2024-01-02`. */
@@ -292,21 +297,22 @@ function resultText(r: ResultRow): string {
   return trim(s);
 }
 
-function sections(s: Summary): Record<string, unknown> {
+function sections(s: Summary, area: (id: string) => string | undefined = () => undefined): Record<string, unknown> {
   const out: Record<string, unknown>[] = [];
-  const section = (name: string, more: number, items: Line[]) => out.push({ section: name, items: items.map(line), more });
+  const section = (name: string, more: number, items: Line[]) =>
+    out.push({ section: name, items: items.map((l) => line({ ...l, private: l.id === undefined ? undefined : area(l.id) })), more });
   section('medications', s.medications.more, s.medications.items.map(fromSummaryLine));
   section('conditions', s.conditions.more, s.conditions.items.map(fromSummaryLine));
   section('allergies', s.allergies.more, s.allergies.items.map(fromSummaryLine));
   section(
     'immunizations',
     s.immunizations.more,
-    s.immunizations.items.map((v) => ({ name: v.vaccine, date: v.last_date, detail: `${v.doses} dose${v.doses === 1 ? '' : 's'} on file`, source: v.source })),
+    s.immunizations.items.map((v) => ({ name: v.vaccine, date: v.last_date, detail: `${v.doses} dose${v.doses === 1 ? '' : 's'} on file`, source: v.source, id: v.id })),
   );
   section(
     'latest_results',
     s.latest_results.more,
-    s.latest_results.items.map((r) => ({ name: r.test, date: day(r.date), detail: resultText(r), source: r.source })),
+    s.latest_results.items.map((r) => ({ name: r.test, date: day(r.date), detail: resultText(r), source: r.source, id: r.id })),
   );
   section('recent_visits', s.recent_visits.more, s.recent_visits.items.map(fromSummaryLine));
   section(
@@ -336,8 +342,46 @@ async function summaryTool(a: Args, ctx: Context): Promise<Record<string, unknow
   } catch (e) {
     throw personError(e);
   }
-  const s = await ctx.store.summary(h, p, ctx.today, SUMMARY_LINES);
-  return { people: rows, summary: sections(s) };
+  const [s, privacy, standing] = await Promise.all([ctx.store.summary(h, p, ctx.today, SUMMARY_LINES), ctx.store.privacy(h, p), ctx.store.bills(h, p)]);
+  if (standing) s.bills = await unsettled(ctx, h, p, s.bills, standing);
+  return { people: rows, summary: sections(s, (id) => privacy.areas.get(id)) };
+}
+
+/**
+ * The summary's bills without those bills.json has settled. The views' summary
+ * is cut before they are known: when it holds more than it lists and any is
+ * settled, the list is made again from the person's documents.
+ */
+async function unsettled(ctx: Context, h: Household, p: Person, b: Summary['bills'], standing: ReadonlyMap<string, Standing>): Promise<Summary['bills']> {
+  const settled = new Set([...standing].filter(([, x]) => x.settled).map(([id]) => id));
+  if (settled.size === 0) return b;
+  if (b.more === 0) return { items: b.items.filter((x) => !settled.has(x.document)), more: 0 };
+  return cut(billsOf(await ctx.store.documents(h, p), ctx.today, settled), SUMMARY_LINES);
+}
+
+/** Each person's private items, for an answer that covers them. */
+async function privacyOf(ctx: Context, h: Household, people: Person[]): Promise<Map<string, Privacy>> {
+  return new Map(await Promise.all(people.map(async (p) => [p.id, await ctx.store.privacy(h, p)] as const)));
+}
+
+/** A page with the private items it left out counted, and its warnings: medrec's, then the connector's own. */
+function gatedPage<T>(
+  page: PageRequest,
+  gate: Gate,
+  people: Person[],
+  left: LeftOut,
+  household: boolean,
+  items: T[],
+  hint: string,
+  extra: Warning[] = [],
+): Record<string, unknown> {
+  // Everyone left out is that error, before any cursor is checked.
+  const warnings = left.done(people);
+  const out = page.page(items, hint, [...left.ids(), ...(household ? gate.unknownIds(people) : [])]);
+  const gone = new Set(left.ids());
+  const asked = people.filter((p) => !gone.has(p.id));
+  const leftOut = household ? gate.leftOut(page.offset, out.returned, out.next_cursor === undefined) : 0;
+  return pageJson(out, [...gate.warnings(asked, leftOut), ...extra, ...warnings]);
 }
 
 // ---- medrec_search -------------------------------------------------------------------------------
@@ -358,14 +402,25 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
   const { terms } = searchTerms(query);
   if (terms.length === 0) throw ToolError.usage('search needs at least one word');
   const chosen = selected(h, person);
-  const left = new LeftOut(person === undefined);
+  const household = person === undefined;
+  const left = new LeftOut(household);
+  const privacy = await privacyOf(ctx, h, chosen);
   let asked = chosen;
-  let hits;
+  let gate;
+  let kept;
   let shown;
   for (;;) {
-    hits = await searchHousehold(ctx.store, h, asked, terms, r, page.wanted(), left.of);
+    const g = (gate = new Gate(household, privacy));
+    // A question about everyone holds back the private hits it does not name, where they rank.
+    const skip = household ? (p: Person) => (c: { id: string; title: string }) => g.heldBack(p, c.id) && !names(c.title, query) : undefined;
+    const hits = await searchHousehold(ctx.store, h, asked, terms, r, page.wanted(), left.of, skip);
+    kept = hits.filter(({ c }) => {
+      if (c.held) g.skipped();
+      else g.kept();
+      return !c.held;
+    });
     // Snippets only for the hits this page shows; the rest only tell the page where it stands.
-    shown = hits.slice(page.offset, page.offset + page.limit);
+    shown = kept.slice(page.offset, page.offset + page.limit);
     try {
       await ctx.store.prepare?.(shown.map((x) => x.c));
       break;
@@ -376,12 +431,14 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
       asked = asked.filter((p) => !gone.has(p.id));
     }
   }
-  const warnings = left.done(chosen);
-  const items: Record<string, unknown>[] = hits.map(() => ({}));
+  const items: Record<string, unknown>[] = kept.map(() => ({}));
   for (const [i, { p, c }] of shown.entries()) {
-    items[page.offset + i] = ordered({ person: p.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet() }, ['person', 'kind', 'id', 'date', 'title', 'snippet']);
+    items[page.offset + i] = ordered(
+      { person: p.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet(), private: gate.area(p, c.id) },
+      ['person', 'kind', 'id', 'date', 'title', 'snippet', 'private'],
+    );
   }
-  return pageJson(page.page(items, 'person, since/until, or more words', left.ids()), warnings);
+  return gatedPage(page, gate, chosen, left, household, items, 'person, since/until, or more words');
 }
 
 /** A page as medrec gives it, with its warnings last when there are any (pk-cli-mcp `PageInfo`). */
@@ -430,6 +487,7 @@ const ITEM_KEYS = [
   'doc_type',
   'has_text',
   'you_owe',
+  'private',
   'fields',
 ] as const;
 type Item = Partial<Record<(typeof ITEM_KEYS)[number], unknown>>;
@@ -472,54 +530,71 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     throw personError(e);
   }
   const named = (title: string) => name === undefined || fold(title).includes(fold(name));
-  const items: Item[] = [];
+  const rows: { p: Person; it: Item }[] = [];
   const recordKind = KINDS[kind];
   const filter = { range: r, active, name };
-  const left = new LeftOut(person === undefined);
+  const household = person === undefined;
+  const left = new LeftOut(household);
   const hint = 'person, since/until, active or name';
+  const gate = new Gate(household, await privacyOf(ctx, h, chosen));
+  // A question about everyone holds back the private items it does not name; each one an answer includes carries its area.
+  const keep = (p: Person, it: Item) => gate.keep(p, it.id as string, () => name !== undefined && names(it.title as string, name));
+  const marked = (p: Person, it: Item) => item({ ...it, private: gate.area(p, it.id as string) });
+  const extra: Warning[] = [];
   if (kind === 'tests') {
     for (const p of chosen) {
       for (const row of await left.of(p, () => ctx.store.tests(h, p, filter), [])) {
-        items.push({ kind: 'result', person: p.name, date: row.date, title: row.test, source: row.source, id: '', code: row.code, value: row.value, unit: row.unit, range: row.range, flag: row.flag, results: row.results });
+        rows.push({ p, it: { kind: 'result', person: p.name, date: row.date, title: row.test, source: row.source, id: row.id ?? '', code: row.code, value: row.value, unit: row.unit, range: row.range, flag: row.flag, results: row.results } });
       }
     }
   } else if (recordKind) {
     // Each person's records come in the tool's order: merge them, reading only what the page needs.
     const order = recordOrder(detailed);
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.records(h, p, recordKind, filter, detailed))));
-    const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted());
-    const warnings = left.done(chosen);
-    return pageJson(page.page(top.map(({ p, x }) => item(recordItem(h, p.name, x, detailed))), hint, left.ids()), warnings);
+    const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted(), ({ p, x }) => keep(p, { id: x.id, title: clip(x.display, CLIP) }));
+    return gatedPage(page, gate, chosen, left, household, top.map(({ p, x }) => marked(p, recordItem(h, p.name, x, detailed))), hint);
   } else if (kind === 'notes') {
-    const rows: { person_name: string; note: Note }[] = [];
-    for (const p of chosen) for (const n of await ctx.store.notes(h, p)) if (holdsRange(r, n.date)) rows.push({ person_name: p.name, note: n });
-    rows.sort((a, b) => cmpS(b.note.date, a.note.date));
-    for (const n of rows) {
-      const text = trim(n.note.text);
+    const notes: { p: Person; note: Note }[] = [];
+    for (const p of chosen) for (const n of await ctx.store.notes(h, p)) if (holdsRange(r, n.date)) notes.push({ p, note: n });
+    notes.sort((a, b) => cmpS(b.note.date, a.note.date));
+    for (const { p, note } of notes) {
+      const text = trim(note.text);
       if (!named(text)) continue;
-      items.push({ kind: 'note', person: n.person_name, date: n.note.date, title: firstLine(text, 120), detail: clip(text, NOTE_CLIP), source: n.note.author, id: n.note.id });
+      rows.push({ p, it: { kind: 'note', person: p.name, date: note.date, title: firstLine(text, 120), detail: clip(text, NOTE_CLIP), source: note.author, id: note.id } });
     }
   } else if (kind === 'timeline') {
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.timeline(h, p, r))));
-    const top = await takeMerged(tagged, (a, b) => eventOrder(a.x, b.x), page.wanted(), ({ x }) => named(x.title));
-    const warnings = left.done(chosen);
-    const events = top.map(({ x: e }) => item({ kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
-    return pageJson(page.page(events, hint, left.ids()), warnings);
+    const top = await takeMerged(tagged, (a, b) => eventOrder(a.x, b.x), page.wanted(), ({ p, x }) => named(x.title) && keep(p, { id: x.id, title: clip(x.title, CLIP) }));
+    const events = top.map(({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
+    return gatedPage(page, gate, chosen, left, household, events, hint);
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
-      for (const d of await left.of(p, () => ctx.store.documents(h, p), [])) {
+      const docs = await left.of(p, () => ctx.store.documents(h, p), null);
+      if (docs === null) continue;
+      // What is paid and left on each bill; without bills.json, bills show what their statements asked.
+      const standing = bills ? await ctx.store.bills(h, p) : undefined;
+      if (standing === null) extra.push(billsNotPrepared(p));
+      for (const d of docs) {
         const isBill = d.doc_type === 'bill';
         if ((bills && (!isBill || (d.same_statement_as !== null && d.same_statement_as !== undefined))) || (docType !== undefined && d.doc_type !== docType) || !holdsRange(r, d.date)) continue;
         const title = d.title ?? d.original_name ?? label(d.doc_type);
         if (!named(title)) continue;
-        items.push(documentItem(p.name, d, title, ctx.today));
+        rows.push({ p, it: documentItem(p.name, d, title, ctx.today, standing?.get(d.id)) });
       }
     }
   }
-  items.sort((x, y) => cmpOptS(y.date, x.date) || cmpS(x.title as string, y.title as string));
-  const warnings = left.done(chosen);
-  return pageJson(page.page(items.map(item), hint, left.ids()), warnings);
+  rows.sort((x, y) => cmpOptS(y.it.date, x.it.date) || cmpS(x.it.title as string, y.it.title as string));
+  const items = rows.filter(({ p, it }) => keep(p, it)).map(({ p, it }) => marked(p, it));
+  return gatedPage(page, gate, chosen, left, household, items, hint, extra);
+}
+
+/** The warning for a person whose bills.json this connector cannot read now. */
+function billsNotPrepared(p: Person): Warning {
+  return {
+    code: 'bills-not-prepared',
+    message: `medrec has not prepared ${p.name}'s payments for assistants: ${p.name}'s bills show what each statement asked, and payments may be missing. Tell the user medrec 0.9.1 or later prepares them on its next pass on the household's computer (medrec refresh)`,
+  };
 }
 
 /** `kind: "events"`: what happened, in events.json's order across people; `id` one event in full. */
@@ -537,7 +612,9 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   } catch (e) {
     throw personError(e);
   }
-  const left = new LeftOut(person === undefined);
+  const household = person === undefined;
+  const left = new LeftOut(household);
+  const gate = new Gate(household, await privacyOf(ctx, h, chosen));
   const rows: { p: Person; e: JsonObject }[] = [];
   for (const p of chosen) {
     for (const e of await left.of(p, () => ctx.store.events(h, p), [])) {
@@ -551,18 +628,21 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   rows.sort((a, b) => cmpS(k(b.e, 'start'), k(a.e, 'start')) || cmpS(k(b.e, 'end'), k(a.e, 'end')) || cmpS(k(a.e, 'id'), k(b.e, 'id')));
   const n = name === undefined ? undefined : fold(name);
   const texts = (e: JsonObject) => [...['kind', 'title', 'what', 'place'].map((f) => str(e[f])), ...strings(e.clinicians)].filter((t): t is string => t !== undefined);
-  const items = rows
+  const found = rows
     .filter(({ e }) => id === undefined || e.id === id)
     .filter(({ e }) => n === undefined || texts(e).some((t) => fold(t).includes(n)))
-    .map(({ p, e }) => item(eventItem(p.name, e, detailed || id !== undefined)));
-  if (id !== undefined && items.length === 0) {
+    .map(({ p, e }) => ({ p, it: eventItem(p.name, e, detailed || id !== undefined) }));
+  const hint = 'person, since/until or name';
+  if (id !== undefined && found.length === 0) {
     // A question about everyone that left someone out may have missed it: say who, as a list would.
     const warnings = left.done(chosen);
-    if (warnings.length > 0) return pageJson(page.page([], 'person, since/until or name', left.ids()), warnings);
+    if (warnings.length > 0) return pageJson(page.page([], hint, left.ids()), warnings);
     throw ToolError.notFound(`no event ${id}`).withFix('List events with medrec_records kind events to find the id');
   }
-  const warnings = left.done(chosen);
-  return pageJson(page.page(items, 'person, since/until or name', left.ids()), warnings);
+  // An event asked for by id is named; one whose title, detail or place the question names is too.
+  const opens = (it: Item) => id !== undefined || (name !== undefined && [it.title, it.detail, it.source].some((t) => typeof t === 'string' && names(t, name)));
+  const items = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it))).map(({ p, it }) => item({ ...it, private: gate.area(p, it.id as string) }));
+  return gatedPage(page, gate, chosen, left, household, items, hint);
 }
 
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
@@ -618,16 +698,22 @@ async function* tag<T>(p: Person, xs: AsyncIterable<T>): AsyncIterable<{ p: Pers
 
 const cmpOptS = (a: unknown, b: unknown) => cmpOptRaw(a as string | undefined, b as string | undefined);
 
-function documentItem(person: string, d: DocumentEntry, title: string, today: string): Item {
+/** A document as a list item; a bill with `standing` from bills.json says it is paid or what is left, and a settled one is never past due. */
+function documentItem(person: string, d: DocumentEntry, title: string, today: string, standing?: Standing): Item {
   const s = d.statement ?? undefined;
   const due = s?.due_date ?? undefined;
-  const pastDue = due !== undefined && cmpS(due, today) < 0;
+  const settled = standing?.settled === true;
+  const pastDue = !settled && due !== undefined && cmpS(due, today) < 0;
+  let detail = label(d.doc_type);
+  if (pastDue) detail += ', past due';
+  if (settled) detail += ', paid';
+  else if (standing?.left !== undefined && s?.amount_due && s.amount_due.amount !== standing.left) detail += `, ${standing.left} left`;
   return {
     kind: 'document',
     person,
     date: d.date ?? undefined,
     title: clip(title, CLIP),
-    detail: pastDue ? `${label(d.doc_type)}, past due` : label(d.doc_type),
+    detail,
     source: d.organization ?? undefined,
     id: d.id,
     amount_due: s?.amount_due ? money(s.amount_due) : undefined,
@@ -704,6 +790,7 @@ const DOCUMENT_KEYS = [
   'text_pages',
   'text',
   'records',
+  'private',
   'hint',
 ] as const;
 
@@ -729,7 +816,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page === 1 || (page === undefined && offset === undefined)) start = 0;
   else if (page !== undefined) start = breaks[page - 2]! + 1;
   else start = Math.min(offset!, cs.length);
-  const records = await ctx.store.documentRecords(h, p, d);
+  const [records, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,
@@ -747,6 +834,8 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
     text_pages: textPages,
     text: '',
     records: records.length > 0 ? records : undefined,
+    // Asked for by id: a private document is the person's, named.
+    private: privacy.areas.get(d.id),
   };
   if (cs.length === 0) {
     out.hint = 'No text was extracted from this document: an image without OCR, or a file medrec cannot read.';

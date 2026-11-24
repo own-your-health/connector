@@ -6,10 +6,12 @@
 // checked against the MD5 views.json gives it, so a pass still arriving on
 // Drive is never mixed with the one before.
 
+import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
 import type { Folder } from '../records/folder';
 import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from '../records/model';
-import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, type Candidate, type RecordFilter, type Store } from '../records/store';
+import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
+import type { Privacy } from '../records/private';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -38,6 +40,8 @@ import {
   viewName,
   VIEWS_INDEX,
   EVENTS_SCHEMA,
+  BILLS_SCHEMA,
+  PRIVATE_SCHEMA,
   VIEWS_SCHEMA,
   hex,
   paths,
@@ -139,6 +143,26 @@ class PersonReader {
   }
 }
 
+/** private.json as a reader needs it (medrec-private/v1). */
+export type PrivateView = { marks_unreadable?: boolean } & Partial<Record<'records' | 'documents' | 'events', Record<string, { area?: unknown }>>>;
+
+/** The private items private.json gives, each by id with its area; all of the person's held back when their marks did not read. */
+export function privacyOf(view: PrivateView): Privacy {
+  const areas = new Map<string, string>();
+  for (const kind of ['records', 'documents', 'events'] as const) {
+    for (const [id, w] of Object.entries(view[kind] ?? {})) if (typeof w?.area === 'string') areas.set(id, w.area);
+  }
+  return view.marks_unreadable === true ? { areas, unknown: { why: 'marks-unreadable' } } : { areas };
+}
+
+/** bills.json as a reader needs it (medrec-bills/v1). */
+export type BillsView = { bills?: Record<string, { settled?: unknown; left?: unknown }> };
+
+/** What is paid and left on each bill bills.json gives, by document id. */
+export function standingOf(view: BillsView): Map<string, Standing> {
+  return new Map(Object.entries(view.bills ?? {}).map(([id, b]) => [id, { settled: b.settled === true, ...(typeof b.left === 'string' ? { left: b.left } : {}) }]));
+}
+
 export class ViewsStore implements Store {
   private readonly raw: RawStore;
   private state_: Promise<{ index: ViewsIndex | null; newer?: string; older?: string; fresh: Set<string> }> | null = null;
@@ -165,10 +189,10 @@ export class ViewsStore implements Store {
         return { index: null, ...skew, fresh: new Set<string>() };
       }
       const files = ['household.json', ...h.people.flatMap((p) => [`${p.folder}/index.json`, `${p.folder}/text.json`])];
-      // One request: these files' MD5s, everyone's notes.md and overrides.json (for events), and every view.
+      // One request: these files' MD5s, everyone's notes.md, overrides.json and marks.json (for the views only medrec makes), and every view.
       await this.folder.survey(
         h.people.map((p) => `${VIEWS_DIR}/${p.id}`),
-        [...files, ...h.people.flatMap((p) => [`${p.folder}/notes.md`, `${p.folder}/overrides.json`])],
+        [...files, ...h.people.flatMap((p) => [`${p.folder}/notes.md`, `${p.folder}/overrides.json`, `${p.folder}/marks.json`])],
       );
       const md5 = await this.folder.md5(files);
       const fresh = new Set<string>();
@@ -194,7 +218,7 @@ export class ViewsStore implements Store {
     // medrec writes both beside every events.json; without them, what the events were made from cannot be checked.
     const from = v?.overrides !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
     if (!v?.files || v.files['events.json'] === undefined || !from) throw eventsNotPrepared(p);
-    if (!st.fresh.has(p.id) || !(await this.eventsFresh(h, p, v))) {
+    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, false))) {
       throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared their events for assistants`).withFix(
         "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
       ).personUnavailable(p.id);
@@ -209,18 +233,58 @@ export class ViewsStore implements Store {
   }
 
   /**
-   * Whether what else the person's events were made from is as they were:
-   * their overrides.json, and the index.json and text.json of each linked
+   * Whether what else a view only medrec makes was made from is as it was:
+   * the person's overrides.json, with `marks` their marks.json (bills.json
+   * and private.json), and the index.json and text.json of each linked
    * person (a newborn's guardians, a guardian's newborns). The survey holds
    * every MD5 this asks for.
    */
-  private async eventsFresh(h: Household, p: Person, v: PersonViews): Promise<boolean> {
+  private async derivedFresh(h: Household, p: Person, v: PersonViews, marks: boolean): Promise<boolean> {
     const linked = Object.entries(v.linked!);
     const people = linked.map(([id]) => h.people.find((q) => q.id === id));
     if (people.some((q) => q === undefined)) return false;
-    const md5 = await this.folder.md5([`${p.folder}/overrides.json`, ...people.flatMap((q) => [`${q!.folder}/index.json`, `${q!.folder}/text.json`])]);
-    if (md5[0] !== (v.overrides ?? null)) return false;
-    return linked.every(([, l], i) => md5[1 + 2 * i] === l.index && md5[2 + 2 * i] === l.text);
+    const own = [`${p.folder}/overrides.json`, ...(marks ? [`${p.folder}/marks.json`] : [])];
+    const md5 = await this.folder.md5([...own, ...people.flatMap((q) => [`${q!.folder}/index.json`, `${q!.folder}/text.json`])]);
+    if (md5[0] !== (v.overrides ?? null) || (marks && md5[1] !== (v.marks ?? null))) return false;
+    const at = own.length;
+    return linked.every(([, l], i) => md5[at + 2 * i] === l.index && md5[at + 1 + 2 * i] === l.text);
+  }
+
+  /**
+   * A view medrec 0.9.1 and later make from the person's views and their
+   * marks.json (bills.json, private.json) when it is current, in `schema`;
+   * otherwise why not.
+   */
+  private async derived<T>(h: Household, p: Person, name: 'bills.json' | 'private.json', schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
+    const st = await this.state(h);
+    if (st.newer) return { not: `their views are in a newer layout (${st.newer}) than this connector reads` };
+    const v = st.index?.people[p.id];
+    // medrec writes all three beside every such view; without them, what it was made from cannot be checked.
+    const from = v?.overrides !== undefined && v.marks !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
+    if (!v?.files || v.files[name] === undefined || !from) return { not: `medrec has written no ${name} for them yet` };
+    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, true))) return { not: `their records changed after medrec last wrote their ${name}` };
+    // The view medrec writes for a person with nothing in it, known by its MD5 without reading it.
+    if (empty !== undefined && createHash('md5').update(empty).digest('hex') === v.files[name]) return { view: JSON.parse(empty) as T };
+    let view: { schema?: string };
+    try {
+      view = await new PersonReader(this.folder, p, v).json<{ schema?: string }>(`${VIEWS_DIR}/${p.id}/${name}`);
+    } catch (e) {
+      if (e instanceof ToolError && e.unavailable === p.id) return { not: `medrec's ${name} for them is still arriving` };
+      throw e;
+    }
+    if (view.schema !== schema) return { not: `their ${name} is in a layout (${String(view.schema)}) this connector does not read` };
+    return { view: view as T };
+  }
+
+  async privacy(h: Household, p: Person): Promise<Privacy> {
+    const empty = JSON.stringify({ schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {} });
+    const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, empty);
+    return 'not' in got ? { areas: new Map(), unknown: { why: 'not-prepared', detail: got.not } } : privacyOf(got.view);
+  }
+
+  async bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+    const got = await this.derived<BillsView>(h, p, 'bills.json', BILLS_SCHEMA);
+    return 'not' in got ? null : standingOf(got.view);
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */
@@ -436,9 +500,9 @@ export class ViewsStore implements Store {
     };
   }
 
-  async search(h: Household, p: Person, terms: string[], range: Range, want: number): Promise<Candidate[]> {
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]> {
     const r = await this.views(h, p);
-    if (!r) return this.raw.search(h, p, terms, range, want);
+    if (!r) return this.raw.search(h, p, terms, range, want, skip);
     const labs = LAB_QUERIES.includes(terms.join(' '));
 
     const items = await this.items(r);
@@ -485,10 +549,12 @@ export class ViewsStore implements Store {
     // oldest to newest. Keys sort ascending: -(score, then number).
     const keys: number[] = [];
     if (matched > 0) for (let ord = lo; ord < hi; ord++) if (terms_[ord] === all) keys.push(-(scores[ord]! * 2 ** 26 + ord));
-    const best = Float64Array.from(keys).sort().subarray(0, want);
+    const all_ = Float64Array.from(keys).sort();
     type Ranked = { c: ViewsCandidate; seq: number };
     const ranked: Ranked[] = [];
-    best.forEach((key, seq) => {
+    let kept = 0;
+    for (let seq = 0; seq < all_.length && kept < want; seq++) {
+      const key = all_[seq]!;
       const ord = -key % 2 ** 26;
       const [date, kind, id, title] = items.meta(ord);
       const [start, end] = items.text(ord);
@@ -504,8 +570,10 @@ export class ViewsStore implements Store {
         hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: firstAt[ord]!, reader: r },
         snippet: () => this.snippet(c),
       };
+      if (skip?.(c)) c.held = true;
+      else kept++;
       ranked.push({ c, seq });
-    });
+    }
 
     // Notes are read as they are, and come after everything else in the files' order.
     const notes = await this.folder.notes(p);
@@ -515,20 +583,27 @@ export class ViewsStore implements Store {
       const m = score(item.folded, terms);
       if (!m) return;
       ranked.push({
-        seq: want + i,
+        seq: all_.length + i,
         c: { kind: item.kind, id: item.id, date: item.date, title: item.title, score: m.score, snippet: async () => snippetAt(item.hay({ schema: 'medrec-index/v1' }, {}, notes), m.first) },
       });
     });
     ranked.sort((a, b) => b.c.score - a.c.score || cmpOpt(b.c.date, a.c.date) || a.seq - b.seq);
-    const out = ranked.slice(0, want).map((r) => r.c);
+    const out: Candidate[] = upTo(
+      ranked.map((r) => r.c),
+      want,
+    );
+    let shown = out.filter((c) => !c.held).length;
 
     // A lab query's finds by kind score 0: after every text hit, highest item number first.
-    for (let i = r.v.search.labs - 1; labs && out.length < want && i >= 0; i--) {
+    for (let i = r.v.search.labs - 1; labs && shown < want && i >= 0; i--) {
       const rows = await r.json<LabRow[]>(paths.labs(p.id, i));
-      for (let j = rows.length - 1; j >= 0 && out.length < want; j--) {
+      for (let j = rows.length - 1; j >= 0 && shown < want; j--) {
         const [ord, date, kind, id, title, snippet] = rows[j]!;
         if (isHit(ord) || !holds(range, date)) continue;
-        out.push({ kind, id, date: date ?? undefined, title, score: 0, snippet: async () => snippet });
+        const c: Candidate = { kind, id, date: date ?? undefined, title, score: 0, snippet: async () => snippet };
+        if (skip?.(c)) c.held = true;
+        else shown++;
+        out.push(c);
       }
     }
     return out;

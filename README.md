@@ -7,7 +7,7 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.0 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.1 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
 same too: `test/golden.test.ts` holds 185 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
@@ -16,8 +16,17 @@ this connector's answers, to the character.
 |---|---|
 | `medrec_summary` | The household's people; with `person`, their current medicines, conditions, allergies, vaccines, latest results, recent visits and bills |
 | `medrec_search` | Every document, record, study and note holding all the query's words |
-| `medrec_records` | One kind of record (medications, results, tests, visits, claims, bills, documents, notes, the timeline…), filtered and paged; `events`: what happened, one per visit, ER trip, stay or fill, with what the household owes |
+| `medrec_records` | One kind of record (medications, results, tests, visits, claims, bills, documents, notes, the timeline…), filtered and paged; `events`: what happened, one per visit, ER trip, stay or fill, with what the household owes; `bills`: whether each is paid, or what is left |
 | `medrec_document` | A document's extracted text, a part at a time |
+
+Records, documents and events about mental health, reproductive or sexual
+health or substance use are private: medrec 0.9.1 and later mark them in
+`private.json`, and the household can mark others. An answer about the whole
+household leaves them out, and its `warnings` say how many each page left
+out. An answer about one person includes them, and so does one that names the
+item ("sertraline", not "tablets"). Each one it includes carries `private`,
+its area. This is discretion, not access control: anyone the connector lets
+in can ask about one person.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -73,30 +82,32 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
   the tool says why it cannot answer (below), never answering from records
   that have since changed.
 
-| Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text | CPU, cold, least | CPU, cold, median | Requests to Google |
+| Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text, one record in 20 private | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.3 ms | 0 |
-| `medrec_summary` of one person | 1.9 ms | 2.8 ms | 10 |
-| `medrec_search`, one word | 3.1 ms | 6.3 ms | 33 |
-| `medrec_search`, one word, 100 hits | 5.3 ms | 7.9 ms | 33 |
-| `medrec_search`, three words | 2.5 ms | 3.4 ms | 37 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 4.1 ms | 6.1 ms | 24 |
-| `medrec_search` for "labs" (every lab record, by kind) | 2.8 ms | 3.7 ms | 35 |
-| `medrec_records` results, 200 | 3.9 ms | 5.1 ms | 11 |
-| `medrec_records` timeline | 1.7 ms | 2.4 ms | 7 |
-| `medrec_records` events, everyone | 2.8 ms | 3.1 ms | 9 |
-| `medrec_records` events of one person, detailed, 200 | 2.1 ms | 2.4 ms | 6 |
-| `medrec_records` one event by `id` | 2.3 ms | 2.5 ms | 9 |
-| `medrec_document`, a page | 2.0 ms | 2.1 ms | 8 |
-| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
+| `medrec_summary` of one person | 2.0 ms | 2.4 ms | 12 |
+| `medrec_search`, one word | 2.9 ms | 3.5 ms | 36 |
+| `medrec_search`, one word, 100 hits | 4.2 ms | 6.8 ms | 36 |
+| `medrec_search`, three words | 2.6 ms | 3.9 ms | 40 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.5 ms | 4.6 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 3.1 ms | 6.1 ms | 38 |
+| `medrec_records` results, 200 | 2.9 ms | 3.4 ms | 14 |
+| `medrec_records` timeline of one person | 1.6 ms | 2.0 ms | 8 |
+| `medrec_records` timeline, everyone, 200 | 2.5 ms | 3.0 ms | 17 |
+| `medrec_records` bills, everyone | 2.2 ms | 2.5 ms | 16 |
+| `medrec_records` events, everyone | 3.8 ms | 6.0 ms | 12 |
+| `medrec_records` events of one person, detailed, 200 | 2.1 ms | 3.0 ms | 7 |
+| `medrec_records` one event by `id` | 2.6 ms | 3.1 ms | 12 |
+| `medrec_document`, a page | 3.6 ms | 5.9 ms | 9 |
+| for scale: `JSON.parse` of 0.96 MB | 3.0 ms | 3.1 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-24, Apple
 silicon, 20 calls each). The Worker answered in Node, through its own OAuth
 check, MCP framing, Drive client and views, with Node's own `fetch` work
 counted. Google was a local fake on another thread, whose work is not
 counted. A cold call is the first on a fresh isolate, which downloads and
-parses every file it needs. The machine was lightly loaded (load 5): the scale row
-takes about 2.2 ms on a quiet one, and the medians spread with the load.
+parses every file it needs. The machine was loaded (load 10): the scale row takes
+about 2.2 ms on a quiet one, and the medians spread with the load.
 Cloudflare's dashboard shows the deployed Worker's own CPU times.
 
 At the limits:
@@ -131,6 +142,23 @@ At the limits:
   are missing, or older than their records, their `overrides.json` or a
   linked newborn's or guardian's records, is left out of a question about
   everyone with a warning, and a question about them says why.
+- **Private items not known.** Only medrec marks private items, in the
+  `private.json` medrec 0.9.1 and later write. A person whose `private.json`
+  is missing (views from medrec 0.9.0 or earlier), older than their records,
+  `overrides.json`, `marks.json` or a linked person's records, or in a layout
+  this connector does not read, has all their records, documents and events
+  held back from answers about everyone. Their notes stay. A
+  `private-not-prepared` warning names them and says why. An answer about
+  that person includes everything, unmarked, with the same warning. A person
+  whose `marks.json` medrec could not read is held back the same way, with
+  medrec's `private-marks-unreadable` warning. Each person with any private
+  item costs one more request to Google.
+- **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
+  household has paid and what is left. A settled bill is never past due, and
+  the summary leaves it out. A person without a current `bills.json` has
+  their bills listed as their statements asked, with a `bills-not-prepared`
+  warning on `kind: "bills"`, and in the summary as medrec 0.9.0 showed
+  them.
 - **Over 10 ms of CPU.** Cloudflare ends the request, and the assistant
   reports a failed call. Asking again usually succeeds, as warm calls parse
   nothing.

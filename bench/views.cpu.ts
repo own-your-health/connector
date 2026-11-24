@@ -22,7 +22,7 @@ import { synth } from '../scripts/synth.mjs';
 import { writeViewsAt } from '../src/views/local';
 import worker, { clearCacheForTests, type Env } from '../src/worker';
 import { CLIENT_ID, CLIENT_SECRET, FOLDER_ID, FakeGoogle } from '../test/fake-google';
-import { MemoryD1, MemoryKV, addEvents } from '../test/support';
+import { MemoryD1, MemoryKV, addDerived, markPrivate } from '../test/support';
 
 const N = Number(process.env.N ?? 20);
 const BASE = 'https://records.example.workers.dev';
@@ -40,8 +40,9 @@ it('measures', async () => {
   const scratch = mkdtempSync(join(tmpdir(), 'oyh-views-bench-'));
   const root = synth(join(scratch, 'records'));
   const written = writeViewsAt(root);
-  // medrec's events for this folder, as medrec 0.9.0 wrote them.
-  addEvents(root, join(import.meta.dirname, '../test/fixtures/events/large'));
+  // medrec's events, bills and private items for this folder, as medrec 0.9.1 wrote them; then one record in 20 private.
+  addDerived(root, 'large');
+  const privateRecords = markPrivate(root, 20);
   const all = files(root);
   const touch = () => clearCacheForTests();
 
@@ -161,6 +162,8 @@ it('measures', async () => {
     ['records timeline, 2014', call('medrec_records', { kind: 'timeline', since: '2014-01-01', until: '2014-12-31', limit: 200 })],
     ['records medications, active', call('medrec_records', { kind: 'medications', active: true })],
     ['records documents Sam', call('medrec_records', { kind: 'documents', person: 'Sam' })],
+    ['records bills, everyone', call('medrec_records', { kind: 'bills' })],
+    ['records timeline, everyone, 200', call('medrec_records', { kind: 'timeline', limit: 200 })],
     ['records events, everyone', call('medrec_records', { kind: 'events' })],
     ['records events Robin, detailed, 200', call('medrec_records', { kind: 'events', person: 'Robin', response_format: 'detailed', limit: 200 })],
     ['records events "er", everyone', call('medrec_records', { kind: 'events', name: 'er', limit: 200 })],
@@ -205,7 +208,7 @@ it('measures', async () => {
   rmSync(scratch, { recursive: true, force: true });
   writeFileSync(
     process.env.OUT ?? '/tmp/oyh-views.md',
-    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB\n` +
+    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private\n` +
       `| Call | cold, least | cold, median | warm, least | subrequests |\n|---|---:|---:|---:|---:|\n${rows.join('\n')}\n`,
   );
 }, 600_000);
