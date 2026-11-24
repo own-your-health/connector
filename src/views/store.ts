@@ -9,6 +9,7 @@
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
+import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
 import type { Folder } from '../records/folder';
 import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from '../records/model';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
@@ -43,6 +44,7 @@ import {
   VIEWS_INDEX,
   EVENTS_SCHEMA,
   BILLS_SCHEMA,
+  CODE_NAMES_SCHEMA,
   PRIVATE_SCHEMA,
   VIEWS_SCHEMA,
   hex,
@@ -254,10 +256,10 @@ export class ViewsStore implements Store {
 
   /**
    * A view medrec 0.9.1 and later make from the person's views and their
-   * marks.json (bills.json, private.json) when it is current, in `schema`;
+   * marks.json (bills.json, private.json, code-names.json) when it is current, in `schema`;
    * otherwise why not.
    */
-  private async derived<T>(h: Household, p: Person, name: 'bills.json' | 'private.json', schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
+  private async derived<T>(h: Household, p: Person, name: 'bills.json' | 'private.json' | 'code-names.json', schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
     const st = await this.state(h);
     if (st.newer) return { not: `their views are in a newer layout (${st.newer}) than this connector reads` };
     const v = st.index?.people[p.id];
@@ -287,6 +289,11 @@ export class ViewsStore implements Store {
   async bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
     const got = await this.derived<BillsView>(h, p, 'bills.json', BILLS_SCHEMA);
     return 'not' in got ? null : standingOf(got.view);
+  }
+
+  async codeNames(h: Household, p: Person): Promise<CodeNames> {
+    const got = await this.derived<CodeNamesView>(h, p, 'code-names.json', CODE_NAMES_SCHEMA);
+    return 'not' in got ? NO_NAMES : codeNamesOf(got.view, p.id);
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */

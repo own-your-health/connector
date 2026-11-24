@@ -46,6 +46,8 @@ export const EVENTS_SCHEMA = 'medrec-events/v1';
 export const BILLS_SCHEMA = 'medrec-bills/v1';
 /** private.json's own layout (medrec 0.9.1 on). */
 export const PRIVATE_SCHEMA = 'medrec-private/v1';
+/** code-names.json's own layout (medrec 0.9.4 on). */
+export const CODE_NAMES_SCHEMA = 'medrec-code-names/v1';
 export const VIEWS_INDEX = `${VIEWS_DIR}/views.json`;
 
 /** A person's views directory, with the trailing slash. */

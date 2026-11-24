@@ -2,8 +2,8 @@
   "tools": [
     {
       "name": "medrec_summary",
-      "title": "Household and person summary",
-      "description": "The household's people, and with person their summary. Use it first. It has current medications, conditions, allergies, immunizations, latest results, visits and bills due.",
+      "title": "Household or person summary",
+      "description": "The people, and with person their summary. Use it first. Medicines, conditions, allergies, vaccines, results, visits, bills.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -121,6 +121,9 @@
                           "name": {
                             "type": "string"
                           },
+                          "plain_name": {
+                            "type": "string"
+                          },
                           "date": {
                             "type": "string"
                           },
@@ -169,7 +172,7 @@
         ]
       },
       "annotations": {
-        "title": "Household and person summary",
+        "title": "Household or person summary",
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
@@ -407,6 +410,9 @@
                   "type": "string"
                 },
                 "title": {
+                  "type": "string"
+                },
+                "plain_name": {
                   "type": "string"
                 },
                 "detail": {

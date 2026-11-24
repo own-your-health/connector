@@ -12,7 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { synth } from '../scripts/synth.mjs';
 import { ParsedCache } from '../src/records/folder';
 import { TOOLS, callTool, instructions, unknownTool } from '../src/records/tools';
-import { DEMO, RawWithDerived, addDerived, folderAt } from './support';
+import { DEMO, RawWithDerived, addCodeNames, addDerived, folderAt } from './support';
 import { RawStore, type Store } from '../src/records/store';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
@@ -25,7 +25,7 @@ interface Golden {
   results: { folder: 'demo' | 'large'; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
 }
 
-const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.3.json'), 'utf8')) as Golden;
+const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.4.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};
@@ -39,8 +39,11 @@ beforeAll(() => {
     cpSync(roots[name]!, viewRoots[name]!, { recursive: true });
     // Another writer's views, held to the same answers (docs/views.md).
     const writer = process.env.VIEWS_WRITER;
-    if (writer) execSync(writer.replaceAll('{folder}', JSON.stringify(viewRoots[name]!)), { stdio: 'inherit' });
-    else {
+    if (writer) {
+      execSync(writer.replaceAll('{folder}', JSON.stringify(viewRoots[name]!)), { stdio: 'inherit' });
+      // The writer has no published code table, so its own views hold no plain names.
+      addCodeNames(viewRoots[name]!, name === 'demo' ? 'records' : 'large');
+    } else {
       writeViewsAt(viewRoots[name]!);
       addDerived(viewRoots[name]!, name === 'demo' ? 'records' : 'large');
     }

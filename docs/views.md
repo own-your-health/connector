@@ -16,7 +16,7 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder
 and the large synthetic folder, with the `events.json` medrec wrote for them
 (`test/fixtures/events`; the reference writer does not write it), answers all
-230 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
+243 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
 the views"). Another writer (medrec's) is right when its views pass the same
 calls:
 
@@ -52,6 +52,7 @@ views/<person id>/search-labs-<n>.json
 views/<person id>/events.json             medrec 0.9.0 on; medrec's own, below
 views/<person id>/bills.json              medrec 0.9.1 on; medrec's own, below
 views/<person id>/private.json            medrec 0.9.1 on; medrec's own, below
+views/<person id>/code-names.json         medrec 0.9.4 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -325,8 +326,8 @@ matching rules. Its layout, `medrec-events/v1`, is medrec's, in medrec's
 
 It is stored and listed in `files` like every view. Each person's entry in
 `views.json` also gives what else their events were made from, and only the
-views medrec makes itself (`events.json`, `bills.json`, `private.json`)
-depend on these:
+views medrec makes itself (`events.json`, `bills.json`, `private.json`,
+`code-names.json`) depend on these:
 
 | Field | What |
 |---|---|
@@ -373,6 +374,31 @@ a reader leaves the settled ones out. When it holds more than it lists and
 any bill is settled, this connector makes the bills section again from
 `documents.json`, by medrec's rule (the newest statement of each account
 with an amount due).
+
+## `code-names.json` (medrec 0.9.4 and later)
+
+The published ICD-10-CM name of each diagnosis code the person's conditions
+and claims use, in medrec's layout `medrec-code-names/v1` (medrec's
+`docs/data-contract.md`, "Code names"). `codes` has the codes an item that is
+not private uses, `private_codes` those only private items use. A key is
+`icd10cm|` and the code in capitals, dotted after its third character; each
+condition in `summary.json` carries its key as `name_key`. A person with no
+named code has no file. The reference writer here does not write it, and
+writes `name_key` in `summary.json`.
+
+It depends on the same files as `private.json`, and a reader uses it only when
+current by the same rule. A reader only labels with it: it looks a name up for
+a condition it is already showing, and never lists, searches or serves the
+file. It shows the source's own words too, and by those alone filters,
+searches, sorts, pages, and decides whether a question names a private item.
+An answer about the whole household uses `codes` only, and gives no name to a
+private item or to one whose person's private items are not known. An answer
+about one person uses `codes`, then `private_codes`. Missing, stale or
+unreadable, it changes nothing else and gives no warning. This connector reads
+it for `kind: "conditions"` and a person's summary, after the page is cut, for
+the people with a coded condition on it.
+
+## Without a current `private.json` or `bills.json`
 
 A reader without a current `private.json` for a person (none yet, stale, or
 in a layout it does not read) holds back all their records, documents and

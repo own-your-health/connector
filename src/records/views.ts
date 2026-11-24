@@ -5,6 +5,7 @@
 
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
+import { conditionKey } from './code-names';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
 
 /** Longest name or detail a summary line carries, in characters. */
@@ -365,6 +366,8 @@ export interface SummaryLine {
   source?: string;
   /** The record's id (medrec 0.9.1 and later), so a reader finds it in private.json. */
   id?: string;
+  /** A condition's key in code-names.json (medrec 0.9.4 and later). */
+  name_key?: string;
 }
 
 export interface Listed<T> {
@@ -383,6 +386,7 @@ function line(h: Household, r: RecordEntry): SummaryLine {
     status: r.status ?? undefined,
     source: recordSource(h, r),
     id: r.id,
+    name_key: conditionKey(r),
   };
 }
 

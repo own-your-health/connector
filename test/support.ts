@@ -8,6 +8,7 @@ import { Folder, ParsedCache, type FileSource } from '../src/records/folder';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 import type { Household, Person } from '../src/records/model';
 import type { Privacy } from '../src/records/private';
+import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
 import { RawStore, type Standing } from '../src/records/store';
 import { privacyOf, standingOf, type BillsView, type PrivateView } from '../src/views/store';
 
@@ -123,12 +124,15 @@ export class MemoryD1 {
   }
 }
 
-/** The views only medrec makes, each in test/fixtures/<view>/<folder>/<person id>.json (scripts/derived.mjs). */
-export const DERIVED = ['events.json', 'bills.json', 'private.json'] as const;
+/**
+ * The views only medrec makes, each in test/fixtures/<view>/<folder>/<person id>.json
+ * (scripts/derived.mjs; code-names.json is not rebuilt, see its README).
+ */
+export const DERIVED = ['events.json', 'bills.json', 'private.json', 'code-names.json'] as const;
 
 /**
  * Gives views this connector wrote what medrec adds beside them: each
- * person's events.json (0.9.0), bills.json and private.json (0.9.1), from
+ * person's events.json (0.9.0), bills.json and private.json (0.9.1) and code-names.json (0.9.4), from
  * test/fixtures/<view>/`folder` as medrec wrote them for that folder,
  * stored under content-addressed names and listed in `files`, and the
  * `overrides`, `marks` and `linked` MD5s they were made from. `linked`
@@ -159,6 +163,21 @@ export function addDerived(root: string, folder: 'records' | 'large', views: rea
   writeFileSync(at, JSON.stringify(index));
 }
 
+/** Puts test/fixtures/code-names/`folder` in views that medrec wrote, as scripts/golden.mjs does before recording. */
+export function addCodeNames(root: string, folder: 'records' | 'large'): void {
+  const at = join(root, VIEWS_INDEX);
+  const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+  for (const [pid, v] of Object.entries(index.people)) {
+    const file = join(import.meta.dirname, 'fixtures/code-names', folder, `${pid}.json`);
+    if (!existsSync(file)) continue;
+    const body = readFileSync(file);
+    const sum = createHash('md5').update(body).digest('hex');
+    writeFileSync(join(root, personDir(pid) + storedName('code-names.json', sum)), body);
+    v.files['code-names.json'] = sum;
+  }
+  writeFileSync(at, JSON.stringify(index));
+}
+
 /**
  * The files read whole, with what only medrec's views say beside them: the
  * private items and bill standing medrec wrote for `folder`
@@ -176,7 +195,7 @@ export class RawWithDerived extends RawStore {
     super(folder);
   }
 
-  private fixture<T>(view: 'private' | 'bills', p: Person): T | undefined {
+  private fixture<T>(view: 'private' | 'bills' | 'code-names', p: Person): T | undefined {
     const index = this.root === undefined ? undefined : join(this.root, VIEWS_INDEX);
     const sum = index !== undefined && existsSync(index) ? (JSON.parse(readFileSync(index, 'utf8')) as ViewsIndex).people[p.id]?.files[`${view}.json`] : undefined;
     const file = sum !== undefined ? join(this.root!, personDir(p.id) + storedName(`${view}.json`, sum)) : join(import.meta.dirname, 'fixtures', view, this.which, `${p.id}.json`);
@@ -191,6 +210,11 @@ export class RawWithDerived extends RawStore {
   override async bills(_h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
     const v = this.fixture<BillsView>('bills', p);
     return v ? standingOf(v) : null;
+  }
+
+  override async codeNames(_h: Household, p: Person): Promise<CodeNames> {
+    const v = this.fixture<CodeNamesView>('code-names', p);
+    return v ? codeNamesOf(v, p.id) : NO_NAMES;
   }
 }
 
