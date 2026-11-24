@@ -14,9 +14,11 @@ Each view is derived from `household.json` and a person's `index.json` and
 so readers read it as it is.
 
 The reference writer is `src/views/write.ts`. Its output for the demo folder
-and the large synthetic folder answers all 154 recorded calls exactly as
-`medrec mcp` does (`test/golden.test.ts`, "from the views"). Another writer
-(medrec's) is right when its views pass the same calls:
+and the large synthetic folder, with the `events.json` medrec wrote for them
+(`test/fixtures/events`; the reference writer does not write it), answers all
+185 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
+the views"). Another writer (medrec's) is right when its views pass the same
+calls:
 
 ```sh
 VIEWS_WRITER='medrec views write --folder {folder}' npx vitest run test/golden.test.ts
@@ -306,8 +308,10 @@ It is stored and listed in `files` like every view. Each person's entry in
 | `overrides` | the MD5 of `<person folder>/overrides.json`, the household's "not the same visit" and "attach to this visit" decisions; `null` when there is none |
 | `linked` | for each person whose records the newborn rules read (a newborn's guardians, a guardian's newborns), `{"index": <md5>, "text": <md5>}` of their files, each `null` when absent |
 
-A reader serves a person's events only when their views are current and
-both of these still match. A reader that does not read `events.json`
+Both are present whenever `files` lists `events.json`: `overrides` as
+`null` and `linked` as `{}` when there is nothing to name. A reader refuses
+events listed without them. It serves a person's events only when their
+views are current and both still match. A reader that does not read `events.json`
 ignores them. Every person has an `events.json`, even with no events, so a
 missing one means medrec has not prepared them.
 

@@ -191,7 +191,9 @@ export class ViewsStore implements Store {
       ).personUnavailable(p.id);
     }
     const v = st.index?.people[p.id];
-    if (!v?.files || v.files['events.json'] === undefined) throw eventsNotPrepared(p);
+    // medrec writes both beside every events.json; without them, what the events were made from cannot be checked.
+    const from = v?.overrides !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
+    if (!v?.files || v.files['events.json'] === undefined || !from) throw eventsNotPrepared(p);
     if (!st.fresh.has(p.id) || !(await this.eventsFresh(h, p, v))) {
       throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared their events for assistants`).withFix(
         "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
@@ -213,7 +215,7 @@ export class ViewsStore implements Store {
    * every MD5 this asks for.
    */
   private async eventsFresh(h: Household, p: Person, v: PersonViews): Promise<boolean> {
-    const linked = Object.entries(v.linked ?? {});
+    const linked = Object.entries(v.linked!);
     const people = linked.map(([id]) => h.people.find((q) => q.id === id));
     if (people.some((q) => q === undefined)) return false;
     const md5 = await this.folder.md5([`${p.folder}/overrides.json`, ...people.flatMap((q) => [`${q!.folder}/index.json`, `${q!.folder}/text.json`])]);

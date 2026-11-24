@@ -445,6 +445,19 @@ describe('events from the views (medrec 0.9.0)', () => {
     expect(warnings.map((w) => w.message.split("'")[0])).toEqual(['Robin Example', 'Sam Example', 'Jamie Example']);
   });
 
+  it('refuses events listed without what they were made from', async () => {
+    for (const key of ['linked', 'overrides'] as const) {
+      const root = copy(base, `events-no-${key}`);
+      const at = join(root, VIEWS_INDEX);
+      const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+      delete index.people[personId(root, 'Robin Example')]![key];
+      writeFileSync(at, JSON.stringify(index));
+      const { r } = await events(root, { person: 'Robin' });
+      expect(r.isError, key).toBe(true);
+      expect(r.content[0]!.text, key).toMatch(/medrec has not prepared Robin Example's events for assistants/);
+    }
+  });
+
   it('says medrec 0.9.0 prepares events for views without them', async () => {
     const { r } = await events(demo, { person: 'Robin' });
     expect(r.isError).toBe(true);
