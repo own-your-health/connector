@@ -9,3 +9,9 @@ Copied from [own-your-health/app](https://github.com/own-your-health/app) `publi
 - Sam: a birth stay (2026-05-31 to 06-02) with the hospital's, the obstetrician's and the anesthesiologist's claims;
 - Jamie: two newborn-care claims during that stay;
 - the plan as a source for Sam and Jamie, and a raw file under `Records/` for each new claim. The tests compare this connector's answers over it with `medrec mcp`'s (`test/golden/`).
+
+Added for medrec 0.9.3's private items, all invented:
+
+- Robin: a mental health condition and medicine, a sexual-health test, a visit from a behavioral-health record system, a claim and its portal visit in one private event, a letter from a counseling practice, and an older potassium result from that practice (a series whose latest result is not private);
+- Robin's `marks.json`: the household's private marks on the latex allergy and on a middle potassium result;
+- Casey: a person with two records and a `marks.json` that does not read.

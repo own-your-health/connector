@@ -1,0 +1,94 @@
+{
+  "schema": "medrec-index/v1",
+  "person": "p_caseyexampleaaaaaaaa",
+  "rev": 1,
+  "documents": [],
+  "studies": [],
+  "imports": [],
+  "records": [
+    {
+      "id": "r_caseypressureaaaaaaa",
+      "kind": "condition",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|I10|2026-02-02",
+      "date": "2026-02-02",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "I10",
+        "display": "Essential (primary) hypertension"
+      },
+      "display": "High blood pressure",
+      "status": "active",
+      "fields": {
+        "when": "2026-02-02",
+        "verification_status": "confirmed",
+        "category": "Problem list item"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Condition",
+            "id": "condition-a1f00007",
+            "last_updated": "2026-02-02T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_caseyglucoseaaaaaaaa",
+      "kind": "result",
+      "key": "result|http://loinc.org|1558-6|2026-02-02",
+      "date": "2026-02-02",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "1558-6",
+        "display": "Fasting glucose [Mass/volume] in Serum or Plasma"
+      },
+      "display": "Glucose, fasting",
+      "status": "final",
+      "fields": {
+        "when": "2026-02-02",
+        "value": {
+          "value": 94,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "70-99 mg/dL",
+        "category": "Laboratory",
+        "issued": "2026-02-02T15:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-a1f00008",
+            "last_updated": "2026-02-02T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    }
+  ]
+}

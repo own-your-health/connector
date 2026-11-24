@@ -1,0 +1,44 @@
+{
+  "schema": "medrec-marks/v1",
+  "person": "p_xo4em46i7yj3hphlpajo",
+  "payments": [
+    {
+      "id": "o_paidhealthaaaaaaaaaa",
+      "document": "d_pv57tjsi5ot4237rjcdf",
+      "on": "2026-11-12",
+      "amount": {
+        "amount": "3.68",
+        "currency": "USD"
+      },
+      "at": "2026-11-20T10:10:00Z",
+      "by": "Sam Example"
+    },
+    {
+      "id": "o_paidlabaaaaaaaaaaaaa",
+      "document": "d_kbw3kvi6dmg664qsv4aa",
+      "on": "2026-11-10",
+      "amount": {
+        "amount": "9.28",
+        "currency": "USD"
+      },
+      "at": "2026-11-20T10:15:00Z",
+      "by": "Sam Example"
+    }
+  ],
+  "private": [
+    {
+      "id": "o_latexmarkaaaaaaaaaaa",
+      "item": "r_ltwnrzvqvzrnv7qb3oeb",
+      "private": true,
+      "at": "2026-11-20T10:00:00Z",
+      "by": "Sam Example"
+    },
+    {
+      "id": "o_potassiummarkaaaaaaa",
+      "item": "r_2vzuewf4srectrg5i4x3",
+      "private": true,
+      "at": "2026-11-20T10:05:00Z",
+      "by": "Sam Example"
+    }
+  ]
+}

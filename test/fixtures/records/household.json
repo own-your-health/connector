@@ -2,7 +2,7 @@
   "schema": "medrec-household/v1",
   "format": 1,
   "folder_id": "f_y6l4ay6emoqfnzlv3bcu",
-  "rev": 12,
+  "rev": 13,
   "created_at": "2026-10-13T20:00:00Z",
   "people": [
     {
@@ -57,6 +57,14 @@
         "huishouden_health_person": "hh-demo-jamie"
       },
       "created_at": "2026-06-03T20:00:00Z"
+    },
+    {
+      "id": "p_caseyexampleaaaaaaaa",
+      "name": "Casey Example",
+      "folder": "Casey Example",
+      "birth_date": "1975-03-03",
+      "adult": true,
+      "created_at": "2026-11-20T10:00:00Z"
     }
   ],
   "organizations": [
@@ -90,6 +98,12 @@
     {
       "id": "g_wiqqsj7bu76g6zism2dg",
       "name": "Example Billing",
+      "aliases": []
+    },
+    {
+      "id": "g_examplecounselingaaa",
+      "name": "Example Counseling Center",
+      "fhir_base": "https://icanotes.example.test/fhir",
       "aliases": []
     }
   ],
@@ -196,6 +210,28 @@
       "organization": "example-health-plan",
       "organization_name": "Example Health Plan",
       "patient_id": "pat-1a2e02",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_robinicanotesaaaaaaa",
+      "kind": "fhir",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "icanotes",
+      "organization": "example-counseling",
+      "organization_name": "Example Counseling Center",
+      "fhir_base": "https://icanotes.example.test/fhir",
+      "patient_id": "ic-1001",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_caseyexamplemycharta",
+      "kind": "fhir",
+      "person": "p_caseyexampleaaaaaaaa",
+      "cli": "mychart",
+      "organization": "example-health",
+      "organization_name": "Example Health",
+      "fhir_base": "https://fhir.example.org/r4",
+      "patient_id": "pat-c4a5e1",
       "last_pull": "2026-11-22T18:30:00Z"
     }
   ]
