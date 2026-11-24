@@ -22,6 +22,8 @@
 //   views/<person id>/search-hay-<n>.bin   each searchable item's text, UTF-8, for snippets, 512 items a pack
 //   views/<person id>/search-labs-<n>.json what a lab query finds by kind
 //   views/<person id>/events.json          medrec 0.9.0 on: what happened, one per visit, stay or fill
+//   views/<person id>/bills.json           medrec 0.9.1 on: what is paid and left on each bill
+//   views/<person id>/private.json         medrec 0.9.1 on: the private records, documents and events
 //
 // Search items are numbered in the reverse of medrec's order for hits of
 // equal score (date, newest first, undated last, then as the files hold
@@ -40,6 +42,10 @@ export const VIEWS_DIR = 'views';
 export const VIEWS_SCHEMA = 'medrec-views/v2';
 /** events.json's own layout (medrec 0.9.0 on). */
 export const EVENTS_SCHEMA = 'medrec-events/v1';
+/** bills.json's own layout (medrec 0.9.1 on). */
+export const BILLS_SCHEMA = 'medrec-bills/v1';
+/** private.json's own layout (medrec 0.9.1 on). */
+export const PRIVATE_SCHEMA = 'medrec-private/v1';
 export const VIEWS_INDEX = `${VIEWS_DIR}/views.json`;
 
 /** A person's views directory, with the trailing slash. */
@@ -111,12 +117,19 @@ export interface PersonViews {
    */
   files: Record<string, string>;
   /**
-   * medrec 0.9.0 on, for events.json alone: the MD5 of the person's
-   * overrides.json (null when absent), and of the index.json and text.json of
-   * each person whose records the newborn rules read. Other views ignore them.
+   * medrec 0.9.0 on, for events.json, and from 0.9.1 bills.json and
+   * private.json: the MD5 of the person's overrides.json (null when absent),
+   * and of the index.json and text.json of each person whose records the
+   * newborn rules read. Other views ignore them.
    */
   overrides?: string | null;
   linked?: Record<string, { index: string | null; text: string | null }>;
+  /**
+   * medrec 0.9.1 on, for bills.json and private.json (with `overrides`
+   * and `linked`): the MD5 of the person's marks.json, the household's
+   * payments and private marks; null when there is none.
+   */
+  marks?: string | null;
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */
@@ -216,6 +229,8 @@ export const paths = {
   hay: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-hay-${n}.bin`,
   /** medrec 0.9.0 on: what happened, one event per visit, stay or fill (medrec-events/v1); this connector does not write it. */
   events: (pid: string) => `${VIEWS_DIR}/${pid}/events.json`,
+  bills: (pid: string) => `${VIEWS_DIR}/${pid}/bills.json`,
+  private: (pid: string) => `${VIEWS_DIR}/${pid}/private.json`,
 };
 
 export type { Json };

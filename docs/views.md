@@ -50,6 +50,8 @@ views/<person id>/search-items.bin
 views/<person id>/search-hay-<n>.bin
 views/<person id>/search-labs-<n>.json
 views/<person id>/events.json             medrec 0.9.0 on; medrec's own, below
+views/<person id>/bills.json              medrec 0.9.1 on; medrec's own, below
+views/<person id>/private.json            medrec 0.9.1 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -300,8 +302,9 @@ matching rules. Its layout, `medrec-events/v1`, is medrec's, in medrec's
 `docs/data-contract.md`. The reference writer here does not write it.
 
 It is stored and listed in `files` like every view. Each person's entry in
-`views.json` also gives what else their events were made from, and only
-`events.json` depends on these:
+`views.json` also gives what else their events were made from, and only the
+views medrec makes itself (`events.json`, `bills.json`, `private.json`)
+depend on these:
 
 | Field | What |
 |---|---|
@@ -314,4 +317,47 @@ events listed without them. It serves a person's events only when their
 views are current and both still match. A reader that does not read `events.json`
 ignores them. Every person has an `events.json`, even with no events, so a
 missing one means medrec has not prepared them.
+
+## `bills.json` and `private.json` (medrec 0.9.1 and later)
+
+Two more views only medrec makes, in its layouts `medrec-bills/v1` and
+`medrec-private/v1` (medrec's `docs/data-contract.md`, "Bills" and
+"Private"). The reference writer here does not write them.
+
+- **`bills.json`**, by document id: what was paid against each bill and
+  what is left, from receipts and the household's payments. A reader shows
+  a `settled` bill as paid and never past due, leaves it out of the
+  summary, and shows `left` when it differs from what the statement asked.
+- **`private.json`**, by id within `records`, `documents` and `events`: the
+  person's private items, each with its `area` and why (`from`).
+  `marks_unreadable` says medrec could not read the household's marks, so
+  any of the person's records, documents and events may be private.
+
+Both are made from the person's views, their `overrides.json`, the
+`linked` people's records, and their `marks.json` (the household's payments
+and private marks). The person's entry in `views.json` gives that one too:
+
+| Field | What |
+|---|---|
+| `marks` | the MD5 of `<person folder>/marks.json`; `null` when there is none |
+
+A reader uses either only when the person's views are current and
+`overrides`, `marks` and `linked` still match; `events.json` does not
+depend on `marks`. medrec writes both for every person, even with nothing
+in them.
+
+`summary.json` is made without the payments: its bills are cut to 25 before
+a reader leaves the settled ones out. When it holds more than it lists and
+any bill is settled, this connector makes the bills section again from
+`documents.json`, by medrec's rule (the newest statement of each account
+with an amount due).
+
+A reader without a current `private.json` for a person (none yet, stale, or
+in a layout it does not read) holds back all their records, documents and
+events from answers about the whole household, with a
+`private-not-prepared` warning naming them, and includes them unmarked, with
+the same warning, in answers about that person. Without a current
+`bills.json`, bills are shown by their statements with a
+`bills-not-prepared` warning. medrec's own reader judges from the files, so
+it gives neither warning.
 

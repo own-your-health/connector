@@ -345,6 +345,8 @@ export interface SummaryLine {
   detail?: string;
   status?: string;
   source?: string;
+  /** The record's id (medrec 0.9.1 and later), so a reader finds it in private.json. */
+  id?: string;
 }
 
 export interface Listed<T> {
@@ -352,7 +354,7 @@ export interface Listed<T> {
   more: number;
 }
 
-const cut = <T>(all: T[], n: number): Listed<T> => ({ items: all.slice(0, n), more: Math.max(0, all.length - n) });
+export const cut = <T>(all: T[], n: number): Listed<T> => ({ items: all.slice(0, n), more: Math.max(0, all.length - n) });
 
 function line(h: Household, r: RecordEntry): SummaryLine {
   const detail = recordDetail(r);
@@ -362,6 +364,7 @@ function line(h: Household, r: RecordEntry): SummaryLine {
     detail: detail !== undefined && detail !== (r.status ?? undefined) ? clip(detail, CLIP) : undefined,
     status: r.status ?? undefined,
     source: recordSource(h, r),
+    id: r.id,
   };
 }
 
@@ -371,6 +374,8 @@ export interface Vaccine {
   doses: number;
   last_date?: string;
   source?: string;
+  /** The last dose's record id (medrec 0.9.1 and later). */
+  id?: string;
 }
 
 function vaccines(h: Household, records: RecordEntry[]): Vaccine[] {
@@ -380,7 +385,7 @@ function vaccines(h: Household, records: RecordEntry[]): Vaccine[] {
     const key = seriesKey(r);
     const v = by.get(key);
     if (v) v.doses += 1;
-    else by.set(key, { vaccine: clip(r.display, CLIP), code: r.code?.code ?? undefined, doses: 1, last_date: day(r.date), source: recordSource(h, r) });
+    else by.set(key, { vaccine: clip(r.display, CLIP), code: r.code?.code ?? undefined, doses: 1, last_date: day(r.date), source: recordSource(h, r), id: r.id });
   }
   return [...by.values()];
 }
@@ -396,6 +401,8 @@ export interface ResultRow {
   source?: string;
   results?: number;
   first_date?: string;
+  /** The record's id; of a test's latest result (medrec 0.9.1 and later). */
+  id?: string;
 }
 
 function reading(r: RecordEntry): [string | undefined, string | undefined] {
@@ -426,6 +433,7 @@ export function resultRow(h: Household, r: RecordEntry): ResultRow {
     range: text('reference_range'),
     flag: text('interpretation'),
     source: recordSource(h, r),
+    id: r.id,
   };
 }
 
@@ -468,9 +476,13 @@ export function owes(amountDue: string): boolean {
   return DECIMAL.test(a) && Number(a) > 0;
 }
 
-function bills(idx: PersonIndex, today: string): Bill[] {
+/**
+ * The newest statement of each account with an amount due over zero, unless
+ * bills.json has it `settled` (medrec 0.9.1 and later).
+ */
+export function bills(documents: DocumentEntry[], today: string, settled: ReadonlySet<string> = new Set()): Bill[] {
   const when = (d: DocumentEntry) => d.statement?.statement_date ?? d.date ?? undefined;
-  const docs = (idx.documents ?? [])
+  const docs = documents
     .filter((d) => d.doc_type === 'bill' && (d.same_statement_as === null || d.same_statement_as === undefined) && d.statement)
     .sort((a, b) => cmpOpt(when(b), when(a)));
   const out = new Map<string, Bill>();
@@ -498,7 +510,7 @@ function bills(idx: PersonIndex, today: string): Bill[] {
       statements: 1,
     });
   }
-  return [...out.values()].filter((b) => owes(b.amount_due));
+  return [...out.values()].filter((b) => owes(b.amount_due) && !settled.has(b.document));
 }
 
 export interface SourceRow {
@@ -563,7 +575,7 @@ export function summarize(h: Household, p: Person, idx: PersonIndex, notes: numb
       records.filter((r) => r.kind === 'encounter').map((r) => line(h, r)),
       perList,
     ),
-    bills: cut(bills(idx, today), perList),
+    bills: cut(bills(idx.documents ?? [], today), perList),
   };
 }
 

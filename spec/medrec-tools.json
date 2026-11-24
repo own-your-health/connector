@@ -3,7 +3,7 @@
     {
       "name": "medrec_summary",
       "title": "Household and person summary",
-      "description": "Lists the household's people, and with person their summary. Use it first. A summary has current medications, conditions, allergies, immunizations, latest results, visits and bills due.",
+      "description": "The household's people, and with person their summary. Use it first. It has current medications, conditions, allergies, immunizations, latest results, visits and bills due.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -132,6 +132,9 @@
                           },
                           "id": {
                             "type": "string"
+                          },
+                          "private": {
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -176,7 +179,7 @@
     {
       "name": "medrec_search",
       "title": "Search records",
-      "description": "Finds documents, records, studies and notes with every word of query, best first; labs or blood tests also finds every lab result. Use it for a named doctor, test, medicine or clinic. Filter by person and dates.",
+      "description": "Documents, records, studies and notes with every word of query, best first. For a named doctor, test, medicine or clinic. labs or blood tests finds every lab result.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -244,6 +247,9 @@
                 },
                 "snippet": {
                   "type": "string"
+                },
+                "private": {
+                  "type": "string"
                 }
               },
               "required": [
@@ -303,7 +309,7 @@
     {
       "name": "medrec_records",
       "title": "List records by kind",
-      "description": "Lists one kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time, with its range and flag.",
+      "description": "One kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time, with range and flag.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -327,7 +333,7 @@
               "timeline",
               "events"
             ],
-            "description": "`visits` are encounters; `tests` each test's latest result; `bills` statements filed as documents; `timeline` everything."
+            "description": "visits: encounters. tests: each test's latest result. bills: filed statements. timeline: all."
           },
           "person": {
             "type": "string",
@@ -449,6 +455,9 @@
                 "you_owe": {
                   "type": "string"
                 },
+                "private": {
+                  "type": "string"
+                },
                 "fields": {
                   "type": "object",
                   "additionalProperties": true
@@ -510,7 +519,7 @@
     {
       "name": "medrec_document",
       "title": "Read a document's text",
-      "description": "Returns a filed document's extracted text, with its title, date, type and organization. Use it to read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset, or page to jump.",
+      "description": "A filed document's text, with its title, date, type and organization. Read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset, or page to jump.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -592,6 +601,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "private": {
+            "type": "string"
           },
           "hint": {
             "type": "string"

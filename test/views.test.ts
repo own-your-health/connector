@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { appendFileSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { synth } from '../scripts/synth.mjs';
 import { DriveSource, SUBREQUESTS } from '../src/records/drive-source';
@@ -14,10 +14,11 @@ import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
+import { names } from '../src/records/private';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
-import { DEMO, LocalSource, addEvents, folderAt } from './support';
+import { DEMO, LocalSource, RawWithDerived, addDerived, folderAt } from './support';
 
 const TODAY = '2026-11-23';
 let scratch = '';
@@ -28,9 +29,11 @@ beforeAll(() => {
   scratch = mkdtempSync(join(tmpdir(), 'oyh-views-'));
   large = synth(join(scratch, 'large'));
   writeViewsAt(large);
+  addDerived(large, 'large');
   demo = join(scratch, 'demo');
   cpSync(DEMO, demo, { recursive: true });
   writeViewsAt(demo);
+  addDerived(demo, 'records');
 }, 120_000);
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
@@ -57,8 +60,9 @@ async function ask(root: string, name: string, args: Record<string, unknown>) {
   return { r: r!, read: src.readPaths };
 }
 
+/** The answer from the files, with the private items and payments medrec wrote for the folder this one was copied from. */
 const raw = async (root: string, name: string, args: Record<string, unknown>) =>
-  (await callTool(name, args, { store: new RawStore(folderAt(root)), today: TODAY }))!;
+  (await callTool(name, args, { store: new RawWithDerived(folderAt(root), basename(root).startsWith('large') ? 'large' : 'records'), today: TODAY }))!;
 
 const whole = (read: string[]) => read.filter((p) => /\/(index|text)\.json$/.test(p));
 
@@ -129,7 +133,7 @@ describe('the views store', () => {
   it('answers a question about everyone without a person who cannot be read, and says so', async () => {
     const root = copy(large, 'large-stale-everyone');
     appendFileSync(join(root, 'Robin Example/index.json'), ' ');
-    type Page = { items: { person: string }[]; warnings?: { code: string; message: string }[] };
+    type Page = { items: { person: string; id: string }[]; warnings?: { code: string; message: string }[] };
     const calls: [string, Record<string, unknown>][] = [
       ['medrec_search', { query: 'cholesterol' }],
       ['medrec_records', { kind: 'results', limit: 50 }],
@@ -143,7 +147,14 @@ describe('the views store', () => {
       const page = r.structuredContent as Page;
       expect(page.items.length).toBeGreaterThan(0);
       expect(page.items.some((x) => x.person === 'Robin Example')).toBe(false);
-      expect(page.warnings).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Robin Example's records changed after medrec last prepared them.*; they are missing from this list\. Tell the user/) }]);
+      expect(page.warnings?.filter((w) => w.code === 'person-unavailable')).toEqual([
+        { code: 'person-unavailable', message: expect.stringMatching(/^Robin Example's records changed after medrec last prepared them.*; they are missing from this list\. Tell the user/) },
+      ]);
+      // Robin's records are among those the newborn rules read for Alex and Jamie: their private items are not known until medrec's next pass.
+      const unknown = page.warnings?.filter((w) => w.code === 'private-not-prepared').map((w) => /^medrec has not marked (.+?)'s private items/.exec(w.message)?.[1]);
+      expect(unknown).toEqual(['Alex Example', 'Jamie Example']);
+      // Only their notes, which are never private, stay.
+      expect(page.items.filter((x) => x.person === 'Alex Example' || x.person === 'Jamie Example').every((x) => x.id.startsWith('n_'))).toBe(true);
     }
     // Everyone else's rows are what they would be without Robin.
     const sam = (await ask(root, 'medrec_records', { kind: 'results', person: 'Sam', limit: 5 })).r.structuredContent as Page;
@@ -207,8 +218,15 @@ describe('the views store', () => {
     const root = copy(demo, 'demo-schema');
     const at = join(root, VIEWS_INDEX);
     writeFileSync(at, readFileSync(at, 'utf8').replace('medrec-views/v2', 'medrec-views/v3'));
+    // The files are read instead; private items in a layout this connector cannot read are not known.
     const { r } = await ask(root, 'medrec_records', { kind: 'conditions' });
-    expect(r).toEqual(await raw(root, 'medrec_records', { kind: 'conditions' }));
+    const files = (await callTool('medrec_records', { kind: 'conditions' }, { store: new RawStore(folderAt(root)), today: TODAY }))!;
+    type Page = { items: unknown[]; warnings?: { code: string; message: string }[] };
+    expect((r.structuredContent as Page).items).toEqual((files.structuredContent as Page).items);
+    expect((r.structuredContent as Page).warnings?.map((w) => w.code)).toEqual((files.structuredContent as Page).warnings?.map((w) => w.code));
+    const unknown = (r.structuredContent as Page).warnings?.filter((w) => w.code === 'private-not-prepared') ?? [];
+    expect(unknown).toHaveLength(4);
+    expect(unknown.every((w) => /their views are in a newer layout \(medrec-views\/v3\)/.test(w.message))).toBe(true);
   });
 
   it('says a newer layout needs a newer connector, for a person too large to read whole', async () => {
@@ -254,6 +272,8 @@ describe('the views store', () => {
     index.records.push({ id: 'rec_next_pass_result', kind: 'result', date: '2026-12-01', display: 'Zinc', code: null, status: 'final', fields: { value: 'Quixotic' } });
     writeFileSync(at, JSON.stringify(index));
     writeViewsAt(next);
+    // medrec's pass writes its own views beside them.
+    addDerived(next, 'large');
     const newViews = readdirSync(join(next, 'views', sam));
 
     // Its views first: new names beside the old ones, which the old views.json still reads.
@@ -393,11 +413,10 @@ describe('rewriting the views after a new record', () => {
 });
 
 describe('events from the views (medrec 0.9.0)', () => {
-  const EVENTS = join(import.meta.dirname, 'fixtures/events/records');
   let base = '';
   beforeAll(() => {
     base = copy(demo, 'demo-events');
-    addEvents(base, EVENTS);
+    addDerived(base, 'records');
   });
   const events = (root: string, args: Record<string, unknown> = {}) => ask(root, 'medrec_records', { kind: 'events', ...args });
   const items = (r: { structuredContent?: Record<string, unknown> }) => (r.structuredContent as { items: { person: string; id: string }[] }).items;
@@ -405,20 +424,27 @@ describe('events from the views (medrec 0.9.0)', () => {
   it('reads a person\'s events from events.json alone while what they were made from is unchanged', async () => {
     const { r, read } = await events(base, { person: 'Robin' });
     expect(r.isError).toBe(false);
-    expect(items(r)).toHaveLength(15);
+    const robin = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/events/records', `${personId(base, 'Robin Example')}.json`), 'utf8')) as { events: unknown[] };
+    expect(items(r)).toHaveLength(robin.events.length);
     expect(whole(read)).toEqual([]);
     expect(read.filter((f) => f.includes('/events.'))).toHaveLength(1);
   });
 
-  it('makes only the events stale when overrides.json changes', async () => {
+  it('makes only the events, payments and private items stale when overrides.json changes', async () => {
     const root = copy(base, 'events-overrides');
     writeFileSync(join(root, 'Robin Example/overrides.json'), JSON.stringify({ schema: 'medrec-overrides/v1', events: [] }));
     const { r } = await events(root, { person: 'Robin' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/Robin Example's records changed after medrec last prepared their events for assistants/);
-    const results = await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 });
-    expect(results.r.isError).toBe(false);
-    expect(results.r).toEqual((await ask(base, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 })).r);
+    // The records themselves are as they were; only whether any is private is not known until medrec's next pass.
+    type Page = { items: unknown[]; warnings?: { code: string; message: string }[] };
+    const results = (await ask(root, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 })).r;
+    const before = (await ask(base, 'medrec_records', { kind: 'results', person: 'Robin', limit: 5 })).r;
+    expect(results.isError).toBe(false);
+    expect((results.structuredContent as Page).items).toEqual((before.structuredContent as Page).items);
+    expect((results.structuredContent as Page).warnings).toEqual([
+      { code: 'private-not-prepared', message: expect.stringMatching(/^medrec has not marked Robin Example's private items for assistants \(their records changed after medrec last wrote their private\.json\)/) },
+    ]);
   });
 
   it("makes a guardian's events stale when a linked newborn's text changes, and leaves the others", async () => {
@@ -459,11 +485,14 @@ describe('events from the views (medrec 0.9.0)', () => {
   });
 
   it('says medrec 0.9.0 prepares events for views without them', async () => {
-    const { r } = await events(demo, { person: 'Robin' });
+    const bare = join(scratch, 'demo-bare');
+    cpSync(DEMO, bare, { recursive: true });
+    writeViewsAt(bare);
+    const { r } = await events(bare, { person: 'Robin' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/medrec has not prepared Robin Example's events for assistants.*medrec 0\.9\.0 or later prepares them/);
     // Asked about everyone, with no one's events: the first person's error.
-    expect((await events(demo)).r.content[0]!.text).toMatch(/^upstream: medrec has not prepared Robin Example's events/);
+    expect((await events(bare)).r.content[0]!.text).toMatch(/^upstream: medrec has not prepared Robin Example's events/);
   });
 
   it('refuses an events.json whose content is not the MD5 views.json gives it', async () => {
@@ -490,3 +519,181 @@ describe('events from the views (medrec 0.9.0)', () => {
     expect(r.content[0]!.text).toMatch(/events in a layout \(medrec-events\/v2\) this connector does not read/);
   });
 });
+
+describe('private items and payments from the views (medrec 0.9.1)', () => {
+  type Page = { items: { id: string; person: string; title: string; detail?: string; private?: string }[]; next_cursor?: string; warnings?: { code: string; message: string }[] };
+  const page = (r: { structuredContent?: Record<string, unknown> }) => r.structuredContent as Page;
+  const left = (p: Page) => Number(/^(\d+) private items? left out/.exec(p.warnings?.find((w) => w.code === 'private-left-out')?.message ?? '0')?.[1] ?? 0);
+
+  /** Replaces one of medrec's own views of a person, as its next pass would write it; undefined removes it. */
+  function setView(root: string, name: string, view: 'private.json' | 'bills.json', body: Record<string, unknown> | undefined): void {
+    const pid = personId(root, name);
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    const v = index.people[pid]!;
+    if (body === undefined) delete v.files[view];
+    else {
+      const text = JSON.stringify(body);
+      const sum = createHash('md5').update(text).digest('hex');
+      writeFileSync(join(root, personDir(pid) + storedName(view, sum)), text);
+      v.files[view] = sum;
+    }
+    writeFileSync(at, JSON.stringify(index));
+  }
+  const privateOf = (root: string, name: string, kinds: Partial<Record<'records' | 'documents' | 'events', Record<string, string>>>, extra: Record<string, unknown> = {}) =>
+    setView(root, name, 'private.json', {
+      schema: 'medrec-private/v1',
+      person: personId(root, name),
+      ...Object.fromEntries((['records', 'documents', 'events'] as const).map((k) => [k, Object.fromEntries(Object.entries(kinds[k] ?? {}).map(([id, area]) => [id, { area, from: 'household' }]))])),
+      ...extra,
+    });
+
+  const CETIRIZINE = 'r_ctwssd77qny2ietw76dy';
+
+  it('names an item only by a word of its own', () => {
+    expect(names('Sertraline 50 mg tablet', 'sertraline')).toBe(true);
+    expect(names('Sertraline 50 mg tablet', 'sert')).toBe(true);
+    expect(names('Sertraline 50 mg tablet', 'Sertraline tablets')).toBe(false);
+    expect(names('Sertraline 50 mg tablet', 'sertraline tablet')).toBe(true);
+    expect(names('Sertraline 50 mg tablet', 'tablet')).toBe(false);
+    expect(names('Sertraline 50 mg tablet', 'se')).toBe(false);
+    expect(names('Sertraline 50 mg tablet', '50 mg')).toBe(false);
+    expect(names('Sertraline 50 mg tablet', 'zoloft')).toBe(false);
+    expect(names('Seréna visit', 'serena')).toBe(true);
+  });
+
+  it('leaves a private record out of an answer about everyone, counts it, and marks it where it is included', async () => {
+    const root = copy(demo, 'private-record');
+    privateOf(root, 'Robin Example', { records: { [CETIRIZINE]: 'mental_health' } });
+    const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
+    expect(everyone.items.some((x) => x.id === CETIRIZINE)).toBe(false);
+    expect(everyone.warnings).toEqual([{ code: 'private-left-out', message: '1 private item left out of this page of a household-wide answer: ask about one person, or name the item, to include it' }]);
+    const robin = page((await ask(root, 'medrec_records', { kind: 'medications', person: 'Robin' })).r);
+    expect(robin.items.find((x) => x.id === CETIRIZINE)?.private).toBe('mental_health');
+    expect(robin.warnings).toBeUndefined();
+    // Named by a word of its own, it is in an answer about everyone; by a form, it is not.
+    const named = page((await ask(root, 'medrec_records', { kind: 'medications', name: 'cetirizine' })).r);
+    expect(named.items.map((x) => [x.id, x.private])).toEqual([[CETIRIZINE, 'mental_health']]);
+    const tablets = page((await ask(root, 'medrec_records', { kind: 'medications', name: 'tablet' })).r);
+    expect(tablets.items.some((x) => x.id === CETIRIZINE)).toBe(false);
+    expect(left(tablets)).toBe(1);
+    // Search holds it back where it ranks, the same way.
+    const hits = page((await ask(root, 'medrec_search', { query: 'cetirizine' })).r);
+    expect(hits.items.find((x) => x.id === CETIRIZINE)?.private).toBe('mental_health');
+    const tabletHits = page((await ask(root, 'medrec_search', { query: 'tablet', limit: 50 })).r);
+    expect(tabletHits.items.some((x) => x.id === CETIRIZINE)).toBe(false);
+    expect(left(tabletHits)).toBeGreaterThanOrEqual(1);
+  });
+
+  it("counts each page's left-out items so that the pages add up to one page's count", async () => {
+    const root = copy(demo, 'private-pages');
+    const all = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 200 })).r);
+    const robin = all.items.filter((x) => x.person === 'Robin Example' && /^[rd]_/.test(x.id));
+    const chosen = [robin[1]!, robin[4]!, robin[5]!, robin[robin.length - 1]!];
+    privateOf(root, 'Robin Example', {
+      records: Object.fromEntries(chosen.filter((x) => x.id.startsWith('r_')).map((x) => [x.id, 'reproductive'])),
+      documents: Object.fromEntries(chosen.filter((x) => x.id.startsWith('d_')).map((x) => [x.id, 'household'])),
+    });
+    const one = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 200 })).r);
+    expect(left(one)).toBe(chosen.length);
+    expect(one.items).toEqual(all.items.filter((x) => !chosen.some((c) => c.id === x.id)));
+    let cursor: string | undefined;
+    let total = 0;
+    const seen: Page['items'] = [];
+    do {
+      const p = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2, ...(cursor ? { cursor } : {}) })).r);
+      total += left(p);
+      seen.push(...p.items);
+      cursor = p.next_cursor;
+    } while (cursor);
+    expect(total).toBe(chosen.length);
+    expect(seen).toEqual(one.items);
+  });
+
+  it("holds back all of a person's records, documents and events when their marks.json does not read", async () => {
+    const root = copy(demo, 'private-unreadable');
+    privateOf(root, 'Sam Example', {}, { marks_unreadable: true });
+    const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
+    expect(everyone.items.some((x) => x.person === 'Sam Example')).toBe(false);
+    expect(left(everyone)).toBe(2);
+    expect(everyone.warnings?.map((w) => w.code)).toEqual(['private-left-out', 'private-marks-unreadable']);
+    expect(everyone.warnings?.[1]?.message).toMatch(/^Sam Example's marks\.json does not read/);
+    // About Sam alone, nothing is left out, and nothing is marked.
+    const sam = page((await ask(root, 'medrec_records', { kind: 'medications', person: 'Sam' })).r);
+    expect(sam.items).toHaveLength(2);
+    expect(sam.items.every((x) => x.private === undefined)).toBe(true);
+    expect(sam.warnings?.map((w) => w.code)).toEqual(['private-marks-unreadable']);
+  });
+
+  it('marks private lines in a summary, a private document read by id, and a private event', async () => {
+    const root = copy(demo, 'private-marks');
+    type Summary = { summary: { sections: { section: string; items: { id?: string; private?: string }[] }[] } };
+    const before = (await ask(root, 'medrec_summary', { person: 'Robin' })).r.structuredContent as Summary;
+    const line = before.summary.sections.find((x) => x.section === 'medications')!.items[0]!;
+    const doc = 'd_pv57tjsi5ot4237rjcdf';
+    const events = page((await ask(root, 'medrec_records', { kind: 'events', person: 'Robin' })).r);
+    const event = events.items[0]!.id;
+    privateOf(root, 'Robin Example', { records: { [line.id!]: 'mental_health' }, documents: { [doc]: 'household' }, events: { [event]: 'sexual_health' } });
+    const after = (await ask(root, 'medrec_summary', { person: 'Robin' })).r.structuredContent as Summary;
+    expect(after.summary.sections.find((x) => x.section === 'medications')!.items[0]).toEqual({ ...line, private: 'mental_health' });
+    expect(((await ask(root, 'medrec_document', { id: doc })).r.structuredContent as { private?: string }).private).toBe('household');
+    const everyone = page((await ask(root, 'medrec_records', { kind: 'events' })).r);
+    expect(everyone.items.some((x) => x.id === event)).toBe(false);
+    expect(left(everyone)).toBe(1);
+    const byId = page((await ask(root, 'medrec_records', { kind: 'events', id: event })).r);
+    expect(byId.items.map((x) => [x.id, x.private])).toEqual([[event, 'sexual_health']]);
+  });
+
+  it('says a bill is paid or what is left on it, and leaves settled bills out of the summary', async () => {
+    const root = copy(demo, 'bills-paid');
+    const pid = personId(root, 'Robin Example');
+    const bills = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/bills/records', `${pid}.json`), 'utf8')) as { bills: Record<string, Record<string, unknown>> };
+    const paid = 'd_pv57tjsi5ot4237rjcdf';
+    const part = 'd_kbw3kvi6dmg664qsv4aa';
+    bills.bills[paid] = { ...bills.bills[paid], paid_total: '53.68', left: '0.00', settled: true };
+    bills.bills[part] = { ...bills.bills[part], paid_total: '9.28', left: '10.00', settled: false };
+    setView(root, 'Robin Example', 'bills.json', bills);
+    const list = page((await ask(root, 'medrec_records', { kind: 'bills', person: 'Robin' })).r);
+    expect(list.items.find((x) => x.id === paid)?.detail).toBe('Bill, paid');
+    expect(list.items.find((x) => x.id === part)?.detail).toBe('Bill, 10.00 left');
+    type Summary = { summary: { sections: { section: string; items: { id?: string; detail?: string }[] }[] } };
+    const s = (await ask(root, 'medrec_summary', { person: 'Robin' })).r.structuredContent as Summary;
+    const due = s.summary.sections.find((x) => x.section === 'bills')!.items;
+    expect(due.some((x) => x.id === paid)).toBe(false);
+    expect(due.some((x) => x.id === part)).toBe(true);
+    // Without bills.json, bills show what each statement asked, and the page says payments may be missing.
+    setView(root, 'Sam Example', 'bills.json', undefined);
+    const everyone = page((await ask(root, 'medrec_records', { kind: 'bills' })).r);
+    expect(everyone.warnings?.map((w) => w.code)).toEqual(['bills-not-prepared']);
+    expect(everyone.warnings?.[0]?.message).toMatch(/^medrec has not prepared Sam Example's payments for assistants/);
+    expect(everyone.items.find((x) => x.id === paid)?.detail).toBe('Bill, paid');
+  });
+
+  it('makes the summary\'s bills again from the documents when it lists only some and one is settled', async () => {
+    type Summary = { summary: { sections: { section: string; items: { id?: string }[]; more: number }[] } };
+    const bills = async (root: string) => ((await ask(root, 'medrec_summary', { person: 'Alex' })).r.structuredContent as Summary).summary.sections.find((x) => x.section === 'bills')!;
+    // Thirty accounts with a balance, one statement each, a day apart: more than the summary lists.
+    const root = copy(demo, 'bills-many');
+    const at = join(root, 'Alex Example/index.json');
+    const index = JSON.parse(readFileSync(at, 'utf8')) as { documents: Record<string, unknown>[] };
+    const letters = 'abcdefghijklmnopqrstuvwxyz';
+    const ids = Array.from({ length: 30 }, (_, i) => `d_bill${letters[Math.floor(i / 26)]}${letters[i % 26]}`.padEnd(22, 'q'));
+    ids.forEach((id, i) => {
+      const date = `2026-0${1 + Math.floor(i / 10)}-${String(10 + (i % 10)).padStart(2, '0')}`;
+      index.documents.push({ id, doc_type: 'bill', title: `Statement ${i}`, organization: `Example Biller ${i}`, date, statement: { account: `A${i}`, statement_date: date, amount_due: { amount: '10.00', currency: 'USD' }, due_date: '2026-12-31' } });
+    });
+    writeFileSync(at, JSON.stringify(index));
+    writeViewsAt(root);
+    addDerived(root, 'records');
+    const before = await bills(root);
+    expect(before.items).toHaveLength(25);
+    expect(before.more).toBe(5);
+    const first = before.items[0]!.id!;
+    setView(root, 'Alex Example', 'bills.json', { schema: 'medrec-bills/v1', person: personId(root, 'Alex Example'), bills: { [first]: { left: '0.00', settled: true } } });
+    const after = await bills(root);
+    expect(after.items.map((x) => x.id)).toEqual([...before.items.slice(1).map((x) => x.id), expect.any(String)]);
+    expect(after.items.some((x) => x.id === first)).toBe(false);
+    expect(after.more).toBe(4);
+  });
+});
+

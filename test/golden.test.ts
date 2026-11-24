@@ -12,7 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { synth } from '../scripts/synth.mjs';
 import { ParsedCache } from '../src/records/folder';
 import { TOOLS, callTool, instructions, unknownTool } from '../src/records/tools';
-import { DEMO, addEvents, folderAt } from './support';
+import { DEMO, RawWithDerived, addDerived, folderAt } from './support';
 import { RawStore, type Store } from '../src/records/store';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
@@ -25,7 +25,7 @@ interface Golden {
   results: { folder: 'demo' | 'large'; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
 }
 
-const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.0.json'), 'utf8')) as Golden;
+const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.1.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};
@@ -42,7 +42,7 @@ beforeAll(() => {
     if (writer) execSync(writer.replaceAll('{folder}', JSON.stringify(viewRoots[name]!)), { stdio: 'inherit' });
     else {
       writeViewsAt(viewRoots[name]!);
-      addEvents(viewRoots[name]!, join(import.meta.dirname, 'fixtures/events', name === 'demo' ? 'records' : 'large'));
+      addDerived(viewRoots[name]!, name === 'demo' ? 'records' : 'large');
     }
   }
 }, 120_000);
@@ -59,7 +59,7 @@ describe(`parity with medrec ${golden.medrec_version}`, () => {
   });
 
   const stores: [string, (folder: 'demo' | 'large') => Store][] = [
-    ['files', (f) => new RawStore(folderAt(roots[f]!, rawCache))],
+    ['files', (f) => new RawWithDerived(folderAt(roots[f]!, rawCache), f === 'demo' ? 'records' : 'large')],
     ['views', (f) => new ViewsStore(folderAt(viewRoots[f]!, viewsCache))],
   ];
   const rawCache = new ParsedCache();
