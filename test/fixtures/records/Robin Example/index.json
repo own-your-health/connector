@@ -3435,7 +3435,7 @@
             "service": {
               "system": "http://www.ama-assn.org/go/cpt",
               "code": "85025",
-              "display": "Blood count"
+              "display": "Blood cell test"
             },
             "amounts": {
               "billed": {
@@ -3458,7 +3458,7 @@
             "revenue": {
               "system": "https://www.nubc.org/CodeSystem/RevenueCodes",
               "code": "0300",
-              "display": "Blood count"
+              "display": "Blood cell test"
             }
           }
         ]
@@ -3875,7 +3875,7 @@
         "code": "professional",
         "display": "Professional"
       },
-      "display": "Metabolic panel · Example Lab",
+      "display": "Chemistry tests · Example Lab",
       "status": "active",
       "fields": {
         "when": "2026-09-08",
@@ -3947,7 +3947,7 @@
             "service": {
               "system": "http://www.ama-assn.org/go/cpt",
               "code": "80053",
-              "display": "Metabolic panel"
+              "display": "Chemistry tests"
             },
             "amounts": {
               "billed": {
