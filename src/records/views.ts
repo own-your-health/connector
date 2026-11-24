@@ -403,6 +403,12 @@ export interface ResultRow {
   first_date?: string;
   /** The record's id; of a test's latest result (medrec 0.9.1 and later). */
   id?: string;
+  /**
+   * Of the ids a reader asked about, those of the series' results this row
+   * counts (in its range, matching its name), newest first: a private one
+   * among them makes the whole series private (medrec 0.9.3 and later).
+   */
+  members?: string[];
 }
 
 function reading(r: RecordEntry): [string | undefined, string | undefined] {

@@ -33,6 +33,7 @@ import {
   personRow,
   searchables,
   score,
+  seriesKey,
   snippetAt,
   summarize,
   timelineEvents,
@@ -98,7 +99,11 @@ export interface Store {
   /** A person's records of one kind that pass the filter, ordered as the records tool lists them in that format. */
   records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry>;
   /** `latestResults` over the person's results that pass the filter. */
-  tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]>;
+  /**
+   * The person's test series, each by its latest result. `look` names ids to
+   * find among each series' results: a row's `members` lists those it holds.
+   */
+  tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]>;
   /** A person's documents, records, studies and notes as timeline events in the range, ordered as the records tool lists them. */
   timeline(h: Household, p: Person, range: Range): AsyncIterable<Event>;
   documents(h: Household, p: Person): Promise<DocumentEntry[]>;
@@ -256,9 +261,18 @@ export class RawStore implements Store {
     yield* rs.sort(recordOrder(detailed));
   }
 
-  async tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]> {
+  async tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]> {
     const rs = ((await this.folder.index(p)).records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && (filter.name === undefined || matchesCode(r, filter.name)));
-    return latestResults(h, newestFirst(rs));
+    const sorted = newestFirst(rs);
+    const rows = latestResults(h, sorted);
+    if (!look || look.size === 0) return rows;
+    const keyOf = new Map(sorted.map((r) => [r.id, seriesKey(r)]));
+    const found = new Map<string, string[]>();
+    for (const r of sorted) if (look.has(r.id)) found.set(keyOf.get(r.id)!, [...(found.get(keyOf.get(r.id)!) ?? []), r.id]);
+    return rows.map((row) => {
+      const members = row.id === undefined ? undefined : found.get(keyOf.get(row.id)!);
+      return members ? { ...row, members } : row;
+    });
   }
 
   async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {

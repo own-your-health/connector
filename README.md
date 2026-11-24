@@ -84,30 +84,31 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
 
 | Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text, one record in 20 private | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
-| `medrec_summary` of one person | 2.0 ms | 2.4 ms | 12 |
-| `medrec_search`, one word | 2.9 ms | 3.5 ms | 36 |
-| `medrec_search`, one word, 100 hits | 4.2 ms | 6.8 ms | 36 |
-| `medrec_search`, three words | 2.6 ms | 3.9 ms | 40 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.5 ms | 4.6 ms | 25 |
-| `medrec_search` for "labs" (every lab record, by kind) | 3.1 ms | 6.1 ms | 38 |
-| `medrec_records` results, 200 | 2.9 ms | 3.4 ms | 14 |
-| `medrec_records` timeline of one person | 1.6 ms | 2.0 ms | 8 |
-| `medrec_records` timeline, everyone, 200 | 2.5 ms | 3.0 ms | 17 |
-| `medrec_records` bills, everyone | 2.2 ms | 2.5 ms | 16 |
-| `medrec_records` events, everyone | 3.8 ms | 6.0 ms | 12 |
-| `medrec_records` events of one person, detailed, 200 | 2.1 ms | 3.0 ms | 7 |
-| `medrec_records` one event by `id` | 2.6 ms | 3.1 ms | 12 |
-| `medrec_document`, a page | 3.6 ms | 5.9 ms | 9 |
-| for scale: `JSON.parse` of 0.96 MB | 3.0 ms | 3.1 ms | — |
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.3 ms | 0 |
+| `medrec_summary` of one person | 1.5 ms | 1.7 ms | 12 |
+| `medrec_search`, one word | 2.6 ms | 3.2 ms | 36 |
+| `medrec_search`, one word, 100 hits | 4.2 ms | 7.7 ms | 36 |
+| `medrec_search`, three words | 2.5 ms | 3.1 ms | 40 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.3 ms | 3.8 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 2.6 ms | 4.2 ms | 38 |
+| `medrec_records` results, 200 | 2.5 ms | 2.9 ms | 14 |
+| `medrec_records` tests, everyone | 4.2 ms | 4.9 ms | 22 |
+| `medrec_records` timeline of one person | 1.4 ms | 1.5 ms | 8 |
+| `medrec_records` timeline, everyone, 200 | 2.2 ms | 2.5 ms | 17 |
+| `medrec_records` bills, everyone | 1.9 ms | 2.1 ms | 16 |
+| `medrec_records` events, everyone | 3.1 ms | 3.5 ms | 12 |
+| `medrec_records` events of one person, detailed, 200 | 2.0 ms | 2.2 ms | 7 |
+| `medrec_records` one event by `id` | 2.5 ms | 3.2 ms | 12 |
+| `medrec_document`, a page | 2.0 ms | 2.5 ms | 9 |
+| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.1 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-24, Apple
 silicon, 20 calls each). The Worker answered in Node, through its own OAuth
 check, MCP framing, Drive client and views, with Node's own `fetch` work
 counted. Google was a local fake on another thread, whose work is not
 counted. A cold call is the first on a fresh isolate, which downloads and
-parses every file it needs. The machine was loaded (load 10): the scale row takes
-about 2.2 ms on a quiet one, and the medians spread with the load.
+parses every file it needs. The machine was lightly loaded (load 4): the scale row
+takes about 2.2 ms on a quiet one, and the medians spread with the load.
 Cloudflare's dashboard shows the deployed Worker's own CPU times.
 
 At the limits:
@@ -152,7 +153,10 @@ At the limits:
   that person includes everything, unmarked, with the same warning. A person
   whose `marks.json` medrec could not read is held back the same way, with
   medrec's `private-marks-unreadable` warning. Each person with any private
-  item costs one more request to Google.
+  item costs one more request to Google. A series of tests is private when
+  any of its results is (medrec 0.9.3): finding a person's private results
+  among their series costs one more request, and one per shard that holds
+  two results of one date and name.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

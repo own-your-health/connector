@@ -15,6 +15,8 @@ import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
 import { names } from '../src/records/private';
+import { newestFirst, seriesKey } from '../src/records/views';
+import type { RecordEntry } from '../src/records/model';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
@@ -62,7 +64,7 @@ async function ask(root: string, name: string, args: Record<string, unknown>) {
 
 /** The answer from the files, with the private items and payments medrec wrote for the folder this one was copied from. */
 const raw = async (root: string, name: string, args: Record<string, unknown>) =>
-  (await callTool(name, args, { store: new RawWithDerived(folderAt(root), basename(root).startsWith('large') ? 'large' : 'records'), today: TODAY }))!;
+  (await callTool(name, args, { store: new RawWithDerived(folderAt(root), basename(root).startsWith('large') ? 'large' : 'records', root), today: TODAY }))!;
 
 const whole = (read: string[]) => read.filter((p) => /\/(index|text)\.json$/.test(p));
 
@@ -667,6 +669,73 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     expect(everyone.warnings?.map((w) => w.code)).toEqual(['bills-not-prepared']);
     expect(everyone.warnings?.[0]?.message).toMatch(/^medrec has not prepared Sam Example's payments for assistants/);
     expect(everyone.items.find((x) => x.id === paid)?.detail).toBe('Bill, paid');
+  });
+
+  /** A person's results grouped into test series, each newest first, from their index.json. */
+  function seriesOf(root: string, name: string): RecordEntry[][] {
+    const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { name: string; folder: string }[] };
+    const folder = h.people.find((x) => x.name === name)!.folder;
+    const results = newestFirst(((JSON.parse(readFileSync(join(root, folder, 'index.json'), 'utf8')) as { records?: RecordEntry[] }).records ?? []).filter((r) => r.kind === 'result'));
+    const by = new Map<string, RecordEntry[]>();
+    for (const r of results) by.set(seriesKey(r), [...(by.get(seriesKey(r)) ?? []), r]);
+    return [...by.values()];
+  }
+
+  it('holds back a series of tests when any of its results is private, and marks it with the first private one\'s area (medrec 0.9.3)', async () => {
+    const root = copy(demo, 'private-series');
+    const series = seriesOf(root, 'Robin Example').find((x) => x.length >= 3)!;
+    const [latest, second, oldest] = [series[0]!, series[1]!, series[series.length - 1]!];
+    const tests = async (args: Record<string, unknown>) => {
+      const views = page((await ask(root, 'medrec_records', { kind: 'tests', ...args })).r);
+      // From the files, the same answer.
+      expect(page(await raw(root, 'medrec_records', { kind: 'tests', ...args }))).toEqual(views);
+      return views;
+    };
+    const before = await tests({});
+    expect(before.items.some((x) => x.id === latest.id)).toBe(true);
+
+    // An earlier result private: the series is left out of an answer about everyone, counted once.
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health' } });
+    const everyone = await tests({});
+    expect(everyone.items).toEqual(before.items.filter((x) => x.id !== latest.id));
+    expect(left(everyone)).toBe(1);
+    const robin = await tests({ person: 'Robin' });
+    expect(robin.items.find((x) => x.id === latest.id)?.private).toBe('mental_health');
+    expect(robin.items.filter((x) => x.private !== undefined)).toHaveLength(1);
+    // Named, it is included; a range that leaves the private result out leaves the series in.
+    const named = await tests({ name: latest.display });
+    expect(named.items.find((x) => x.id === latest.id)?.private).toBe('mental_health');
+    const since = await tests({ since: second.date!.slice(0, 10) });
+    expect(since.items.find((x) => x.id === latest.id)?.private).toBeUndefined();
+    expect(left(since)).toBe(0);
+
+    // The latest's area first, then the newest private result's.
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health', [latest.id]: 'reproductive' } });
+    expect((await tests({ person: 'Robin' })).items.find((x) => x.id === latest.id)?.private).toBe('reproductive');
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health', [second.id]: 'sexual_health' } });
+    expect((await tests({ person: 'Robin' })).items.find((x) => x.id === latest.id)?.private).toBe('sexual_health');
+    expect(left(await tests({}))).toBe(1);
+  });
+
+  it('finds private results among a large person\'s series, results of one date and name included', async () => {
+    const root = copy(large, 'large-private-series');
+    const all = seriesOf(root, 'Sam Example');
+    // Of every series, an old result; and the second of two results that share a date and a name.
+    const chosen = new Map<string, string>();
+    all.forEach((x, i) => {
+      if (i % 2 === 0) chosen.set(x[x.length - 2 + (x.length > 1 ? 0 : 1)]!.id, 'substance_use');
+    });
+    const twin = all.flat().find((r, i, rs) => rs.some((o, j) => j !== i && seriesKey(o) === seriesKey(r) && o.date === r.date && o.display === r.display && j < i))!;
+    chosen.set(twin.id, 'household');
+    privateOf(root, 'Sam Example', { records: Object.fromEntries(chosen) });
+    for (const args of [{}, { person: 'Sam' }, { person: 'Sam', since: '2020-01-01' }, { name: all[0]![0]!.display }]) {
+      const views = page((await ask(root, 'medrec_records', { kind: 'tests', ...args })).r);
+      expect(page(await raw(root, 'medrec_records', { kind: 'tests', ...args })), JSON.stringify(args)).toEqual(views);
+    }
+    const sam = page((await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' })).r);
+    const twinSeries = all.find((x) => x.some((r) => r.id === twin.id))!;
+    expect(sam.items.find((x) => x.id === twinSeries[0]!.id)?.private).toBeDefined();
+    expect(sam.items.filter((x) => x.private !== undefined).length).toBe(all.filter((x, i) => i % 2 === 0 || x === twinSeries).length);
   });
 
   it('makes the summary\'s bills again from the documents when it lists only some and one is settled', async () => {

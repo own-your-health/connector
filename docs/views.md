@@ -358,6 +358,13 @@ events from answers about the whole household, with a
 `private-not-prepared` warning naming them, and includes them unmarked, with
 the same warning, in answers about that person. Without a current
 `bills.json`, bills are shown by their statements with a
-`bills-not-prepared` warning. medrec's own reader judges from the files, so
+`bills-not-prepared` warning.
+
+A series of tests (`kind: "tests"`) is private when any of its results in
+the answer's range is (medrec 0.9.3 and later), and takes the area of its
+latest result, else of its newest private one. `tests.json` locates each
+result by shard and place, not id. This connector finds a private result's
+entry by its date and name in `search-items.bin`, and reads its shard only
+when two entries share both. medrec's own reader judges from the files, so
 it gives neither warning.
 

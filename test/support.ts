@@ -170,12 +170,16 @@ export class RawWithDerived extends RawStore {
   constructor(
     folder: Folder,
     private readonly which: 'records' | 'large',
+    /** A folder whose own views, as a test changed them, come first. */
+    private readonly root?: string,
   ) {
     super(folder);
   }
 
   private fixture<T>(view: 'private' | 'bills', p: Person): T | undefined {
-    const file = join(import.meta.dirname, 'fixtures', view, this.which, `${p.id}.json`);
+    const index = this.root === undefined ? undefined : join(this.root, VIEWS_INDEX);
+    const sum = index !== undefined && existsSync(index) ? (JSON.parse(readFileSync(index, 'utf8')) as ViewsIndex).people[p.id]?.files[`${view}.json`] : undefined;
+    const file = sum !== undefined ? join(this.root!, personDir(p.id) + storedName(`${view}.json`, sum)) : join(import.meta.dirname, 'fixtures', view, this.which, `${p.id}.json`);
     return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as T) : undefined;
   }
 
