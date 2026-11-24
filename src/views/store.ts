@@ -388,7 +388,7 @@ export class ViewsStore implements Store {
     const reader = await this.views(h, p);
     if (!reader) return this.raw.tests(h, p, filter, look);
     const series = await reader.json<TestSeries[]>(paths.tests(p.id));
-    const wanted = look && look.size > 0 ? await this.resultsAmong(reader, series, look) : undefined;
+    const wanted = look && look.size > 0 ? await this.resultsAmong(reader, series, look, filter) : undefined;
     const rows: { rank: number; shard: number; pos: number; results: number; first?: string; members: string[] }[] = [];
     series.forEach((t, si) => {
       let head: TestSeries['entries'][number] | undefined;
@@ -424,13 +424,17 @@ export class ViewsStore implements Store {
   }
 
   /**
-   * Where each of `look`'s ids that is a result sits in tests.json, as
-   * entryKey(series, entry). search-items.bin gives each id's kind, date and
-   * name, which pick out its entry; a shard is read only when two results of
-   * one date share a name.
+   * Where each of `look`'s ids that is a result the filter holds sits in
+   * tests.json, as entryKey(series, entry). search-items.bin gives each id's
+   * kind, date and name, which pick out its entry; a shard is read only when
+   * two results of one date share a name, and the filter holds one of them. A
+   * private result that has no place cannot hold its series back, so these
+   * views do not answer.
    */
-  private async resultsAmong(r: PersonReader, series: TestSeries[], look: ReadonlySet<string>): Promise<Map<string, string>> {
+  private async resultsAmong(r: PersonReader, series: TestSeries[], look: ReadonlySet<string>, filter: RecordFilter): Promise<Map<string, string>> {
     const items = await this.items(r);
+    const found = items.find(look);
+    if (found.length !== look.size) throw preparing(r.p);
     const byDateName = new Map<string, [number, number][]>();
     series.forEach((t, si) =>
       t.entries.forEach(([date, ni], ei) => {
@@ -438,22 +442,26 @@ export class ViewsStore implements Store {
         byDateName.set(k, [...(byDateName.get(k) ?? []), [si, ei]]);
       }),
     );
+    const named = ([si, ei]: [number, number]) => filter.name === undefined || nameMatches(...series[si]!.names[series[si]!.entries[ei]![1]]!, filter.name);
     const out = new Map<string, string>();
-    for (const i of items.find(look)) {
+    for (const i of found) {
       const [date, kind, id, title] = items.meta(i);
-      if (kind !== 'result') continue;
+      if (kind !== 'result' || !holds(filter.range, date)) continue;
       const at = byDateName.get(`${date ?? ''}\u0000${title}`) ?? [];
-      if (at.length === 1) out.set(entryKey(...at[0]!), id);
-      else {
-        for (const [si, ei] of at) {
+      const asked = at.filter(named);
+      let place = at.length === 1 ? asked[0] : undefined;
+      if (at.length > 1) {
+        for (const [si, ei] of asked) {
           const [, , shard, pos] = series[si]!.entries[ei]!;
           const recs = await r.json<SlimRecord[]>(paths.records(r.p.id, 'result', shard));
-          if (recs[pos]?.id === id) {
-            out.set(entryKey(si, ei), id);
-            break;
-          }
+          if (recs[pos]?.id !== id) continue;
+          place = [si, ei];
+          break;
         }
       }
+      if (place) out.set(entryKey(...place), id);
+      // Every entry it may be was looked at, and none is it.
+      else if (asked.length === at.length) throw preparing(r.p);
     }
     return out;
   }
@@ -555,7 +563,7 @@ export class ViewsStore implements Store {
           }
           if (meta(lo)[2] === m[1]) out.push(lo);
         }
-        return out;
+        return [...new Set(out)];
       },
     };
   }

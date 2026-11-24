@@ -157,7 +157,16 @@ At the limits:
   item costs one more request to Google. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds
-  two results of one date and name.
+  two results of one date and name. When one of them cannot be found there,
+  that person's tests are left out of an answer about everyone with a
+  `person-unavailable` warning, and an answer about them says to ask again.
+- **Two practices on one address.** athenahealth serves many practices from
+  one FHIR base, and the views medrec 0.9.3 and earlier write do not say
+  which a record came from. For someone with several sign-ins there, a list
+  of records or tests names only the CLI (`athena`). The timeline and the
+  summary name an organization: the right one when medrec 0.9.3 wrote the
+  views, and possibly another of those practices' before that. Views that
+  keep `organization_id` (`npm run views`) name the practice everywhere.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

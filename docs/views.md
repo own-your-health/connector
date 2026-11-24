@@ -160,6 +160,15 @@ medrec 0.9.3 and earlier leave `organization_id` out. For such a record, this
 connector takes the person's only sign-in with that CLI and FHIR base. When
 the person has several there, it names only the CLI.
 
+`summary.json` and `timeline-<n>.json` hold the label their writer gave, as
+they keep no `provenance`. So until a writer that keeps `organization_id`
+writes a person's views, one record can be named two ways: only the CLI in a
+list of its kind or of tests, and an organization in the timeline and the
+summary. Written by medrec 0.9.3, that organization is the record's own.
+Written by an earlier medrec (the `medrec` of `views.json`), it is the first
+of those at the FHIR base, and may be another practice: the CLI is then all
+that is known.
+
 Shards are cut from the **oldest** end. `records-<kind>-0.json` holds the
 oldest days. A shard closes once it holds 48,000 bytes or more, never inside
 a day. The highest-numbered shard is the newest, and the only one still
@@ -284,6 +293,10 @@ no shard in `files` knows no word matches.
 | 4 × (n + 1) | `meta[i]`: item *i*'s details run from `meta[i]` to `meta[i + 1]` in the region below |
 | the rest | each item's details, `[date or null, kind, id, title]` as JSON, one after another |
 
+A record's `date` and `title` are its `date` and `display` as `index.json` has
+them, unclipped, the same as its entry's and name's in `tests.json`: a reader
+matches the two on them.
+
 ### `search-hay-<n>.bin`
 
 Every item's text, UTF-8, in item order, with no separators, in packs of 512
@@ -367,13 +380,17 @@ events from answers about the whole household, with a
 `private-not-prepared` warning naming them, and includes them unmarked, with
 the same warning, in answers about that person. Without a current
 `bills.json`, bills are shown by their statements with a
-`bills-not-prepared` warning.
+`bills-not-prepared` warning. medrec's own reader judges from the files, so
+it gives neither warning.
 
 A series of tests (`kind: "tests"`) is private when any of its results in
-the answer's range is (medrec 0.9.3 and later), and takes the area of its
-latest result, else of its newest private one. `tests.json` locates each
-result by shard and place, not id. This connector finds a private result's
-entry by its date and name in `search-items.bin`, and reads its shard only
-when two entries share both. medrec's own reader judges from the files, so
-it gives neither warning.
+the answer's range is (medrec 0.9.3 and later, whose own reader does the
+same), and takes the area of its latest result, else of its newest private
+one. `tests.json` locates each result by shard and place, not id. This
+connector finds a private result's entry by its date and name in
+`search-items.bin`, and reads a shard only when two entries share both. A
+private record that `search-items.bin` does not list, or a private result
+that has no entry, cannot hold its series back: the person's tests then
+answer as views still arriving do, leaving them out of an answer about
+everyone with a `person-unavailable` warning.
 

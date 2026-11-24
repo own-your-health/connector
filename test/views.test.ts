@@ -626,6 +626,17 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
     }
     expect(Object.values(full).flat().some(([, s]) => s === 'Example Pediatrics')).toBe(true);
   });
+
+  it('leaves the timeline and the summary the organization their writer gave, with or without it in the records', async () => {
+    const root = twoPractices('two-practices-labels');
+    const timeline = { kind: 'timeline', person: 'Alex', limit: 200 };
+    const before = [await sources(root, timeline), (await ask(root, 'medrec_summary', { person: 'Alex' })).r.structuredContent] as const;
+    withoutOrganizations(root);
+    expect(await sources(root, timeline)).toEqual(before[0]);
+    expect((await ask(root, 'medrec_summary', { person: 'Alex' })).r.structuredContent).toEqual(before[1]);
+    const records = before[0].filter(([id]) => id.startsWith('r_')).map(([, s]) => s);
+    expect([...new Set(records)].sort()).toEqual(['Example Family Medicine', 'Example Pediatrics']);
+  });
 });
 
 describe('private items and payments from the views (medrec 0.9.1)', () => {
@@ -842,6 +853,59 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     const twinSeries = all.find((x) => x.some((r) => r.id === twin.id))!;
     expect(sam.items.find((x) => x.id === twinSeries[0]!.id)?.private).toBeDefined();
     expect(sam.items.filter((x) => x.private !== undefined).length).toBe(all.filter((x, i) => i % 2 === 0 || x === twinSeries).length);
+  });
+
+  /** Rewrites one of a person's view files with `change` made to its bytes, as Latin-1. */
+  function changeView(root: string, name: string, view: string, change: (text: string) => string): void {
+    const pid = personId(root, name);
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    const v = index.people[pid]!;
+    const before = readFileSync(join(root, personDir(pid) + storedName(view, v.files[view]!)), 'latin1');
+    const after = change(before);
+    expect(after).not.toBe(before);
+    expect(after).toHaveLength(before.length);
+    const bytes = Buffer.from(after, 'latin1');
+    const sum = createHash('md5').update(bytes).digest('hex');
+    writeFileSync(join(root, personDir(pid) + storedName(view, sum)), bytes);
+    v.files[view] = sum;
+    writeFileSync(at, JSON.stringify(index));
+  }
+
+  it.each([
+    ['search-items.bin does not list the record', (id: string) => (s: string) => s.replace(`"${id}"`, `"${id.slice(0, -1)}${id.endsWith('a') ? 'b' : 'a'}"`)],
+    ['no entry of tests.json has its date and name', (id: string) => (s: string) => s.replace(new RegExp(`"${id}","(.)`), (m, c: string) => m.slice(0, -1) + (c === 'X' ? 'Y' : 'X'))],
+  ] as const)('answers no tests of a person whose private result it cannot place: %s', async (_why, change) => {
+    const root = copy(demo, `private-unplaced-${_why.slice(0, 6).replace(/\W/g, '')}`);
+    const oldest = seriesOf(root, 'Robin Example').find((x) => x.length >= 3)!.at(-1)!;
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health' } });
+    changeView(root, 'Robin Example', 'search-items.bin', change(oldest.id));
+    const everyone = page((await ask(root, 'medrec_records', { kind: 'tests' })).r);
+    expect(everyone.items.length).toBeGreaterThan(0);
+    expect(everyone.items.some((x) => x.person === 'Robin Example')).toBe(false);
+    expect(everyone.warnings?.map((w) => w.code)).toEqual(['person-unavailable']);
+    expect((await ask(root, 'medrec_records', { kind: 'tests', person: 'Robin' })).r.isError).toBe(true);
+    // A range that leaves the result out needs no place for one it lists.
+    const since = { kind: 'tests', person: 'Robin', since: '2100-01-01' };
+    expect((await ask(root, 'medrec_records', since)).r.isError ?? false).toBe(_why.startsWith('search'));
+  });
+
+  it('reads no shard to place private results the question leaves out', async () => {
+    const root = copy(large, 'large-private-narrow');
+    const all = seriesOf(root, 'Sam Example').flat();
+    const twins = all.filter((r) => all.some((o) => o !== r && o.date === r.date && o.display === r.display));
+    expect(twins.length).toBeGreaterThan(20);
+    privateOf(root, 'Sam Example', { records: Object.fromEntries(twins.map((r) => [r.id, 'mental_health'])) });
+    const shards = (read: string[]) => read.filter((p) => /\/records-result-/.test(p)).length;
+    const wide = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
+    const newest = all.map((r) => r.date!.slice(0, 10)).sort().at(-1)!;
+    const narrow = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam', since: newest });
+    expect(shards(wide.read)).toBeGreaterThan(5);
+    expect(shards(narrow.read)).toBe(1);
+    for (const args of [{}, { since: newest }, { since: '2015-01-01', until: '2015-12-31' }, { name: twins[0]!.display }]) {
+      const a = { kind: 'tests', person: 'Sam', ...args };
+      expect(page(await raw(root, 'medrec_records', a)), JSON.stringify(args)).toEqual(page((await ask(root, 'medrec_records', a)).r));
+    }
   });
 
   it('makes the summary\'s bills again from the documents when it lists only some and one is settled', async () => {
