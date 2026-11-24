@@ -7,3 +7,5 @@ connector.local.json
 client_secret*.json
 *.local.json
 dist/
+# vitest's own reports.
+.vitest/

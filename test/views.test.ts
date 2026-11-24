@@ -5,7 +5,7 @@
 import { createHash } from 'node:crypto';
 import { appendFileSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { basename, join, relative } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { synth } from '../scripts/synth.mjs';
 import { DriveSource, SUBREQUESTS } from '../src/records/drive-source';
@@ -657,7 +657,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   const left = (p: Page) => Number(/^(\d+) private items? left out/.exec(p.warnings?.find((w) => w.code === 'private-left-out')?.message ?? '0')?.[1] ?? 0);
 
   /** Replaces one of medrec's own views of a person, as its next pass would write it; undefined removes it. */
-  function setView(root: string, name: string, view: 'private.json' | 'bills.json', body: Record<string, unknown> | undefined): void {
+  function setView(root: string, name: string, view: string, body: Record<string, unknown> | undefined): void {
     const pid = personId(root, name);
     const at = join(root, VIEWS_INDEX);
     const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
@@ -795,6 +795,46 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     // A cursor from before does not line up once Alex's items are known or not: it is refused.
     const old = Buffer.from(known).toString('hex');
     expect((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2, cursor: old })).r.isError).toBe(true);
+  });
+
+  it('ignores what a later medrec adds to the views: a file, a field on a summary line and one in views.json', async () => {
+    const root = copy(demo, 'later-medrec');
+    const { people } = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
+    let keyed = 0;
+    for (const p of people) {
+      const summary = JSON.parse(readFileSync(stored(root, paths.summary(p.id)), 'utf8')) as { conditions: { items: Record<string, unknown>[] } };
+      for (const line of summary.conditions.items) {
+        line.name_key = 'icd10cm|Z00.00';
+        keyed++;
+      }
+      setView(root, p.name, 'summary.json', summary as unknown as Record<string, unknown>);
+      setView(root, p.name, 'code-names.json', {
+        schema: 'medrec-code-names/v1',
+        person: p.id,
+        table: { id: 'icd10cm', version: 'FY2027', date: '2026-06-01' },
+        codes: { 'icd10cm|Z00.00': { name: 'An invented plain name' } },
+        private_codes: { 'icd10cm|Z00.01': { name: 'An invented private name' } },
+      });
+    }
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    for (const v of Object.values(index.people)) (v as unknown as Record<string, unknown>).code_table = 'icd10cm FY2027';
+    writeFileSync(at, JSON.stringify(index));
+    expect(keyed).toBeGreaterThan(0);
+    const { calls } = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/calls.json'), 'utf8')) as { calls: Record<string, unknown>[] };
+    const made = calls.filter((c) => c.folder === 'demo' && c.arguments !== undefined && c.cursor_from === undefined && c.id_from === undefined);
+    expect(made.length).toBeGreaterThan(100);
+    // The changed summaries are the ones read.
+    for (const p of people) {
+      const { read } = await ask(root, 'medrec_summary', { person: p.name });
+      expect(read).toContain(relative(root, stored(root, paths.summary(p.id))));
+    }
+    for (const c of made) {
+      const [was, now] = await Promise.all([demo, root].map((folder) => ask(folder, c.name as string, c.arguments as Record<string, unknown>)));
+      expect(now!.r, JSON.stringify(c)).toEqual(was!.r);
+      expect(JSON.stringify(now!.r)).not.toMatch(/invented (?:plain|private) name|name_key|code_table/);
+      expect(now!.read.some((f) => f.includes('code-names'))).toBe(false);
+    }
   });
 
   it('says a bill is paid or what is left on it, and leaves settled bills out of the summary', async () => {
