@@ -377,7 +377,7 @@ function gatedPage<T>(
 ): Record<string, unknown> {
   // Everyone left out is that error, before any cursor is checked.
   const warnings = left.done(people);
-  const out = page.page(items, hint, [...left.ids(), ...(household ? gate.unknownIds(people) : [])]);
+  const out = page.page(items, hint, [...left.ids(), ...(household ? gate.notPreparedIds(people) : [])]);
   const gone = new Set(left.ids());
   const asked = people.filter((p) => !gone.has(p.id));
   const leftOut = household ? gate.leftOut(page.offset, out.returned, out.next_cursor === undefined) : 0;

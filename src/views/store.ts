@@ -368,7 +368,9 @@ export class ViewsStore implements Store {
   async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry> {
     const r = await this.views(h, p);
     if (!r) return yield* this.raw.records(h, p, kind, filter, detailed);
-    const run = r.v.records[kind] ?? { shards: [], undated: 0 };
+    const run = r.v.records[kind];
+    // No record of the kind: no shards of it, nor names.
+    if (!run) return;
     let only: Set<number> | null = null;
     if (filter.name !== undefined) {
       const names = await r.json<NameRow[]>(paths.names(p.id, kind));

@@ -216,6 +216,17 @@ describe('the views store', () => {
     expect(whole(read).length).toBeGreaterThan(0);
   });
 
+  it('answers a name for a kind of record the person has none of, with nothing and no warning', async () => {
+    for (const args of [{ kind: 'allergies', person: 'Jamie', name: 'latex' }, { kind: 'allergies', name: 'latex' }, { kind: 'procedures', person: 'Alex', name: 'x' }]) {
+      const { r } = await ask(demo, 'medrec_records', args);
+      expect(r, JSON.stringify(args)).toEqual(await raw(demo, 'medrec_records', args));
+      expect(r.isError ?? false).toBe(false);
+      expect(((r.structuredContent as { warnings?: { code: string }[] }).warnings ?? []).some((w) => w.code === 'person-unavailable')).toBe(false);
+    }
+    const jamie = (await ask(demo, 'medrec_records', { kind: 'allergies', person: 'Jamie', name: 'latex' })).r.structuredContent as { items: unknown[] };
+    expect(jamie.items).toEqual([]);
+  });
+
   it('ignores views of another schema', async () => {
     const root = copy(demo, 'demo-schema');
     const at = join(root, VIEWS_INDEX);
@@ -761,6 +772,20 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     expect(left(everyone)).toBe(1);
     const byId = page((await ask(root, 'medrec_records', { kind: 'events', id: event })).r);
     expect(byId.items.map((x) => [x.id, x.private])).toEqual([[event, 'sexual_health']]);
+  });
+
+  it('binds a cursor to the people with no current private.json, and as medrec does, not to those whose marks.json does not read', async () => {
+    const root = copy(demo, 'private-cursors');
+    const cursor = async () => Buffer.from(page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2 })).r).next_cursor!, 'hex').toString();
+    const known = await cursor();
+    privateOf(root, 'Alex Example', {}, { marks_unreadable: true });
+    expect(await cursor()).toBe(known);
+    setView(root, 'Alex Example', 'private.json', undefined);
+    const bound = await cursor();
+    expect(bound.startsWith(`${known}:L`)).toBe(true);
+    // A cursor from before does not line up once Alex's items are known or not: it is refused.
+    const old = Buffer.from(known).toString('hex');
+    expect((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2, cursor: old })).r.isError).toBe(true);
   });
 
   it('says a bill is paid or what is left on it, and leaves settled bills out of the summary', async () => {
