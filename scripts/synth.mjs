@@ -50,7 +50,7 @@ const WORDS = (
   'patient seen today for follow up of blood pressure and cholesterol results reviewed with the patient ' +
   'plan continue current medication recheck labs in three months diet and exercise discussed questions answered ' +
   'vital signs within normal limits heart regular rate and rhythm lungs clear abdomen soft non tender ' +
-  'hemoglobin a1c glucose fasting lipid panel ldl hdl triglycerides creatinine potassium sodium thyroid ' +
+  'hemoglobin a1c glucose fasting cholesterol tests ldl hdl triglycerides creatinine potassium sodium thyroid ' +
   'impression assessment history of present illness review of systems negative except as noted medications reconciled ' +
   'café naïve résumé São Paulo Zürich größe 🩺 💊 血压 検査 — “quoted” ‘text’ … ½ µg/mL ±'
 ).split(' ');
@@ -143,12 +143,12 @@ const usd = (amount) => ({ amount, currency: 'USD' });
 const SHAPED = [
   ['Office visit and labs', { billed: usd('240.00'), allowed: usd('150.00'), plan_paid: usd('120.00'), you_owe: usd('30.00') }, ['visit', 'lab']],
   ['Annual physical', { billed: usd('310.00'), deductible: usd('50.00'), copay: usd('25.00') }, ['visit']],
-  ['Lipid panel', { copay: usd('15.00') }, ['lab']],
+  ['Cholesterol tests', { copay: usd('15.00') }, ['lab']],
   ['Travel clinic', { billed: usd('90.00'), deductible: usd('20.00'), coinsurance: { amount: '5.00', currency: 'EUR' } }, ['visit']],
   ['Blood draw', { plan_paid: usd('12.00'), deductible: usd('abc'), copay: usd('3.00') }, ['lab']],
   ['Hemoglobin A1c', { billed: usd('44.00'), coinsurance: { amount: 12.5, currency: 'USD' }, copay: usd('2.00') }, ['lab']],
   ['Thyroid panel', { deductible: usd('12.3456'), copay: usd('0.0044') }, ['lab']],
-  ['Metabolic panel', { deductible: usd('1.0001'), not_covered: usd('2') }, ['lab']],
+  ['Chemistry tests', { deductible: usd('1.0001'), not_covered: usd('2') }, ['lab']],
   ['Courtesy discount', { discount: usd('10.00') }, ['other']],
   ['Older claim shape', {}, ['visit']],
   ['Owes nothing listed', { billed: usd('60.00'), you_owe: null }, ['visit']],
@@ -181,7 +181,7 @@ function labRecords(result, r) {
   report.kind = 'report';
   report.date = '2014-01-20';
   report.key = `report|synthetic|${report.id}`;
-  report.display = 'Comprehensive metabolic panel';
+  report.display = 'Chemistry tests';
   report.status = 'final';
   report.fields = { when: report.date };
   const res = structuredClone(result);
