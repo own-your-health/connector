@@ -77,9 +77,16 @@ export class Gate {
     private readonly people: ReadonlyMap<string, Privacy>,
   ) {}
 
-  /** The item's area when it is private. */
-  area(p: Person, id: string): string | undefined {
-    return this.people.get(p.id)?.areas.get(id);
+  /** The item's area when it is private; a test series' is its latest result's, else the first of its other results' (`members`, newest first). */
+  area(p: Person, id: string, members: readonly string[] = []): string | undefined {
+    const areas = this.people.get(p.id)?.areas;
+    if (!areas) return undefined;
+    return areas.get(id) ?? members.map((m) => areas.get(m)).find((a) => a !== undefined);
+  }
+
+  /** The person's private records' ids, for a test series to find among its results. */
+  records(p: Person): ReadonlySet<string> {
+    return new Set([...(this.people.get(p.id)?.areas.keys() ?? [])].filter((id) => id.startsWith('r_')));
   }
 
   /**
@@ -92,9 +99,13 @@ export class Gate {
     return v !== undefined && (v.areas.has(id) || (v.unknown !== undefined && HELD.test(id)));
   }
 
-  /** Whether the item stays in the answer: `named` says whether the question names it. */
-  keep(p: Person, id: string, named: () => boolean): boolean {
-    if (this.household && this.heldBack(p, id) && !named()) {
+  /**
+   * Whether the item stays in the answer: `named` says whether the question
+   * names it. A test series is held back when any of its results is
+   * (`members`), and counted once.
+   */
+  keep(p: Person, id: string, named: () => boolean, members: readonly string[] = []): boolean {
+    if (this.household && (this.heldBack(p, id) || members.some((m) => this.heldBack(p, m))) && !named()) {
       this.held++;
       return false;
     }

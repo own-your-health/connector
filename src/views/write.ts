@@ -138,9 +138,10 @@ function slim(r: RecordEntry): SlimRecord {
   if (r.fields !== undefined) s.fields = r.fields;
   const src = r.provenance?.[0]?.source;
   if (src) {
-    const keep: Record<string, string> = {};
+    const keep: Record<string, string | null> = {};
     if (typeof src.fhir_base === 'string') keep.fhir_base = src.fhir_base;
     if (typeof src.cli === 'string') keep.cli = src.cli;
+    keep.organization_id = typeof src.organization_id === 'string' ? src.organization_id : null;
     s.provenance = [{ source: keep }];
   }
   return s;

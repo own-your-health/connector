@@ -15,6 +15,8 @@ import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
 import { names } from '../src/records/private';
+import { newestFirst, recordSource, seriesKey } from '../src/records/views';
+import type { Household, RecordEntry } from '../src/records/model';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
@@ -62,7 +64,7 @@ async function ask(root: string, name: string, args: Record<string, unknown>) {
 
 /** The answer from the files, with the private items and payments medrec wrote for the folder this one was copied from. */
 const raw = async (root: string, name: string, args: Record<string, unknown>) =>
-  (await callTool(name, args, { store: new RawWithDerived(folderAt(root), basename(root).startsWith('large') ? 'large' : 'records'), today: TODAY }))!;
+  (await callTool(name, args, { store: new RawWithDerived(folderAt(root), basename(root).startsWith('large') ? 'large' : 'records', root), today: TODAY }))!;
 
 const whole = (read: string[]) => read.filter((p) => /\/(index|text)\.json$/.test(p));
 
@@ -520,6 +522,123 @@ describe('events from the views (medrec 0.9.0)', () => {
   });
 });
 
+describe('the practice a record came from (medrec 0.9.3)', () => {
+  const BASE = 'https://api.example.net/fhir/r4';
+  const FAMILY = 'example-family-medicine';
+
+  it('is its own sign-in\'s, else the organization at its FHIR base, else its CLI', () => {
+    const h = {
+      schema: '',
+      format: 1,
+      people: [],
+      organizations: [{ id: 'g_1', name: 'Example Base', fhir_base: `${BASE}/` }],
+      sources: [
+        { cli: 'athena', organization: 'a', organization_name: '  ', fhir_base: BASE },
+        { cli: 'athena', organization: 'a', organization_name: ' Example A ', fhir_base: `${BASE}//` },
+        { cli: 'athena', organization: 'b', organization_name: 'Example B', fhir_base: BASE },
+        { cli: 'uhc', organization: 'plan', organization_name: 'Example Plan', fhir_base: BASE },
+        { cli: 'labcorp', organization: 'lab' },
+      ],
+    } satisfies Household;
+    const from = (source: Record<string, string | null>) => recordSource(h, { id: 'r_1', kind: 'result', display: 'x', provenance: [{ source }] });
+    expect(from({ cli: 'athena', organization_id: 'a', fhir_base: BASE })).toBe('Example A');
+    expect(from({ cli: 'athena', organization_id: 'b', fhir_base: `${BASE}/` })).toBe('Example B');
+    // No such sign-in, or not at that base: the organization at the base.
+    expect(from({ cli: 'athena', organization_id: 'c', fhir_base: BASE })).toBe('Example Base');
+    expect(from({ cli: 'athena', organization_id: null, fhir_base: BASE })).toBe('Example Base');
+    expect(from({ cli: 'athena', organization_id: 'a', fhir_base: 'https://other.example.net' })).toBe('athena');
+    // With no base, the CLI and organization say it; a sign-in with no name says nothing.
+    expect(from({ cli: 'uhc', organization_id: 'plan' })).toBe('Example Plan');
+    expect(from({ cli: 'labcorp', organization_id: 'lab' })).toBe('labcorp');
+    expect(recordSource(h, { id: 'r_1', kind: 'result', display: 'x' })).toBeUndefined();
+  });
+
+  /** A copy of the demo whose Alex has a second practice at the same FHIR base, with every other record from it. */
+  function twoPractices(name: string): string {
+    const root = copy(demo, name);
+    const at = join(root, 'household.json');
+    const h = JSON.parse(readFileSync(at, 'utf8')) as { people: { id: string; name: string }[]; sources: Record<string, unknown>[] };
+    const alex = personId(root, 'Alex Example');
+    const first = h.sources.find((s) => s.person === alex && s.cli === 'athena')!;
+    h.sources.push({ ...first, id: 's_qqqqqqqqqqqqqqqqqqqq', organization: FAMILY, organization_name: 'Example Family Medicine' });
+    writeFileSync(at, JSON.stringify(h));
+    const path = join(root, 'Alex Example/index.json');
+    const index = JSON.parse(readFileSync(path, 'utf8')) as { records: { provenance: { source: { organization_id?: string } }[] }[] };
+    index.records.forEach((r, i) => {
+      if (i % 2 === 1) r.provenance[0]!.source.organization_id = FAMILY;
+    });
+    writeFileSync(path, JSON.stringify(index));
+    writeViewsAt(root);
+    addDerived(root, 'records');
+    return root;
+  }
+
+  /** Takes `organization_id` out of every record of the views, as medrec 0.9.3 and earlier write them. */
+  function withoutOrganizations(root: string): void {
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    let n = 0;
+    for (const [pid, v] of Object.entries(index.people)) {
+      for (const [view, sum] of Object.entries(v.files)) {
+        if (!view.startsWith('records-')) continue;
+        const recs = JSON.parse(readFileSync(join(root, personDir(pid) + storedName(view, sum)), 'utf8')) as { provenance?: { source: Record<string, unknown> }[] }[];
+        for (const r of recs) {
+          for (const p of r.provenance ?? []) {
+            if ('organization_id' in p.source) n++;
+            delete p.source.organization_id;
+          }
+        }
+        const text = JSON.stringify(recs);
+        const next = createHash('md5').update(text).digest('hex');
+        writeFileSync(join(root, personDir(pid) + storedName(view, next)), text);
+        v.files[view] = next;
+      }
+    }
+    expect(n).toBeGreaterThan(0);
+    writeFileSync(at, JSON.stringify(index));
+  }
+
+  type Page = { items: { id: string; source?: string }[] };
+  const sources = async (root: string, args: Record<string, unknown>) => ((await ask(root, 'medrec_records', { limit: 200, ...args })).r.structuredContent as Page).items.map((x) => [x.id, x.source] as const);
+  const KINDS = ['results', 'tests', 'visits', 'immunizations'];
+
+  it('tells two practices on one FHIR base apart, from the views as from the files', async () => {
+    const root = twoPractices('two-practices');
+    const seen = new Set<string | undefined>();
+    for (const kind of KINDS) {
+      const args = { kind, person: 'Alex', limit: 200 };
+      const views = (await ask(root, 'medrec_records', args)).r.structuredContent;
+      expect((await raw(root, 'medrec_records', args)).structuredContent, kind).toEqual(views);
+      for (const [, s] of await sources(root, args)) seen.add(s);
+    }
+    expect([...seen].sort()).toEqual(['Example Family Medicine', 'Example Pediatrics']);
+  });
+
+  it('of views that leave the organization out, names a person\'s only practice on a base, and of two, only the CLI', async () => {
+    const root = twoPractices('two-practices-before');
+    const full = Object.fromEntries(await Promise.all(KINDS.map(async (kind) => [kind, await sources(root, { kind, person: 'Jamie' })] as const)));
+    withoutOrganizations(root);
+    for (const kind of KINDS) {
+      const alex = await sources(root, { kind, person: 'Alex' });
+      expect(alex.map(([, s]) => s), kind).toEqual(alex.map(() => 'athena'));
+      // Jamie has one sign-in at that base, and one with a plan that has none.
+      expect(await sources(root, { kind, person: 'Jamie' }), kind).toEqual(full[kind]);
+    }
+    expect(Object.values(full).flat().some(([, s]) => s === 'Example Pediatrics')).toBe(true);
+  });
+
+  it('leaves the timeline and the summary the organization their writer gave, with or without it in the records', async () => {
+    const root = twoPractices('two-practices-labels');
+    const timeline = { kind: 'timeline', person: 'Alex', limit: 200 };
+    const before = [await sources(root, timeline), (await ask(root, 'medrec_summary', { person: 'Alex' })).r.structuredContent] as const;
+    withoutOrganizations(root);
+    expect(await sources(root, timeline)).toEqual(before[0]);
+    expect((await ask(root, 'medrec_summary', { person: 'Alex' })).r.structuredContent).toEqual(before[1]);
+    const records = before[0].filter(([id]) => id.startsWith('r_')).map(([, s]) => s);
+    expect([...new Set(records)].sort()).toEqual(['Example Family Medicine', 'Example Pediatrics']);
+  });
+});
+
 describe('private items and payments from the views (medrec 0.9.1)', () => {
   type Page = { items: { id: string; person: string; title: string; detail?: string; private?: string }[]; next_cursor?: string; warnings?: { code: string; message: string }[] };
   const page = (r: { structuredContent?: Record<string, unknown> }) => r.structuredContent as Page;
@@ -667,6 +786,126 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     expect(everyone.warnings?.map((w) => w.code)).toEqual(['bills-not-prepared']);
     expect(everyone.warnings?.[0]?.message).toMatch(/^medrec has not prepared Sam Example's payments for assistants/);
     expect(everyone.items.find((x) => x.id === paid)?.detail).toBe('Bill, paid');
+  });
+
+  /** A person's results grouped into test series, each newest first, from their index.json. */
+  function seriesOf(root: string, name: string): RecordEntry[][] {
+    const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { name: string; folder: string }[] };
+    const folder = h.people.find((x) => x.name === name)!.folder;
+    const results = newestFirst(((JSON.parse(readFileSync(join(root, folder, 'index.json'), 'utf8')) as { records?: RecordEntry[] }).records ?? []).filter((r) => r.kind === 'result'));
+    const by = new Map<string, RecordEntry[]>();
+    for (const r of results) by.set(seriesKey(r), [...(by.get(seriesKey(r)) ?? []), r]);
+    return [...by.values()];
+  }
+
+  it('holds back a series of tests when any of its results is private, and marks it with the first private one\'s area (medrec 0.9.3)', async () => {
+    const root = copy(demo, 'private-series');
+    const series = seriesOf(root, 'Robin Example').find((x) => x.length >= 3)!;
+    const [latest, second, oldest] = [series[0]!, series[1]!, series[series.length - 1]!];
+    const tests = async (args: Record<string, unknown>) => {
+      const views = page((await ask(root, 'medrec_records', { kind: 'tests', ...args })).r);
+      // From the files, the same answer.
+      expect(page(await raw(root, 'medrec_records', { kind: 'tests', ...args }))).toEqual(views);
+      return views;
+    };
+    const before = await tests({});
+    expect(before.items.some((x) => x.id === latest.id)).toBe(true);
+
+    // An earlier result private: the series is left out of an answer about everyone, counted once.
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health' } });
+    const everyone = await tests({});
+    expect(everyone.items).toEqual(before.items.filter((x) => x.id !== latest.id));
+    expect(left(everyone)).toBe(1);
+    const robin = await tests({ person: 'Robin' });
+    expect(robin.items.find((x) => x.id === latest.id)?.private).toBe('mental_health');
+    expect(robin.items.filter((x) => x.private !== undefined)).toHaveLength(1);
+    // Named, it is included; a range that leaves the private result out leaves the series in.
+    const named = await tests({ name: latest.display });
+    expect(named.items.find((x) => x.id === latest.id)?.private).toBe('mental_health');
+    const since = await tests({ since: second.date!.slice(0, 10) });
+    expect(since.items.find((x) => x.id === latest.id)?.private).toBeUndefined();
+    expect(left(since)).toBe(0);
+
+    // The latest's area first, then the newest private result's.
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health', [latest.id]: 'reproductive' } });
+    expect((await tests({ person: 'Robin' })).items.find((x) => x.id === latest.id)?.private).toBe('reproductive');
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health', [second.id]: 'sexual_health' } });
+    expect((await tests({ person: 'Robin' })).items.find((x) => x.id === latest.id)?.private).toBe('sexual_health');
+    expect(left(await tests({}))).toBe(1);
+  });
+
+  it('finds private results among a large person\'s series, results of one date and name included', async () => {
+    const root = copy(large, 'large-private-series');
+    const all = seriesOf(root, 'Sam Example');
+    // Of every series, an old result; and the second of two results that share a date and a name.
+    const chosen = new Map<string, string>();
+    all.forEach((x, i) => {
+      if (i % 2 === 0) chosen.set(x[x.length - 2 + (x.length > 1 ? 0 : 1)]!.id, 'substance_use');
+    });
+    const twin = all.flat().find((r, i, rs) => rs.some((o, j) => j !== i && seriesKey(o) === seriesKey(r) && o.date === r.date && o.display === r.display && j < i))!;
+    chosen.set(twin.id, 'household');
+    privateOf(root, 'Sam Example', { records: Object.fromEntries(chosen) });
+    for (const args of [{}, { person: 'Sam' }, { person: 'Sam', since: '2020-01-01' }, { name: all[0]![0]!.display }]) {
+      const views = page((await ask(root, 'medrec_records', { kind: 'tests', ...args })).r);
+      expect(page(await raw(root, 'medrec_records', { kind: 'tests', ...args })), JSON.stringify(args)).toEqual(views);
+    }
+    const sam = page((await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' })).r);
+    const twinSeries = all.find((x) => x.some((r) => r.id === twin.id))!;
+    expect(sam.items.find((x) => x.id === twinSeries[0]!.id)?.private).toBeDefined();
+    expect(sam.items.filter((x) => x.private !== undefined).length).toBe(all.filter((x, i) => i % 2 === 0 || x === twinSeries).length);
+  });
+
+  /** Rewrites one of a person's view files with `change` made to its bytes, as Latin-1. */
+  function changeView(root: string, name: string, view: string, change: (text: string) => string): void {
+    const pid = personId(root, name);
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    const v = index.people[pid]!;
+    const before = readFileSync(join(root, personDir(pid) + storedName(view, v.files[view]!)), 'latin1');
+    const after = change(before);
+    expect(after).not.toBe(before);
+    expect(after).toHaveLength(before.length);
+    const bytes = Buffer.from(after, 'latin1');
+    const sum = createHash('md5').update(bytes).digest('hex');
+    writeFileSync(join(root, personDir(pid) + storedName(view, sum)), bytes);
+    v.files[view] = sum;
+    writeFileSync(at, JSON.stringify(index));
+  }
+
+  it.each([
+    ['search-items.bin does not list the record', (id: string) => (s: string) => s.replace(`"${id}"`, `"${id.slice(0, -1)}${id.endsWith('a') ? 'b' : 'a'}"`)],
+    ['no entry of tests.json has its date and name', (id: string) => (s: string) => s.replace(new RegExp(`"${id}","(.)`), (m, c: string) => m.slice(0, -1) + (c === 'X' ? 'Y' : 'X'))],
+  ] as const)('answers no tests of a person whose private result it cannot place: %s', async (_why, change) => {
+    const root = copy(demo, `private-unplaced-${_why.slice(0, 6).replace(/\W/g, '')}`);
+    const oldest = seriesOf(root, 'Robin Example').find((x) => x.length >= 3)!.at(-1)!;
+    privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health' } });
+    changeView(root, 'Robin Example', 'search-items.bin', change(oldest.id));
+    const everyone = page((await ask(root, 'medrec_records', { kind: 'tests' })).r);
+    expect(everyone.items.length).toBeGreaterThan(0);
+    expect(everyone.items.some((x) => x.person === 'Robin Example')).toBe(false);
+    expect(everyone.warnings?.map((w) => w.code)).toEqual(['person-unavailable']);
+    expect((await ask(root, 'medrec_records', { kind: 'tests', person: 'Robin' })).r.isError).toBe(true);
+    // A range that leaves the result out needs no place for one it lists.
+    const since = { kind: 'tests', person: 'Robin', since: '2100-01-01' };
+    expect((await ask(root, 'medrec_records', since)).r.isError ?? false).toBe(_why.startsWith('search'));
+  });
+
+  it('reads no shard to place private results the question leaves out', async () => {
+    const root = copy(large, 'large-private-narrow');
+    const all = seriesOf(root, 'Sam Example').flat();
+    const twins = all.filter((r) => all.some((o) => o !== r && o.date === r.date && o.display === r.display));
+    expect(twins.length).toBeGreaterThan(20);
+    privateOf(root, 'Sam Example', { records: Object.fromEntries(twins.map((r) => [r.id, 'mental_health'])) });
+    const shards = (read: string[]) => read.filter((p) => /\/records-result-/.test(p)).length;
+    const wide = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
+    const newest = all.map((r) => r.date!.slice(0, 10)).sort().at(-1)!;
+    const narrow = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam', since: newest });
+    expect(shards(wide.read)).toBeGreaterThan(5);
+    expect(shards(narrow.read)).toBe(1);
+    for (const args of [{}, { since: newest }, { since: '2015-01-01', until: '2015-12-31' }, { name: twins[0]!.display }]) {
+      const a = { kind: 'tests', person: 'Sam', ...args };
+      expect(page(await raw(root, 'medrec_records', a)), JSON.stringify(args)).toEqual(page((await ask(root, 'medrec_records', a)).r));
+    }
   });
 
   it('makes the summary\'s bills again from the documents when it lists only some and one is settled', async () => {

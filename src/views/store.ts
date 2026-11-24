@@ -6,6 +6,7 @@
 // checked against the MD5 views.json gives it, so a pass still arriving on
 // Drive is never mixed with the one before.
 
+import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
 import type { Folder } from '../records/folder';
@@ -17,6 +18,7 @@ import {
   CLIP,
   LAB_QUERIES,
   SUMMARY_LINES,
+  baseOf,
   holds,
   matchesCode,
   resultRow,
@@ -378,41 +380,88 @@ export class ViewsStore implements Store {
       const pass = shard.filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
       if (detailed) pass.sort(recordOrder(true));
-      yield* pass;
+      for (const x of pass) yield signedIn(h, p, x);
     }
   }
 
-  async tests(h: Household, p: Person, filter: RecordFilter): Promise<ResultRow[]> {
+  async tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]> {
     const reader = await this.views(h, p);
-    if (!reader) return this.raw.tests(h, p, filter);
+    if (!reader) return this.raw.tests(h, p, filter, look);
     const series = await reader.json<TestSeries[]>(paths.tests(p.id));
-    const rows: { rank: number; shard: number; pos: number; results: number; first?: string }[] = [];
-    for (const t of series) {
+    const wanted = look && look.size > 0 ? await this.resultsAmong(reader, series, look, filter) : undefined;
+    const rows: { rank: number; shard: number; pos: number; results: number; first?: string; members: string[] }[] = [];
+    series.forEach((t, si) => {
       let head: TestSeries['entries'][number] | undefined;
       let n = 0;
       let first: string | undefined;
-      for (const e of t.entries) {
+      const members: string[] = [];
+      t.entries.forEach((e, ei) => {
         const [date, ni] = e;
-        if (!holds(filter.range, date)) continue;
+        if (!holds(filter.range, date)) return;
         if (filter.name !== undefined) {
           const [c, d, cd] = t.names[ni]!;
-          if (!nameMatches(c, d, cd, filter.name)) continue;
+          if (!nameMatches(c, d, cd, filter.name)) return;
         }
         n++;
+        const id = wanted?.get(entryKey(si, ei));
+        if (id !== undefined) members.push(id);
         if (!head) {
           head = e;
           first = day(date);
         } else if (date !== null) first = day(date);
-      }
-      if (head) rows.push({ rank: head[4], shard: head[2], pos: head[3], results: n, ...(first !== undefined ? { first } : {}) });
-    }
+      });
+      if (head) rows.push({ rank: head[4], shard: head[2], pos: head[3], results: n, ...(first !== undefined ? { first } : {}), members });
+    });
     rows.sort((a, b) => a.rank - b.rank);
     const out: ResultRow[] = [];
     for (const r of rows) {
       const shard = (await reader.json<SlimRecord[]>(paths.records(p.id, 'result', r.shard))) as RecordEntry[];
       const rec = shard[r.pos];
       if (!rec) throw preparing(p);
-      out.push({ ...resultRow(h, rec), results: r.results, first_date: r.first });
+      out.push({ ...resultRow(h, signedIn(h, p, rec)), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
+    }
+    return out;
+  }
+
+  /**
+   * Where each of `look`'s ids that is a result the filter holds sits in
+   * tests.json, as entryKey(series, entry). search-items.bin gives each id's
+   * kind, date and name, which pick out its entry; a shard is read only when
+   * two results of one date share a name, and the filter holds one of them. A
+   * private result that has no place cannot hold its series back, so these
+   * views do not answer.
+   */
+  private async resultsAmong(r: PersonReader, series: TestSeries[], look: ReadonlySet<string>, filter: RecordFilter): Promise<Map<string, string>> {
+    const items = await this.items(r);
+    const found = items.find(look);
+    if (found.length !== look.size) throw preparing(r.p);
+    const byDateName = new Map<string, [number, number][]>();
+    series.forEach((t, si) =>
+      t.entries.forEach(([date, ni], ei) => {
+        const k = `${date ?? ''}\u0000${t.names[ni]![1]}`;
+        byDateName.set(k, [...(byDateName.get(k) ?? []), [si, ei]]);
+      }),
+    );
+    const named = ([si, ei]: [number, number]) => filter.name === undefined || nameMatches(...series[si]!.names[series[si]!.entries[ei]![1]]!, filter.name);
+    const out = new Map<string, string>();
+    for (const i of found) {
+      const [date, kind, id, title] = items.meta(i);
+      if (kind !== 'result' || !holds(filter.range, date)) continue;
+      const at = byDateName.get(`${date ?? ''}\u0000${title}`) ?? [];
+      const asked = at.filter(named);
+      let place = at.length === 1 ? asked[0] : undefined;
+      if (at.length > 1) {
+        for (const [si, ei] of asked) {
+          const [, , shard, pos] = series[si]!.entries[ei]!;
+          const recs = await r.json<SlimRecord[]>(paths.records(r.p.id, 'result', shard));
+          if (recs[pos]?.id !== id) continue;
+          place = [si, ei];
+          break;
+        }
+      }
+      if (place) out.set(entryKey(...place), id);
+      // Every entry it may be was looked at, and none is it.
+      else if (asked.length === at.length) throw preparing(r.p);
     }
     return out;
   }
@@ -493,10 +542,29 @@ export class ViewsStore implements Store {
     const base = ITEMS_HEADER(n);
     const text = (i: number) => view.getUint32(4 * (1 + i), true);
     const metaAt = (i: number) => view.getUint32(4 * (2 + n + i), true);
+    const meta = (i: number) => JSON.parse(decoder.decode(b.subarray(base + metaAt(i), base + metaAt(i + 1)))) as ItemMeta;
     return {
       n,
       text: (i) => [text(i), text(i + 1)],
-      meta: (i) => JSON.parse(decoder.decode(b.subarray(base + metaAt(i), base + metaAt(i + 1)))) as ItemMeta,
+      meta,
+      find(ids) {
+        // One pass over the details as Latin-1, a character a byte, so each quoted id's place is its byte offset.
+        const details = Buffer.from(b.buffer, b.byteOffset + base, b.byteLength - base).toString('latin1');
+        const out: number[] = [];
+        for (const m of details.matchAll(/"(r_[^"\\]*)"/g)) {
+          if (!ids.has(m[1]!)) continue;
+          // The item whose details hold this byte: the last whose details start at or before it.
+          let lo = 0;
+          let hi = n - 1;
+          while (lo < hi) {
+            const mid = (lo + hi + 1) >> 1;
+            if (metaAt(mid) <= m.index) lo = mid;
+            else hi = mid - 1;
+          }
+          if (meta(lo)[2] === m[1]) out.push(lo);
+        }
+        return [...new Set(out)];
+      },
     };
   }
 
@@ -652,7 +720,27 @@ interface Items {
   /** Item i's text: its first byte over the hay packs and the byte after its last. */
   text(i: number): [number, number];
   meta(i: number): ItemMeta;
+  /** The records among the items whose ids are among `ids`. */
+  find(ids: ReadonlySet<string>): number[];
 }
+
+/**
+ * A record of the views with its sign-in's organization. Views written by
+ * medrec 0.9.3 and earlier leave `organization_id` out of a record's source.
+ * The person's only sign-in with its CLI and FHIR base then says it; of
+ * several, the record may be any one's, so only its CLI is known.
+ */
+function signedIn(h: Household, p: Person, r: RecordEntry): RecordEntry {
+  const s = r.provenance?.[0]?.source;
+  if (!s || s.organization_id !== undefined || s.cli === undefined || s.cli === null) return r;
+  const base = baseOf(s.fhir_base);
+  const at = new Set((h.sources ?? []).filter((x) => x.person === p.id && x.cli === s.cli && typeof x.organization === 'string' && (base === undefined || baseOf(x.fhir_base) === base)).map((x) => x.organization!));
+  if (at.size === 0) return r;
+  return { ...r, provenance: [{ source: at.size === 1 ? { ...s, organization_id: [...at][0]! } : { cli: s.cli } }] };
+}
+
+/** A result's place in tests.json: its series and its entry there. */
+const entryKey = (series: number, entry: number) => `${series}:${entry}`;
 
 /**
  * The item numbers whose dates the range holds, as [first, after last]: the

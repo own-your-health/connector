@@ -530,7 +530,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     throw personError(e);
   }
   const named = (title: string) => name === undefined || fold(title).includes(fold(name));
-  const rows: { p: Person; it: Item }[] = [];
+  const rows: { p: Person; it: Item; members?: string[] }[] = [];
   const recordKind = KINDS[kind];
   const filter = { range: r, active, name };
   const household = person === undefined;
@@ -538,13 +538,14 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const hint = 'person, since/until, active or name';
   const gate = new Gate(household, await privacyOf(ctx, h, chosen));
   // A question about everyone holds back the private items it does not name; each one an answer includes carries its area.
-  const keep = (p: Person, it: Item) => gate.keep(p, it.id as string, () => name !== undefined && names(it.title as string, name));
-  const marked = (p: Person, it: Item) => item({ ...it, private: gate.area(p, it.id as string) });
+  // A test series is private when any of its results is (medrec 0.9.3): `members` are those of its results that are.
+  const keep = (p: Person, it: Item, members?: string[]) => gate.keep(p, it.id as string, () => name !== undefined && names(it.title as string, name), members);
+  const marked = (p: Person, it: Item, members?: string[]) => item({ ...it, private: gate.area(p, it.id as string, members) });
   const extra: Warning[] = [];
   if (kind === 'tests') {
     for (const p of chosen) {
-      for (const row of await left.of(p, () => ctx.store.tests(h, p, filter), [])) {
-        rows.push({ p, it: { kind: 'result', person: p.name, date: row.date, title: row.test, source: row.source, id: row.id ?? '', code: row.code, value: row.value, unit: row.unit, range: row.range, flag: row.flag, results: row.results } });
+      for (const row of await left.of(p, () => ctx.store.tests(h, p, filter, gate.records(p)), [])) {
+        rows.push({ p, members: row.members, it: { kind: 'result', person: p.name, date: row.date, title: row.test, source: row.source, id: row.id ?? '', code: row.code, value: row.value, unit: row.unit, range: row.range, flag: row.flag, results: row.results } });
       }
     }
   } else if (recordKind) {
@@ -585,7 +586,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     }
   }
   rows.sort((x, y) => cmpOptS(y.it.date, x.it.date) || cmpS(x.it.title as string, y.it.title as string));
-  const items = rows.filter(({ p, it }) => keep(p, it)).map(({ p, it }) => marked(p, it));
+  const items = rows.filter(({ p, it, members }) => keep(p, it, members)).map(({ p, it, members }) => marked(p, it, members));
   return gatedPage(page, gate, chosen, left, household, items, hint, extra);
 }
 

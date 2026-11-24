@@ -269,13 +269,31 @@ export function recordDetail(r: RecordEntry): string | undefined {
   }
 }
 
-/** Where a record came from: its first source's organization, else its CLI. */
+/** A FHIR base without its trailing slashes. */
+export const baseOf = (b: string | null | undefined) => (b === null || b === undefined ? undefined : b.replace(/\/+$/, ''));
+
+/**
+ * Where a record came from: the organization of its own sign-in (the household
+ * source with its CLI, organization and FHIR base), else the household's
+ * organization at its FHIR base, else its CLI. One base can serve many
+ * practices (athenahealth's), so the sign-in comes first (medrec 0.9.3 and
+ * later, views::source_label).
+ */
 export function recordSource(h: Household, r: RecordEntry): string | undefined {
-  const p = r.provenance?.[0];
-  if (!p) return undefined;
-  const base = p.source.fhir_base ?? undefined;
-  const org = base === undefined ? undefined : (h.organizations ?? []).find((o) => o.fhir_base === base);
-  return org?.name ?? p.source.cli ?? undefined;
+  const s = r.provenance?.[0]?.source;
+  if (!s) return undefined;
+  const base = baseOf(s.fhir_base);
+  const cli = s.cli ?? undefined;
+  const organization = s.organization_id ?? undefined;
+  if (cli !== undefined && organization !== undefined) {
+    for (const x of h.sources ?? []) {
+      if (x.cli !== cli || x.organization !== organization || (base !== undefined && baseOf(x.fhir_base) !== base)) continue;
+      const name = trim(x.organization_name ?? '');
+      if (name !== '') return name;
+    }
+  }
+  const org = base === undefined ? undefined : (h.organizations ?? []).find((o) => baseOf(o.fhir_base) === base);
+  return org?.name ?? cli;
 }
 
 /** `q` is the record's code, or words of its name, case-insensitive. */
@@ -403,6 +421,12 @@ export interface ResultRow {
   first_date?: string;
   /** The record's id; of a test's latest result (medrec 0.9.1 and later). */
   id?: string;
+  /**
+   * Of the ids a reader asked about, those of the series' results this row
+   * counts (in its range, matching its name), newest first: a private one
+   * among them makes the whole series private (medrec 0.9.3 and later).
+   */
+  members?: string[];
 }
 
 function reading(r: RecordEntry): [string | undefined, string | undefined] {
