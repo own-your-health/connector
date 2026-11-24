@@ -114,13 +114,18 @@ export class Gate {
 
   /**
    * How many items the page of kept items from `offset`, `returned` long, left
-   * out. `last` when no page follows it, so it counts to the end of what was read.
+   * out: those after the previous page's last item, up to its own last item,
+   * or to the end of what was read when `last`. A page past the kept items (a
+   * cursor from before the list shrank) follows the true last page, which
+   * counted the rest (medrec's views::LeftOut::on_page).
    */
   leftOut(offset: number, returned: number, last: boolean): number {
-    const at = (i: number) => (i < 0 ? 0 : (this.before[Math.min(i, this.before.length - 1)] ?? 0));
-    const from = offset > 0 ? at(offset - 1) : 0;
-    const to = last || returned === 0 ? this.held : at(offset + returned - 1);
-    return Math.max(0, to - from);
+    if (offset > 0 && offset >= this.before.length) return 0;
+    // Held back before the kept item `i`; past the kept items read, every one held back so far.
+    const below = (i: number) => (i >= 0 && i < this.before.length ? this.before[i]! : this.held);
+    const from = offset > 0 ? this.before[offset - 1]! : 0;
+    const to = last ? this.held : below(offset + returned - 1);
+    return to - from;
   }
 
   /**
