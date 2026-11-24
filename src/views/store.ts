@@ -18,6 +18,7 @@ import {
   CLIP,
   LAB_QUERIES,
   SUMMARY_LINES,
+  baseOf,
   holds,
   matchesCode,
   resultRow,
@@ -379,7 +380,7 @@ export class ViewsStore implements Store {
       const pass = shard.filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
       if (detailed) pass.sort(recordOrder(true));
-      yield* pass;
+      for (const x of pass) yield signedIn(h, p, x);
     }
   }
 
@@ -417,7 +418,7 @@ export class ViewsStore implements Store {
       const shard = (await reader.json<SlimRecord[]>(paths.records(p.id, 'result', r.shard))) as RecordEntry[];
       const rec = shard[r.pos];
       if (!rec) throw preparing(p);
-      out.push({ ...resultRow(h, rec), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
+      out.push({ ...resultRow(h, signedIn(h, p, rec)), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
     }
     return out;
   }
@@ -713,6 +714,21 @@ interface Items {
   meta(i: number): ItemMeta;
   /** The records among the items whose ids are among `ids`. */
   find(ids: ReadonlySet<string>): number[];
+}
+
+/**
+ * A record of the views with its sign-in's organization. Views written by
+ * medrec 0.9.3 and earlier leave `organization_id` out of a record's source.
+ * The person's only sign-in with its CLI and FHIR base then says it; of
+ * several, the record may be any one's, so only its CLI is known.
+ */
+function signedIn(h: Household, p: Person, r: RecordEntry): RecordEntry {
+  const s = r.provenance?.[0]?.source;
+  if (!s || s.organization_id !== undefined || s.cli === undefined || s.cli === null) return r;
+  const base = baseOf(s.fhir_base);
+  const at = new Set((h.sources ?? []).filter((x) => x.person === p.id && x.cli === s.cli && typeof x.organization === 'string' && (base === undefined || baseOf(x.fhir_base) === base)).map((x) => x.organization!));
+  if (at.size === 0) return r;
+  return { ...r, provenance: [{ source: at.size === 1 ? { ...s, organization_id: [...at][0]! } : { cli: s.cli } }] };
 }
 
 /** A result's place in tests.json: its series and its entry there. */

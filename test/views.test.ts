@@ -15,8 +15,8 @@ import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
 import { names } from '../src/records/private';
-import { newestFirst, seriesKey } from '../src/records/views';
-import type { RecordEntry } from '../src/records/model';
+import { newestFirst, recordSource, seriesKey } from '../src/records/views';
+import type { Household, RecordEntry } from '../src/records/model';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
@@ -519,6 +519,112 @@ describe('events from the views (medrec 0.9.0)', () => {
     const { r } = await events(root, { person: 'Robin' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/events in a layout \(medrec-events\/v2\) this connector does not read/);
+  });
+});
+
+describe('the practice a record came from (medrec 0.9.3)', () => {
+  const BASE = 'https://api.example.net/fhir/r4';
+  const FAMILY = 'example-family-medicine';
+
+  it('is its own sign-in\'s, else the organization at its FHIR base, else its CLI', () => {
+    const h = {
+      schema: '',
+      format: 1,
+      people: [],
+      organizations: [{ id: 'g_1', name: 'Example Base', fhir_base: `${BASE}/` }],
+      sources: [
+        { cli: 'athena', organization: 'a', organization_name: '  ', fhir_base: BASE },
+        { cli: 'athena', organization: 'a', organization_name: ' Example A ', fhir_base: `${BASE}//` },
+        { cli: 'athena', organization: 'b', organization_name: 'Example B', fhir_base: BASE },
+        { cli: 'uhc', organization: 'plan', organization_name: 'Example Plan', fhir_base: BASE },
+        { cli: 'labcorp', organization: 'lab' },
+      ],
+    } satisfies Household;
+    const from = (source: Record<string, string | null>) => recordSource(h, { id: 'r_1', kind: 'result', display: 'x', provenance: [{ source }] });
+    expect(from({ cli: 'athena', organization_id: 'a', fhir_base: BASE })).toBe('Example A');
+    expect(from({ cli: 'athena', organization_id: 'b', fhir_base: `${BASE}/` })).toBe('Example B');
+    // No such sign-in, or not at that base: the organization at the base.
+    expect(from({ cli: 'athena', organization_id: 'c', fhir_base: BASE })).toBe('Example Base');
+    expect(from({ cli: 'athena', organization_id: null, fhir_base: BASE })).toBe('Example Base');
+    expect(from({ cli: 'athena', organization_id: 'a', fhir_base: 'https://other.example.net' })).toBe('athena');
+    // With no base, the CLI and organization say it; a sign-in with no name says nothing.
+    expect(from({ cli: 'uhc', organization_id: 'plan' })).toBe('Example Plan');
+    expect(from({ cli: 'labcorp', organization_id: 'lab' })).toBe('labcorp');
+    expect(recordSource(h, { id: 'r_1', kind: 'result', display: 'x' })).toBeUndefined();
+  });
+
+  /** A copy of the demo whose Alex has a second practice at the same FHIR base, with every other record from it. */
+  function twoPractices(name: string): string {
+    const root = copy(demo, name);
+    const at = join(root, 'household.json');
+    const h = JSON.parse(readFileSync(at, 'utf8')) as { people: { id: string; name: string }[]; sources: Record<string, unknown>[] };
+    const alex = personId(root, 'Alex Example');
+    const first = h.sources.find((s) => s.person === alex && s.cli === 'athena')!;
+    h.sources.push({ ...first, id: 's_qqqqqqqqqqqqqqqqqqqq', organization: FAMILY, organization_name: 'Example Family Medicine' });
+    writeFileSync(at, JSON.stringify(h));
+    const path = join(root, 'Alex Example/index.json');
+    const index = JSON.parse(readFileSync(path, 'utf8')) as { records: { provenance: { source: { organization_id?: string } }[] }[] };
+    index.records.forEach((r, i) => {
+      if (i % 2 === 1) r.provenance[0]!.source.organization_id = FAMILY;
+    });
+    writeFileSync(path, JSON.stringify(index));
+    writeViewsAt(root);
+    addDerived(root, 'records');
+    return root;
+  }
+
+  /** Takes `organization_id` out of every record of the views, as medrec 0.9.3 and earlier write them. */
+  function withoutOrganizations(root: string): void {
+    const at = join(root, VIEWS_INDEX);
+    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+    let n = 0;
+    for (const [pid, v] of Object.entries(index.people)) {
+      for (const [view, sum] of Object.entries(v.files)) {
+        if (!view.startsWith('records-')) continue;
+        const recs = JSON.parse(readFileSync(join(root, personDir(pid) + storedName(view, sum)), 'utf8')) as { provenance?: { source: Record<string, unknown> }[] }[];
+        for (const r of recs) {
+          for (const p of r.provenance ?? []) {
+            if ('organization_id' in p.source) n++;
+            delete p.source.organization_id;
+          }
+        }
+        const text = JSON.stringify(recs);
+        const next = createHash('md5').update(text).digest('hex');
+        writeFileSync(join(root, personDir(pid) + storedName(view, next)), text);
+        v.files[view] = next;
+      }
+    }
+    expect(n).toBeGreaterThan(0);
+    writeFileSync(at, JSON.stringify(index));
+  }
+
+  type Page = { items: { id: string; source?: string }[] };
+  const sources = async (root: string, args: Record<string, unknown>) => ((await ask(root, 'medrec_records', { limit: 200, ...args })).r.structuredContent as Page).items.map((x) => [x.id, x.source] as const);
+  const KINDS = ['results', 'tests', 'visits', 'immunizations'];
+
+  it('tells two practices on one FHIR base apart, from the views as from the files', async () => {
+    const root = twoPractices('two-practices');
+    const seen = new Set<string | undefined>();
+    for (const kind of KINDS) {
+      const args = { kind, person: 'Alex', limit: 200 };
+      const views = (await ask(root, 'medrec_records', args)).r.structuredContent;
+      expect((await raw(root, 'medrec_records', args)).structuredContent, kind).toEqual(views);
+      for (const [, s] of await sources(root, args)) seen.add(s);
+    }
+    expect([...seen].sort()).toEqual(['Example Family Medicine', 'Example Pediatrics']);
+  });
+
+  it('of views that leave the organization out, names a person\'s only practice on a base, and of two, only the CLI', async () => {
+    const root = twoPractices('two-practices-before');
+    const full = Object.fromEntries(await Promise.all(KINDS.map(async (kind) => [kind, await sources(root, { kind, person: 'Jamie' })] as const)));
+    withoutOrganizations(root);
+    for (const kind of KINDS) {
+      const alex = await sources(root, { kind, person: 'Alex' });
+      expect(alex.map(([, s]) => s), kind).toEqual(alex.map(() => 'athena'));
+      // Jamie has one sign-in at that base, and one with a plan that has none.
+      expect(await sources(root, { kind, person: 'Jamie' }), kind).toEqual(full[kind]);
+    }
+    expect(Object.values(full).flat().some(([, s]) => s === 'Example Pediatrics')).toBe(true);
   });
 });
 

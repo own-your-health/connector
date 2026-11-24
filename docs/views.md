@@ -149,7 +149,16 @@ JSON array of that kind's records, in the records tool's concise order:
 
 Every record keeps its `index.json` fields `id`, `kind`, `date`, `code`,
 `display`, `status` and `fields` as they are, when present. `provenance` is
-cut to its first entry's `source`, keeping only `fhir_base` and `cli`.
+cut to its first entry's `source`, keeping only `fhir_base`, `cli` and
+`organization_id` (`null` when it has none). A reader names the record's
+organization from them and `household.json`: its own sign-in's (the
+`sources` entry with its CLI, organization and FHIR base), else the
+`organizations` entry at its FHIR base, else its CLI. One base can serve many
+practices.
+
+medrec 0.9.3 and earlier leave `organization_id` out. For such a record, this
+connector takes the person's only sign-in with that CLI and FHIR base. When
+the person has several there, it names only the CLI.
 
 Shards are cut from the **oldest** end. `records-<kind>-0.json` holds the
 oldest days. A shard closes once it holds 48,000 bytes or more, never inside

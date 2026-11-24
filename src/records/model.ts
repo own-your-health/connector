@@ -22,11 +22,22 @@ export interface Organization {
   fhir_base?: string | null;
 }
 
+/** A sign-in the household's records come through: one person's, at one organization, by one CLI. */
+export interface SignIn {
+  person?: string;
+  cli?: string | null;
+  /** The organization's id as the CLI names it: a record's `organization_id`. */
+  organization?: string | null;
+  organization_name?: string | null;
+  fhir_base?: string | null;
+}
+
 export interface Household {
   schema: string;
   format: number;
   people: Person[];
   organizations?: Organization[];
+  sources?: SignIn[];
 }
 
 export interface Coding {
@@ -36,7 +47,7 @@ export interface Coding {
 }
 
 export interface Provenance {
-  source: { kind?: string; cli?: string | null; fhir_base?: string | null };
+  source: { kind?: string; cli?: string | null; organization_id?: string | null; fhir_base?: string | null };
 }
 
 export interface RecordEntry {
