@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "description": "A read-only MCP connector over a medrec records folder in Google Drive, as a Cloudflare Worker in your own account",
   "engines": {
     "node": ">=22.18.0"
