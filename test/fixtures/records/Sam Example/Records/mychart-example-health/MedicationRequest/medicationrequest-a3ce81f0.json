@@ -1,0 +1,18 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "medicationrequest-a3ce81f0",
+  "meta": {
+    "lastUpdated": "2026-11-22T08:00:00Z"
+  },
+  "status": "active",
+  "intent": "order",
+  "medicationCodeableConcept": {
+    "text": "Nicotine 14 mg/24 hour patch"
+  },
+  "authoredOn": "2026-10-30",
+  "dosageInstruction": [
+    {
+      "text": "Put on 1 patch once a day"
+    }
+  ]
+}

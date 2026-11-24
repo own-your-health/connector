@@ -483,7 +483,7 @@
       "arguments": {
         "kind": "timeline",
         "person": "Sam",
-        "until": "2026-06-30"
+        "until": "2026-08-10"
       }
     },
     {
@@ -1290,8 +1290,8 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "events",
-        "since": "2026-06-01",
-        "until": "2026-06-01"
+        "since": "2026-07-28",
+        "until": "2026-07-28"
       }
     },
     {
@@ -1300,8 +1300,8 @@
       "arguments": {
         "kind": "events",
         "person": "Robin",
-        "since": "2026-09-08",
-        "until": "2026-09-08",
+        "since": "2026-05-12",
+        "until": "2026-05-12",
         "response_format": "detailed"
       }
     },
@@ -1383,7 +1383,7 @@
       },
       "id_from": {
         "label": "events-robin",
-        "item": 9
+        "item": 11
       }
     },
     {
@@ -1395,7 +1395,7 @@
       },
       "id_from": {
         "label": "events-robin",
-        "item": 6
+        "item": 7
       }
     },
     {
@@ -1557,7 +1557,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "conditions",
-        "name": "Generalized anxiety disorder"
+        "name": "Social anxiety disorder"
       }
     },
     {
@@ -1565,7 +1565,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "medications",
-        "name": "sertraline"
+        "name": "escitalopram"
       }
     },
     {
@@ -1580,14 +1580,14 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "sertraline"
+        "query": "escitalopram"
       }
     },
     {
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "Generalized anxiety disorder"
+        "query": "Social anxiety disorder"
       }
     },
     {
@@ -1647,7 +1647,7 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "glucose",
+        "query": "ferritin",
         "person": "Casey"
       }
     },
@@ -1663,7 +1663,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "conditions",
-        "name": "High blood pressure"
+        "name": "Seasonal allergies"
       }
     },
     {
@@ -1678,7 +1678,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "events",
-        "id": "e_i6ne5p4g2d65hwmg2xc3"
+        "id": "e_6fntbcvphk5gnlqd3f2h"
       }
     },
     {
@@ -1931,7 +1931,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "conditions",
-        "name": "Sample pressure"
+        "name": "Sample spring sneezes"
       }
     },
     {
@@ -1981,6 +1981,153 @@
       "arguments": {
         "kind": "conditions",
         "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2026-05-15",
+        "until": "2026-05-25"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2026-05-15",
+        "until": "2026-05-25",
+        "person": "Sam"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2026-05-15",
+        "until": "2026-05-25",
+        "name": "ankle"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "ankle"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "XR ankle 3 views"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "ankle",
+        "person": "Sam"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "imaging"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2026-01-10",
+        "until": "2026-01-31"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2026-01-10",
+        "until": "2026-01-31",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2025-07-01",
+        "until": "2025-07-31"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "brain"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "brain",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "MR brain"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "MR brain report"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "wrist"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "doc_type": "imaging_report"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "doc_type": "imaging_report",
+        "person": "Robin"
       }
     }
   ]

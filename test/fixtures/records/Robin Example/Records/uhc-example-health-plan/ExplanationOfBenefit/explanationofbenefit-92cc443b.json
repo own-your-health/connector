@@ -17,5 +17,41 @@
     "start": "2026-10-03",
     "end": "2026-10-03"
   },
-  "outcome": "complete"
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "80061",
+            "display": "Cholesterol tests"
+          }
+        ]
+      },
+      "servicedDate": "2026-10-03",
+      "net": {
+        "value": 180,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 2,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "36415",
+            "display": "Blood draw"
+          }
+        ]
+      },
+      "servicedDate": "2026-10-03",
+      "net": {
+        "value": 40,
+        "currency": "USD"
+      }
+    }
+  ]
 }

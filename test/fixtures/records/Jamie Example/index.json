@@ -1,11 +1,11 @@
 {
   "schema": "medrec-index/v1",
   "person": "p_skrlw3od3nik2hkngezu",
-  "rev": 10,
+  "rev": 9,
   "documents": [
     {
       "id": "d_qsyl3gzsasuwaysqf7ll",
-      "path": "Jamie Example/Documents/2026/2026-06-03_discharge_summary_example_health_newborn_discharge.pdf",
+      "path": "Jamie Example/Documents/2026/2026-07-30_discharge_summary_example_health_newborn_discharge.pdf",
       "sha256": "272a1f1b0d65e9e5c6ab593faa5b6737e919e5336df0d31dab0e23d24a69a81d",
       "md5": "a153ffb47c93732ac5d15b7b464f84c5",
       "size": 135905,
@@ -14,16 +14,16 @@
       "original_name": "newborn_discharge.pdf",
       "title": "Newborn discharge summary",
       "doc_type": "discharge_summary",
-      "date": "2026-06-03",
+      "date": "2026-07-30",
       "organization": "Example Health",
-      "filed_at": "2026-06-15T00:00:00Z",
+      "filed_at": "2026-11-22T00:00:00Z",
       "origin": {
         "kind": "fhir",
         "name": "newborn_discharge.pdf",
         "action": "copied"
       },
       "text": {
-        "chars": 195,
+        "chars": 184,
         "engines": [
           "pdftotext 26.10.0"
         ]
@@ -40,10 +40,10 @@
         "source_resource": {
           "type": "Binary",
           "id": "binary-472705c5",
-          "last_updated": "2026-06-15T08:00:00Z"
+          "last_updated": "2026-11-22T08:00:00Z"
         },
-        "fetched_at": "2026-06-15T00:00:00Z",
-        "filed_at": "2026-06-15T00:00:00Z",
+        "fetched_at": "2026-11-22T00:00:00Z",
+        "filed_at": "2026-11-22T00:00:00Z",
         "raw_path": "Jamie Example/Records/athena-example-pediatrics/Binary/binary-472705c5.json",
         "filed_by": "medrec 0.2.11"
       }
@@ -53,19 +53,19 @@
     {
       "id": "r_ikfxlaez63g3jvqu4jco",
       "kind": "encounter",
-      "key": "encounter|birth hospital stay|2026-06-01",
-      "date": "2026-06-01",
+      "key": "encounter|birth hospital stay|2026-07-28",
+      "date": "2026-07-28",
       "display": "Birth hospital stay",
       "status": "finished",
       "fields": {
-        "when": "2026-06-01",
+        "when": "2026-07-28",
         "class": "inpatient",
         "practitioner": "Dr. Riley Placeholder",
         "location": "Example Health Birth Center",
-        "reason": "Newborn delivery",
+        "reason": "Birth",
         "period": {
-          "start": "2026-06-01T06:10:00Z",
-          "end": "2026-06-03T15:00:00Z"
+          "start": "2026-07-28T18:20:00Z",
+          "end": "2026-07-30T14:00:00Z"
         }
       },
       "documents": [
@@ -84,10 +84,10 @@
           "source_resource": {
             "type": "Encounter",
             "id": "encounter-8893406b",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-8893406b.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -96,8 +96,8 @@
     {
       "id": "r_qywazm2wjvyx2l43tjyy",
       "kind": "immunization",
-      "key": "immunization|http://hl7.org/fhir/sid/cvx|08|2026-06-01",
-      "date": "2026-06-01",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|08|2026-07-28",
+      "date": "2026-07-28",
       "code": {
         "system": "http://hl7.org/fhir/sid/cvx",
         "code": "08",
@@ -106,7 +106,7 @@
       "display": "Hep B, adolescent or pediatric",
       "status": "completed",
       "fields": {
-        "when": "2026-06-01",
+        "when": "2026-07-28",
         "performer": "Example Health Birth Center",
         "lot_number": "LOTEAF0",
         "site": "Right thigh",
@@ -126,10 +126,10 @@
           "source_resource": {
             "type": "Immunization",
             "id": "immunization-6b8975c3",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Immunization/immunization-6b8975c3.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -138,8 +138,8 @@
     {
       "id": "r_khohvsabsoaslcpbaal3",
       "kind": "result",
-      "key": "result|http://loinc.org|29463-7|2026-06-01",
-      "date": "2026-06-01",
+      "key": "result|http://loinc.org|29463-7|2026-07-28",
+      "date": "2026-07-28",
       "code": {
         "system": "http://loinc.org",
         "code": "29463-7",
@@ -148,9 +148,9 @@
       "display": "Weight",
       "status": "final",
       "fields": {
-        "when": "2026-06-01",
+        "when": "2026-07-28",
         "value": {
-          "value": 3.42,
+          "value": 3.18,
           "unit": "kg"
         },
         "category": "Vital signs"
@@ -169,10 +169,10 @@
           "source_resource": {
             "type": "Observation",
             "id": "observation-542702f7",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-542702f7.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -181,8 +181,8 @@
     {
       "id": "r_652i26mibiqfp45fkx6e",
       "kind": "result",
-      "key": "result|http://loinc.org|29463-7|2026-06-05",
-      "date": "2026-06-05",
+      "key": "result|http://loinc.org|29463-7|2026-08-31",
+      "date": "2026-08-31",
       "code": {
         "system": "http://loinc.org",
         "code": "29463-7",
@@ -191,9 +191,9 @@
       "display": "Weight",
       "status": "final",
       "fields": {
-        "when": "2026-06-05",
+        "when": "2026-08-31",
         "value": {
-          "value": 3.31,
+          "value": 4.26,
           "unit": "kg"
         },
         "category": "Vital signs"
@@ -212,10 +212,10 @@
           "source_resource": {
             "type": "Observation",
             "id": "observation-40b88a24",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-40b88a24.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -224,8 +224,8 @@
     {
       "id": "r_6lizzj53udtnp4yhqh4o",
       "kind": "result",
-      "key": "result|http://loinc.org|29463-7|2026-06-12",
-      "date": "2026-06-12",
+      "key": "result|http://loinc.org|29463-7|2026-09-29",
+      "date": "2026-09-29",
       "code": {
         "system": "http://loinc.org",
         "code": "29463-7",
@@ -234,9 +234,9 @@
       "display": "Weight",
       "status": "final",
       "fields": {
-        "when": "2026-06-12",
+        "when": "2026-09-29",
         "value": {
-          "value": 3.55,
+          "value": 5.37,
           "unit": "kg"
         },
         "category": "Vital signs"
@@ -255,10 +255,10 @@
           "source_resource": {
             "type": "Observation",
             "id": "observation-53eb7cc4",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-53eb7cc4.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -267,23 +267,23 @@
     {
       "id": "r_7em4kivx2x3dto2pxlpp",
       "kind": "result",
-      "key": "result|http://loinc.org|42719-5|2026-06-02",
-      "date": "2026-06-02",
+      "key": "result|http://loinc.org|59407-7|2026-07-29",
+      "date": "2026-07-29",
       "code": {
         "system": "http://loinc.org",
-        "code": "42719-5",
-        "display": "Bilirubin.total [Mass/volume] in Blood"
+        "code": "59407-7",
+        "display": "Oxygen saturation in Blood Preductal by Pulse oximetry"
       },
-      "display": "Bilirubin, total",
+      "display": "Oxygen saturation, right hand",
       "status": "final",
       "fields": {
-        "when": "2026-06-02",
+        "when": "2026-07-29",
         "value": {
-          "value": 7.2,
-          "unit": "mg/dL"
+          "value": 98,
+          "unit": "%"
         },
-        "reference_range": "1.0-12.0 mg/dL",
-        "category": "Laboratory"
+        "reference_range": "95-100 %",
+        "category": "Vital signs"
       },
       "documents": [],
       "provenance": [
@@ -299,10 +299,10 @@
           "source_resource": {
             "type": "Observation",
             "id": "observation-a452f7b3",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Observation/observation-a452f7b3.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -311,12 +311,12 @@
     {
       "id": "r_eqzhajxycdlozsk2r4r7",
       "kind": "encounter",
-      "key": "encounter|newborn visit|2026-06-05",
-      "date": "2026-06-05",
-      "display": "Newborn visit",
+      "key": "encounter|well child visit, 1 month|2026-08-31",
+      "date": "2026-08-31",
+      "display": "Well child visit, 1 month",
       "status": "finished",
       "fields": {
-        "when": "2026-06-05",
+        "when": "2026-08-31",
         "class": "ambulatory",
         "practitioner": "Dr. Morgan Placeholder",
         "location": "Example Pediatrics"
@@ -335,10 +335,10 @@
           "source_resource": {
             "type": "Encounter",
             "id": "encounter-f694ce41",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-f694ce41.json",
           "filed_by": "medrec 0.2.11"
         }
@@ -347,12 +347,12 @@
     {
       "id": "r_ef73hxqncna5sfoxputk",
       "kind": "encounter",
-      "key": "encounter|weight check|2026-06-12",
-      "date": "2026-06-12",
-      "display": "Weight check",
+      "key": "encounter|well child visit, 2 months|2026-09-29",
+      "date": "2026-09-29",
+      "display": "Well child visit, 2 months",
       "status": "finished",
       "fields": {
-        "when": "2026-06-12",
+        "when": "2026-09-29",
         "class": "ambulatory",
         "practitioner": "Dr. Morgan Placeholder",
         "location": "Example Pediatrics"
@@ -371,55 +371,215 @@
           "source_resource": {
             "type": "Encounter",
             "id": "encounter-021d5d27",
-            "last_updated": "2026-06-15T08:00:00Z"
+            "last_updated": "2026-11-22T08:00:00Z"
           },
-          "fetched_at": "2026-06-15T00:00:00Z",
-          "filed_at": "2026-06-15T00:00:00Z",
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
           "raw_path": "Jamie Example/Records/athena-example-pediatrics/Encounter/encounter-021d5d27.json",
           "filed_by": "medrec 0.2.11"
         }
       ]
     },
     {
-      "id": "r_jamnboneaaaaaaaaaaaa",
+      "id": "r_e33xnsagcenhnfdukcrf",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|110|2026-09-29",
+      "date": "2026-09-29",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "110",
+        "display": "DTaP-hepatitis B and poliovirus vaccine"
+      },
+      "display": "DTaP-hepatitis B and poliovirus vaccine",
+      "status": "completed",
+      "fields": {
+        "when": "2026-09-29",
+        "performer": "Example Pediatrics",
+        "route": "Intramuscular"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-ed6b6d76",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Immunization/immunization-ed6b6d76.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_qlrm6bxlber7w6wd7gdc",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|48|2026-09-29",
+      "date": "2026-09-29",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "48",
+        "display": "Hib (PRP-T)"
+      },
+      "display": "Hib (PRP-T)",
+      "status": "completed",
+      "fields": {
+        "when": "2026-09-29",
+        "performer": "Example Pediatrics",
+        "route": "Intramuscular"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-3d9d84d2",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Immunization/immunization-3d9d84d2.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_l6xhnthqua3e6njdgsr6",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|133|2026-09-29",
+      "date": "2026-09-29",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "133",
+        "display": "Pneumococcal conjugate PCV 13"
+      },
+      "display": "Pneumococcal conjugate PCV 13",
+      "status": "completed",
+      "fields": {
+        "when": "2026-09-29",
+        "performer": "Example Pediatrics",
+        "route": "Intramuscular"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-09c01b24",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Immunization/immunization-09c01b24.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_2auvof2shn7vo32ejr4b",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|119|2026-09-29",
+      "date": "2026-09-29",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "119",
+        "display": "Rotavirus, monovalent"
+      },
+      "display": "Rotavirus, monovalent",
+      "status": "completed",
+      "fields": {
+        "when": "2026-09-29",
+        "performer": "Example Pediatrics",
+        "route": "Oral"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.7.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-5aa63edb",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T00:00:00Z",
+          "filed_at": "2026-11-22T00:00:00Z",
+          "raw_path": "Jamie Example/Records/athena-example-pediatrics/Immunization/immunization-5aa63edb.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_jamiecareoneaaaaaaaa",
       "kind": "claim",
-      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-b8cfac24|2026-06-01",
-      "date": "2026-06-01",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-b8cfac24|2026-07-28",
+      "date": "2026-07-28",
       "code": {
         "system": "http://terminology.hl7.org/CodeSystem/claim-type",
         "code": "professional",
         "display": "Professional"
       },
-      "display": "Newborn care · Example Neonatal Physicians",
+      "display": "Newborn care · Sample Newborn Care Group",
       "status": "active",
       "fields": {
-        "when": "2026-06-01",
-        "provider": "Example Neonatal Physicians",
+        "when": "2026-07-28",
+        "provider": "Sample Newborn Care Group",
         "insurer": "Example Health Plan",
         "outcome": "complete",
         "billable_period": {
-          "start": "2026-06-01",
-          "end": "2026-06-01"
+          "start": "2026-07-28",
+          "end": "2026-07-28"
         },
         "total": [
           {
             "category": "Submitted Amount",
             "amount": {
-              "amount": "310.00",
+              "amount": "403.00",
               "currency": "USD"
             }
           },
           {
             "category": "Eligible Amount",
             "amount": {
-              "amount": "125.00",
+              "amount": "162.50",
               "currency": "USD"
             }
           },
           {
             "category": "Benefit Amount",
             "amount": {
-              "amount": "125.00",
+              "amount": "162.50",
               "currency": "USD"
             }
           },
@@ -432,22 +592,22 @@
           }
         ],
         "payment": {
-          "amount": "125.00",
+          "amount": "162.50",
           "currency": "USD"
         },
         "type": "Professional",
         "use": "claim",
         "amounts": {
           "billed": {
-            "amount": "310.00",
+            "amount": "403.00",
             "currency": "USD"
           },
           "allowed": {
-            "amount": "125.00",
+            "amount": "162.50",
             "currency": "USD"
           },
           "plan_paid": {
-            "amount": "125.00",
+            "amount": "162.50",
             "currency": "USD"
           },
           "you_owe": {
@@ -466,15 +626,15 @@
             },
             "amounts": {
               "billed": {
-                "amount": "310.00",
+                "amount": "403.00",
                 "currency": "USD"
               },
               "allowed": {
-                "amount": "125.00",
+                "amount": "162.50",
                 "currency": "USD"
               },
               "plan_paid": {
-                "amount": "125.00",
+                "amount": "162.50",
                 "currency": "USD"
               },
               "you_owe": {
@@ -509,45 +669,45 @@
       ]
     },
     {
-      "id": "r_jamnbtwoaaaaaaaaaaaa",
+      "id": "r_jamiecaretwoaaaaaaaa",
       "kind": "claim",
-      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-ccdf458e|2026-06-02",
-      "date": "2026-06-02",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-ccdf458e|2026-07-29",
+      "date": "2026-07-29",
       "code": {
         "system": "http://terminology.hl7.org/CodeSystem/claim-type",
         "code": "professional",
         "display": "Professional"
       },
-      "display": "Day of discharge · Example Neonatal Physicians",
+      "display": "Day of discharge · Sample Newborn Care Group",
       "status": "active",
       "fields": {
-        "when": "2026-06-02",
-        "provider": "Example Neonatal Physicians",
+        "when": "2026-07-29",
+        "provider": "Sample Newborn Care Group",
         "insurer": "Example Health Plan",
         "outcome": "complete",
         "billable_period": {
-          "start": "2026-06-02",
-          "end": "2026-06-02"
+          "start": "2026-07-29",
+          "end": "2026-07-29"
         },
         "total": [
           {
             "category": "Submitted Amount",
             "amount": {
-              "amount": "310.00",
+              "amount": "403.00",
               "currency": "USD"
             }
           },
           {
             "category": "Eligible Amount",
             "amount": {
-              "amount": "125.00",
+              "amount": "162.50",
               "currency": "USD"
             }
           },
           {
             "category": "Benefit Amount",
             "amount": {
-              "amount": "125.00",
+              "amount": "162.50",
               "currency": "USD"
             }
           },
@@ -560,22 +720,22 @@
           }
         ],
         "payment": {
-          "amount": "125.00",
+          "amount": "162.50",
           "currency": "USD"
         },
         "type": "Professional",
         "use": "claim",
         "amounts": {
           "billed": {
-            "amount": "310.00",
+            "amount": "403.00",
             "currency": "USD"
           },
           "allowed": {
-            "amount": "125.00",
+            "amount": "162.50",
             "currency": "USD"
           },
           "plan_paid": {
-            "amount": "125.00",
+            "amount": "162.50",
             "currency": "USD"
           },
           "you_owe": {
@@ -594,15 +754,15 @@
             },
             "amounts": {
               "billed": {
-                "amount": "310.00",
+                "amount": "403.00",
                 "currency": "USD"
               },
               "allowed": {
-                "amount": "125.00",
+                "amount": "162.50",
                 "currency": "USD"
               },
               "plan_paid": {
-                "amount": "125.00",
+                "amount": "162.50",
                 "currency": "USD"
               },
               "you_owe": {
@@ -648,17 +808,17 @@
       "cli_version": "0.6.1",
       "organization": "example-pediatrics",
       "patient_id": "pat-35ac49",
-      "pulled_at": "2026-06-15T00:00:00Z",
-      "imported_at": "2026-06-15T00:00:00Z",
+      "pulled_at": "2026-11-22T00:00:00Z",
+      "imported_at": "2026-11-22T00:00:00Z",
       "counts": {
         "Patient": 1,
-        "Observation": 7
+        "Observation": 12
       },
-      "records_added": 7,
+      "records_added": 12,
       "records_updated": 0,
       "records_unchanged": 0,
       "records_older": 0,
-      "resources_written": 7,
+      "resources_written": 12,
       "resources_unchanged": 0,
       "documents_added": 1
     }

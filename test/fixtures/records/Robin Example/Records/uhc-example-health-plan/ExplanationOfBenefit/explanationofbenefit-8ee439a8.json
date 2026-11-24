@@ -17,5 +17,24 @@
     "start": "2026-11-18",
     "end": "2026-11-18"
   },
-  "outcome": "complete"
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "99213",
+            "display": "Office visit"
+          }
+        ]
+      },
+      "servicedDate": "2026-11-18",
+      "net": {
+        "value": 180,
+        "currency": "USD"
+      }
+    }
+  ]
 }

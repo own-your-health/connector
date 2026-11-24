@@ -2,7 +2,7 @@
   "resourceType": "Observation",
   "id": "observation-542702f7",
   "meta": {
-    "lastUpdated": "2026-06-15T08:00:00Z"
+    "lastUpdated": "2026-11-22T08:00:00Z"
   },
   "status": "final",
   "code": {
@@ -15,8 +15,8 @@
     ]
   },
   "valueQuantity": {
-    "value": 3.42,
+    "value": 3.18,
     "unit": "kg"
   },
-  "effectiveDateTime": "2026-06-01"
+  "effectiveDateTime": "2026-07-28"
 }

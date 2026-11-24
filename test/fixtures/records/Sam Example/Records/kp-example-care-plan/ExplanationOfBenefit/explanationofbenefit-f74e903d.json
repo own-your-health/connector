@@ -1,0 +1,44 @@
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "explanationofbenefit-f74e903d",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "professional"
+      }
+    ]
+  },
+  "use": "claim",
+  "billablePeriod": {
+    "start": "2026-10-27",
+    "end": "2026-10-27"
+  },
+  "benefitPeriod": {
+    "start": "2026-07-01",
+    "end": "2027-06-30"
+  },
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "90834",
+            "display": "Talk therapy session"
+          }
+        ]
+      },
+      "servicedDate": "2026-10-27",
+      "net": {
+        "value": 180,
+        "currency": "USD"
+      }
+    }
+  ]
+}

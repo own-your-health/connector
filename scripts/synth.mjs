@@ -36,7 +36,13 @@ function rng(seed) {
 }
 
 const B32 = 'abcdefghijklmnopqrstuvwxyz234567';
-const id = (r, prefix) => prefix + Array.from({ length: 20 }, () => B32[Math.floor(r() * 32)]).join('');
+// An id that ends in "key" reads as an API key to a secret scanner: another is drawn.
+const id = (r, prefix) => {
+  for (;;) {
+    const x = Array.from({ length: 20 }, () => B32[Math.floor(r() * 32)]).join('');
+    if (!x.endsWith('key')) return prefix + x;
+  }
+};
 const pick = (r, xs) => xs[Math.floor(r() * xs.length)];
 
 function day(r, from = 2015, to = 2026) {

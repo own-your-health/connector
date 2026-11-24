@@ -2,7 +2,7 @@
   "resourceType": "Observation",
   "id": "observation-a452f7b3",
   "meta": {
-    "lastUpdated": "2026-06-15T08:00:00Z"
+    "lastUpdated": "2026-11-22T08:00:00Z"
   },
   "status": "final",
   "category": [
@@ -20,22 +20,22 @@
     "coding": [
       {
         "system": "http://loinc.org",
-        "code": "42719-5",
-        "display": "Bilirubin, total"
+        "code": "59407-7",
+        "display": "Oxygen saturation, right hand"
       }
     ],
-    "text": "Bilirubin, total"
+    "text": "Oxygen saturation, right hand"
   },
   "valueQuantity": {
-    "value": 7.2,
-    "unit": "mg/dL",
+    "value": 98,
+    "unit": "%",
     "system": "http://unitsofmeasure.org",
-    "code": "mg/dL"
+    "code": "%"
   },
   "referenceRange": [
     {
-      "text": "1.0-12.0 mg/dL"
+      "text": "95-100 %"
     }
   ],
-  "effectiveDateTime": "2026-06-02"
+  "effectiveDateTime": "2026-07-29"
 }

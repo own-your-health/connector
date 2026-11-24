@@ -5,9 +5,9 @@
     {
       "id": "o_paidhealthaaaaaaaaaa",
       "document": "d_pv57tjsi5ot4237rjcdf",
-      "on": "2026-11-12",
+      "on": "2026-11-06",
       "amount": {
-        "amount": "3.68",
+        "amount": "13.68",
         "currency": "USD"
       },
       "at": "2026-11-20T10:10:00Z",
@@ -16,9 +16,9 @@
     {
       "id": "o_paidlabaaaaaaaaaaaaa",
       "document": "d_kbw3kvi6dmg664qsv4aa",
-      "on": "2026-11-10",
+      "on": "2026-11-03",
       "amount": {
-        "amount": "9.28",
+        "amount": "4.28",
         "currency": "USD"
       },
       "at": "2026-11-20T10:15:00Z",
