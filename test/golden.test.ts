@@ -25,7 +25,7 @@ interface Golden {
   results: { folder: 'demo' | 'large'; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
 }
 
-const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.1.json'), 'utf8')) as Golden;
+const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.2.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};
