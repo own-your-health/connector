@@ -1522,6 +1522,359 @@
         "label": "large-events",
         "item": 10
       }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Example"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "results",
+        "since": "2026-01-01"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "name": "Generalized anxiety disorder"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "name": "sertraline"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies",
+        "name": "Latex"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sertraline"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Generalized anxiety disorder"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Example Counseling Center"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "name": "visit"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "name": "tablet"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "tablet"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "visit"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "glucose",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "name": "High blood pressure"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_counselingletteraaaa"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_i6ne5p4g2d65hwmg2xc3"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_krtjirupgkrvd43ibqj3"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "anxiety",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "Potassium"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin",
+        "name": "Potassium"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "since": "2026-10-15"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "Potassium",
+        "since": "2026-10-15"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "since": "2025-01-01",
+        "until": "2026-09-30"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Sam"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "limit": 2
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "name": "Example Lab"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "large",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Sam"
+      }
     }
   ]
 }

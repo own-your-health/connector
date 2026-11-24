@@ -1,7 +1,7 @@
 {
   "schema": "medrec-index/v1",
   "person": "p_xo4em46i7yj3hphlpajo",
-  "rev": 10,
+  "rev": 11,
   "documents": [
     {
       "id": "d_yxneikjpr2ku6f473zde",
@@ -382,6 +382,40 @@
         "filed_at": "2026-11-22T17:00:00Z",
         "raw_path": "Robin Example/Records/mychart-example-health/Binary/binary-0d9c77e9.json",
         "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_counselingletteraaaa",
+      "path": "Robin Example/Documents/2026/2026-06-15_letter_example_counseling_center_letter.pdf",
+      "sha256": "4a1f0000000000000000000000000000000000000000000000000000000000a1",
+      "md5": "4a1f00000000000000000000000000a1",
+      "size": 48211,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "letter.pdf",
+      "title": "Letter from Example Counseling Center",
+      "doc_type": "letter",
+      "date": "2026-06-15",
+      "organization": "Example Counseling Center",
+      "filed_at": "2026-06-16T12:00:00Z",
+      "origin": {
+        "kind": "file",
+        "name": "letter.pdf",
+        "action": "copied"
+      },
+      "text": {
+        "chars": 120,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "provenance": {
+        "source": {
+          "kind": "file"
+        },
+        "method": "file",
+        "filed_at": "2026-06-16T12:00:00Z",
+        "filed_by": "medrec 0.9.2"
       }
     }
   ],
@@ -3956,6 +3990,372 @@
           "filed_at": "2026-11-19T19:59:00Z",
           "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-d3f8b82a.json",
           "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_anxietydisorderaaaaa",
+      "kind": "condition",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|F41.1|2026-04-02",
+      "date": "2026-04-02",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/icd-10-cm",
+        "code": "F41.1",
+        "display": "Generalized anxiety disorder"
+      },
+      "display": "Generalized anxiety disorder",
+      "status": "active",
+      "fields": {
+        "when": "2026-04-02",
+        "verification_status": "confirmed",
+        "category": "Problem list item"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Condition",
+            "id": "condition-a1f00001",
+            "last_updated": "2026-04-02T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_sertralinetabletaaaa",
+      "kind": "medication",
+      "key": "medication|http://www.nlm.nih.gov/research/umls/rxnorm|312940|2026-04-02",
+      "date": "2026-04-02",
+      "code": {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "code": "312940",
+        "display": "sertraline 50 MG Oral Tablet"
+      },
+      "display": "Sertraline 50 mg tablet",
+      "status": "active",
+      "fields": {
+        "when": "2026-04-02",
+        "dosage": "Take 1 tablet by mouth once a day",
+        "prescriber": "Dr. Jordan Sample",
+        "intent": "order",
+        "source": "request"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationRequest",
+            "id": "medicationrequest-a1f00002",
+            "last_updated": "2026-04-02T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_chlamydiatestaaaaaaa",
+      "kind": "result",
+      "key": "result|http://loinc.org|43304-5|2026-04-02",
+      "date": "2026-04-02",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "43304-5",
+        "display": "Chlamydia trachomatis rRNA [Presence] in Specimen by NAA with probe detection"
+      },
+      "display": "Chlamydia trachomatis RNA",
+      "status": "final",
+      "fields": {
+        "when": "2026-04-02",
+        "value": "Not detected",
+        "reference_range": "Not detected",
+        "category": "Laboratory",
+        "issued": "2026-04-03T15:00:00Z"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-a1f00003",
+            "last_updated": "2026-04-02T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_potassiumolderaaaaaa",
+      "kind": "result",
+      "key": "result|http://loinc.org|2823-3|2024-09-02",
+      "date": "2024-09-02",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "2823-3",
+        "display": "Potassium"
+      },
+      "display": "Potassium",
+      "status": "final",
+      "fields": {
+        "when": "2024-09-02",
+        "value": {
+          "value": 4.2,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "3.5-5.1 mmol/L",
+        "category": "Laboratory",
+        "issued": "2024-09-02T15:00:00Z",
+        "performer": "Example Counseling Center"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-a1f00009",
+            "last_updated": "2024-09-02T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_therapysessionaaaaaa",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|90834|2026-05-06",
+      "date": "2026-05-06",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "90834",
+        "display": "Counseling visit"
+      },
+      "display": "Counseling visit",
+      "status": "finished",
+      "fields": {
+        "when": "2026-05-06",
+        "class": "ambulatory",
+        "practitioner": "Morgan Sample",
+        "location": "Example Counseling Center",
+        "reason": "Counseling visit",
+        "period": {
+          "start": "2026-05-06T15:00:00Z",
+          "end": "2026-05-06T15:45:00Z"
+        }
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "icanotes",
+            "cli_version": "0.1.0",
+            "organization_id": "example-counseling",
+            "fhir_base": "https://icanotes.example.test/fhir"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-a1f00004",
+            "last_updated": "2026-05-06T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_followupvisitaaaaaaa",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99214|2026-07-15",
+      "date": "2026-07-15",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99214",
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2026-07-15",
+        "class": "ambulatory",
+        "practitioner": "Dr. Jordan Sample",
+        "location": "Example Health Main Clinic",
+        "reason": "Medicine check",
+        "period": {
+          "start": "2026-07-15T14:00:00Z",
+          "end": "2026-07-15T14:30:00Z"
+        }
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-a1f00005",
+            "last_updated": "2026-07-15T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_counselingclaimaaaaa",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-07-15",
+      "date": "2026-07-15",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit · Example Health",
+      "status": "active",
+      "fields": {
+        "when": "2026-07-15",
+        "provider": "Example Health",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-07-15",
+          "end": "2026-07-15"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "F41.1"
+            }
+          },
+          {
+            "sequence": 2,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "I10"
+            }
+          }
+        ],
+        "amounts": {
+          "billed": {
+            "amount": "190.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "120.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "95.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "25.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99214",
+              "display": "Office visit"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "190.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "120.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "95.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "25.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "visit"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-a1f00006",
+            "last_updated": "2026-07-20T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T18:30:00Z",
+          "filed_at": "2026-11-22T18:30:00Z",
+          "filed_by": "medrec 0.9.2"
         }
       ]
     }

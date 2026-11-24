@@ -9,7 +9,7 @@ from the records, with no computer left on to serve them.
 
 It offers the four tools of `medrec mcp` 0.9.3 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 185 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 230 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
 
 | Tool | What it answers |

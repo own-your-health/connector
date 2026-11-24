@@ -179,7 +179,7 @@ describe('the views store', () => {
     expect(page.items.length).toBeGreaterThan(0);
     expect(page.items.some((x) => x.person === 'Sam Example')).toBe(false);
     expect(page.items.every((x) => x.snippet.length > 0)).toBe(true);
-    expect(page.warnings).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Sam Example's records are being prepared/) }]);
+    expect(page.warnings?.filter((w) => w.code === 'person-unavailable')).toEqual([{ code: 'person-unavailable', message: expect.stringMatching(/^Sam Example's records are being prepared/) }]);
     // Asked about Sam by name, the error is the answer.
     const named = (await callTool('medrec_search', { query: 'cholesterol', person: 'Sam' }, { store: new ViewsStore(new Folder(new Short(large), new ParsedCache(), large)), today: TODAY }))!;
     expect(named.isError).toBe(true);
@@ -238,7 +238,8 @@ describe('the views store', () => {
     expect((r.structuredContent as Page).items).toEqual((files.structuredContent as Page).items);
     expect((r.structuredContent as Page).warnings?.map((w) => w.code)).toEqual((files.structuredContent as Page).warnings?.map((w) => w.code));
     const unknown = (r.structuredContent as Page).warnings?.filter((w) => w.code === 'private-not-prepared') ?? [];
-    expect(unknown).toHaveLength(4);
+    const people = (JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: unknown[] }).people;
+    expect(unknown).toHaveLength(people.length);
     expect(unknown.every((w) => /their views are in a newer layout \(medrec-views\/v3\)/.test(w.message))).toBe(true);
   });
 
@@ -349,7 +350,7 @@ describe('the views through Drive', () => {
     it(`answers ${name} ${JSON.stringify(args)} as the files do, in few requests`, async () => {
       const { r, requests } = await viaDrive(large, name, args);
       expect(r).toEqual(await raw(large, name, args));
-      expect(requests).toBeLessThanOrEqual(40);
+      expect(requests).toBeLessThanOrEqual(SUBREQUESTS - 6);
     });
   }
 
@@ -480,8 +481,8 @@ describe('events from the views (medrec 0.9.0)', () => {
     expect(r.isError).toBe(false);
     expect(new Set(items(r).map((x) => x.person))).toEqual(new Set(['Alex Example']));
     const warnings = (r.structuredContent as { warnings: { code: string; message: string }[] }).warnings;
-    expect(warnings.map((w) => w.code)).toEqual(['person-unavailable', 'person-unavailable', 'person-unavailable']);
-    expect(warnings.map((w) => w.message.split("'")[0])).toEqual(['Robin Example', 'Sam Example', 'Jamie Example']);
+    const unavailable = warnings.filter((w) => w.code === 'person-unavailable');
+    expect(unavailable.map((w) => w.message.split("'")[0])).toEqual(['Robin Example', 'Sam Example', 'Jamie Example']);
   });
 
   it('refuses events listed without what they were made from', async () => {
@@ -678,6 +679,14 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
       ...extra,
     });
 
+  /** A copy of the demo with no private items of its own. */
+  function plain(name: string): string {
+    const root = copy(demo, name);
+    const people = (JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { name: string }[] }).people;
+    for (const x of people) privateOf(root, x.name, {});
+    return root;
+  }
+
   const CETIRIZINE = 'r_ctwssd77qny2ietw76dy';
 
   it('names an item only by a word of its own', () => {
@@ -693,7 +702,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   });
 
   it('leaves a private record out of an answer about everyone, counts it, and marks it where it is included', async () => {
-    const root = copy(demo, 'private-record');
+    const root = plain('private-record');
     privateOf(root, 'Robin Example', { records: { [CETIRIZINE]: 'mental_health' } });
     const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
     expect(everyone.items.some((x) => x.id === CETIRIZINE)).toBe(false);
@@ -716,7 +725,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   });
 
   it("counts each page's left-out items so that the pages add up to one page's count", async () => {
-    const root = copy(demo, 'private-pages');
+    const root = plain('private-pages');
     const all = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 200 })).r);
     const robin = all.items.filter((x) => x.person === 'Robin Example' && /^[rd]_/.test(x.id));
     const chosen = [robin[1]!, robin[4]!, robin[5]!, robin[robin.length - 1]!];
@@ -741,7 +750,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   });
 
   it("holds back all of a person's records, documents and events when their marks.json does not read", async () => {
-    const root = copy(demo, 'private-unreadable');
+    const root = plain('private-unreadable');
     privateOf(root, 'Sam Example', {}, { marks_unreadable: true });
     const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
     expect(everyone.items.some((x) => x.person === 'Sam Example')).toBe(false);
@@ -789,7 +798,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   });
 
   it('says a bill is paid or what is left on it, and leaves settled bills out of the summary', async () => {
-    const root = copy(demo, 'bills-paid');
+    const root = plain('bills-paid');
     const pid = personId(root, 'Robin Example');
     const bills = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/bills/records', `${pid}.json`), 'utf8')) as { bills: Record<string, Record<string, unknown>> };
     const paid = 'd_pv57tjsi5ot4237rjcdf';
@@ -824,7 +833,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   }
 
   it('holds back a series of tests when any of its results is private, and marks it with the first private one\'s area (medrec 0.9.3)', async () => {
-    const root = copy(demo, 'private-series');
+    const root = plain('private-series');
     const series = seriesOf(root, 'Robin Example').find((x) => x.length >= 3)!;
     const [latest, second, oldest] = [series[0]!, series[1]!, series[series.length - 1]!];
     const tests = async (args: Record<string, unknown>) => {
@@ -901,7 +910,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     ['search-items.bin does not list the record', (id: string) => (s: string) => s.replace(`"${id}"`, `"${id.slice(0, -1)}${id.endsWith('a') ? 'b' : 'a'}"`)],
     ['no entry of tests.json has its date and name', (id: string) => (s: string) => s.replace(new RegExp(`"${id}","(.)`), (m, c: string) => m.slice(0, -1) + (c === 'X' ? 'Y' : 'X'))],
   ] as const)('answers no tests of a person whose private result it cannot place: %s', async (_why, change) => {
-    const root = copy(demo, `private-unplaced-${_why.slice(0, 6).replace(/\W/g, '')}`);
+    const root = plain(`private-unplaced-${_why.slice(0, 6).replace(/\W/g, '')}`);
     const oldest = seriesOf(root, 'Robin Example').find((x) => x.length >= 3)!.at(-1)!;
     privateOf(root, 'Robin Example', { records: { [oldest.id]: 'mental_health' } });
     changeView(root, 'Robin Example', 'search-items.bin', change(oldest.id));
