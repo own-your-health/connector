@@ -13,7 +13,8 @@
 // many items as the page it answers needs.
 
 import type { Folder } from './folder';
-import type { DocumentEntry, Household, Note, Person, RecordEntry } from './model';
+import { ToolError } from '../mcp/errors';
+import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
 import {
   CLIP,
@@ -83,6 +84,13 @@ export interface Store {
   documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]>;
   /** Fetch what the hits' snippets need in as few requests as the store can, before `snippet()` is called on each. */
   prepare?(hits: Candidate[]): Promise<void>;
+  /**
+   * The person's events, as medrec 0.9.0 and later write them in their views
+   * (`events.json`, medrec-events/v1), in that file's order. Only medrec
+   * groups records into events, so a person without current events gets a
+   * personUnavailable error, however small their files.
+   */
+  events(h: Household, p: Person): Promise<JsonObject[]>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -174,6 +182,11 @@ export function searchTerms(query: string): { terms: string[]; labs: boolean } {
 export class RawStore implements Store {
   constructor(readonly folder: Folder) {}
 
+  /** Events are medrec's alone, in its views, which this store does not read. */
+  async events(_h: Household, p: Person): Promise<JsonObject[]> {
+    throw eventsNotPrepared(p);
+  }
+
   household(): Promise<Household> {
     return this.folder.household();
   }
@@ -254,4 +267,11 @@ export class RawStore implements Store {
       .slice(0, 20)
       .map((r) => clip(r.display, CLIP));
   }
+}
+
+/** No events.json for this person: an older medrec, or views another writer made. */
+export function eventsNotPrepared(p: Person): ToolError {
+  return ToolError.upstream(`medrec has not prepared ${p.name}'s events for assistants`)
+    .withFix("Tell the user medrec 0.9.0 or later prepares them on its next pass on the household's computer (medrec refresh), then ask again")
+    .personUnavailable(p.id);
 }

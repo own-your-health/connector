@@ -1,7 +1,7 @@
 {
   "schema": "medrec-index/v1",
   "person": "p_wwezzed7kml67hnp6s7n",
-  "rev": 9,
+  "rev": 10,
   "documents": [
     {
       "id": "d_x3qad3sdurwcpiioun23",
@@ -768,6 +768,405 @@
           "filed_at": "2026-11-22T14:59:00Z",
           "raw_path": "Sam Example/Records/mychart-example-health/Encounter/encounter-cdc3b03e.json",
           "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_sambirthaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-ad1401d0|2026-05-31",
+      "date": "2026-05-31",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "institutional",
+        "display": "Institutional"
+      },
+      "display": "Room and board · Example Health Medical Center",
+      "status": "active",
+      "fields": {
+        "when": "2026-05-31",
+        "provider": "Example Health Medical Center",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-05-31",
+          "end": "2026-06-02"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "18500.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "8200.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "7400.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "800.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "800.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "7400.00",
+          "currency": "USD"
+        },
+        "type": "Institutional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "18500.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "8200.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "7400.00",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "800.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "800.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "facility",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "59400",
+              "display": "Room and board"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "18500.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "8200.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "7400.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "800.00",
+                "currency": "USD"
+              }
+            },
+            "revenue": {
+              "system": "https://www.nubc.org/CodeSystem/RevenueCodes",
+              "code": "0120",
+              "display": "Room and board"
+            }
+          }
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-ad1401d0",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Sam Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-ad1401d0.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_samobaaaaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-75a1ed78|2026-06-02",
+      "date": "2026-06-02",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Day of discharge · Example OB Hospitalists",
+      "status": "active",
+      "fields": {
+        "when": "2026-06-02",
+        "provider": "Example OB Hospitalists",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-06-02",
+          "end": "2026-06-02"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "420.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "160.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "160.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "160.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "420.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "160.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "160.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99238",
+              "display": "Day of discharge"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "420.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "160.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "160.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "visit"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-75a1ed78",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Sam Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-75a1ed78.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_samanesaaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-0d7a1e17|2026-06-01",
+      "date": "2026-06-01",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Anesthesia for labor · Example Anesthesia Partners",
+      "status": "active",
+      "fields": {
+        "when": "2026-06-01",
+        "provider": "Example Anesthesia Partners",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-06-01",
+          "end": "2026-06-01"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "2400.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "690.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "690.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "690.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "2400.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "690.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "690.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "anesthesia",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "01967",
+              "display": "Anesthesia for labor"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "2400.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "690.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "690.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "anesthesia"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-0d7a1e17",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Sam Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-0d7a1e17.json",
+          "filed_by": "medrec 0.9.0"
         }
       ]
     }

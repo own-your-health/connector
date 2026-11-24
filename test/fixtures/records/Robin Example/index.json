@@ -1,7 +1,7 @@
 {
   "schema": "medrec-index/v1",
   "person": "p_xo4em46i7yj3hphlpajo",
-  "rev": 9,
+  "rev": 10,
   "documents": [
     {
       "id": "d_yxneikjpr2ku6f473zde",
@@ -2404,7 +2404,33 @@
           "currency": "USD"
         },
         "type": "Professional",
-        "use": "claim"
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "180.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "112.50",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "87.50",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "25.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "25.00",
+            "currency": "USD"
+          }
+        }
       },
       "documents": [],
       "provenance": [
@@ -2498,7 +2524,33 @@
           "currency": "USD"
         },
         "type": "Professional",
-        "use": "claim"
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "220.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "96.40",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "77.12",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "19.28",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "19.28",
+            "currency": "USD"
+          }
+        }
       },
       "documents": [],
       "provenance": [
@@ -2624,7 +2676,33 @@
               }
             ]
           }
-        ]
+        ],
+        "amounts": {
+          "billed": {
+            "amount": "412.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "268.40",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "214.72",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "53.68",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "53.68",
+            "currency": "USD"
+          }
+        }
       },
       "documents": [
         "d_yxneikjpr2ku6f473zde"
@@ -2720,7 +2798,33 @@
           "currency": "USD"
         },
         "type": "Professional",
-        "use": "claim"
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "189.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "121.10",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "121.10",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        }
       },
       "documents": [],
       "provenance": [
@@ -2814,7 +2918,33 @@
           "currency": "USD"
         },
         "type": "Professional",
-        "use": "claim"
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "398.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "255.90",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "204.72",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "51.18",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "51.18",
+            "currency": "USD"
+          }
+        }
       },
       "documents": [],
       "provenance": [
@@ -3143,6 +3273,689 @@
           "filed_at": "2026-11-14T19:59:00Z",
           "raw_path": "Robin Example/Records/mychart-example-health/Encounter/encounter-30990749.json",
           "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_roberaaaaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-a7e5acd5|2026-08-14",
+      "date": "2026-08-14",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "institutional",
+        "display": "Institutional"
+      },
+      "display": "Emergency room visit · Example Health Medical Center",
+      "status": "active",
+      "fields": {
+        "when": "2026-08-14",
+        "provider": "Example Health Medical Center",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-08-14",
+          "end": "2026-08-14"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "3850.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "1120.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "870.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "250.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "250.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "870.00",
+          "currency": "USD"
+        },
+        "type": "Institutional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "3850.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "1120.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "870.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "250.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "250.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99284",
+              "display": "Emergency room visit"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "3200.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "980.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "730.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "250.00",
+                "currency": "USD"
+              }
+            },
+            "revenue": {
+              "system": "https://www.nubc.org/CodeSystem/RevenueCodes",
+              "code": "0450",
+              "display": "Emergency room visit"
+            }
+          },
+          {
+            "sequence": 2,
+            "category": "lab",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "85025",
+              "display": "Blood count"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "650.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "140.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "140.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "revenue": {
+              "system": "https://www.nubc.org/CodeSystem/RevenueCodes",
+              "code": "0300",
+              "display": "Blood count"
+            }
+          }
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-a7e5acd5",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-a7e5acd5.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_robfillaaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-8cbfdd5b|2026-10-02",
+      "date": "2026-10-02",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "pharmacy",
+        "display": "Pharmacy"
+      },
+      "display": "Amoxicillin 500 mg",
+      "status": "active",
+      "fields": {
+        "when": "2026-10-02",
+        "provider": "Example Pharmacy",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-10-02",
+          "end": "2026-10-02"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "24.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "14.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "10.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "10.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "14.00",
+          "currency": "USD"
+        },
+        "type": "Pharmacy",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "24.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "14.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "10.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "10.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "pharmacy",
+            "service": {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "00000000000",
+              "display": "Amoxicillin 500 mg"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "24.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "14.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "10.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "pharmacy"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-8cbfdd5b",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-8cbfdd5b.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_robtwoaaaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-88eac843|2026-09-08",
+      "date": "2026-09-08",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit · A SAMPLE",
+      "status": "active",
+      "fields": {
+        "when": "2026-09-08",
+        "provider": "A SAMPLE",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-09-08",
+          "end": "2026-09-08"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "210.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "95.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "95.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "95.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "210.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "95.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "95.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99213",
+              "display": "Office visit"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "210.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "95.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "95.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "visit"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-88eac843",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-88eac843.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_robtwobaaaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-d08cbe94|2026-09-08",
+      "date": "2026-09-08",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit · B EXAMPLE",
+      "status": "active",
+      "fields": {
+        "when": "2026-09-08",
+        "provider": "B EXAMPLE",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-09-08",
+          "end": "2026-09-08"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "270.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "125.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "125.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "125.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "270.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "125.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "125.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "visit",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99214",
+              "display": "Office visit"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "270.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "125.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "125.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "visit"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-d08cbe94",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-d08cbe94.json",
+          "filed_by": "medrec 0.9.0"
+        }
+      ]
+    },
+    {
+      "id": "r_robtwolabaaaaaaaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-d3f8b82a|2026-09-08",
+      "date": "2026-09-08",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Metabolic panel · Example Lab",
+      "status": "active",
+      "fields": {
+        "when": "2026-09-08",
+        "provider": "Example Lab",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-09-08",
+          "end": "2026-09-08"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "60.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "11.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "11.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "11.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "amounts": {
+          "billed": {
+            "amount": "60.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "11.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "11.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "items": [
+          {
+            "sequence": 1,
+            "category": "lab",
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "80053",
+              "display": "Metabolic panel"
+            },
+            "amounts": {
+              "billed": {
+                "amount": "60.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "11.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "11.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            }
+          }
+        ],
+        "category": "lab"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "portal",
+            "cli": "uhc",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health-plan"
+          },
+          "method": "portal",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-d3f8b82a",
+            "last_updated": "2026-11-19T08:00:00Z"
+          },
+          "fetched_at": "2026-11-19T19:59:00Z",
+          "filed_at": "2026-11-19T19:59:00Z",
+          "raw_path": "Robin Example/Records/uhc-example-health-plan/ExplanationOfBenefit/explanationofbenefit-d3f8b82a.json",
+          "filed_by": "medrec 0.9.0"
         }
       ]
     }

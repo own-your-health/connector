@@ -21,6 +21,7 @@
 //   views/<person id>/search-items.bin     each searchable item: where its text is, and its date, kind, id and title
 //   views/<person id>/search-hay-<n>.bin   each searchable item's text, UTF-8, for snippets, 512 items a pack
 //   views/<person id>/search-labs-<n>.json what a lab query finds by kind
+//   views/<person id>/events.json          medrec 0.9.0 on: what happened, one per visit, stay or fill
 //
 // Search items are numbered in the reverse of medrec's order for hits of
 // equal score (date, newest first, undated last, then as the files hold
@@ -37,6 +38,8 @@ export const VIEWS_DIR = 'views';
  * content-addressed names with hay in packs.
  */
 export const VIEWS_SCHEMA = 'medrec-views/v2';
+/** events.json's own layout (medrec 0.9.0 on). */
+export const EVENTS_SCHEMA = 'medrec-events/v1';
 export const VIEWS_INDEX = `${VIEWS_DIR}/views.json`;
 
 /** A person's views directory, with the trailing slash. */
@@ -107,6 +110,13 @@ export interface PersonViews {
    * differs belongs to another pass, which is still arriving.
    */
   files: Record<string, string>;
+  /**
+   * medrec 0.9.0 on, for events.json alone: the MD5 of the person's
+   * overrides.json (null when absent), and of the index.json and text.json of
+   * each person whose records the newborn rules read. Other views ignore them.
+   */
+  overrides?: string | null;
+  linked?: Record<string, { index: string | null; text: string | null }>;
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */
@@ -204,6 +214,8 @@ export const paths = {
   labs: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-labs-${n}.json`,
   items: (pid: string) => `${VIEWS_DIR}/${pid}/search-items.bin`,
   hay: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-hay-${n}.bin`,
+  /** medrec 0.9.0 on: what happened, one event per visit, stay or fill (medrec-events/v1); this connector does not write it. */
+  events: (pid: string) => `${VIEWS_DIR}/${pid}/events.json`,
 };
 
 export type { Json };

@@ -1,0 +1,21 @@
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "explanationofbenefit-8cbfdd5b",
+  "meta": {
+    "lastUpdated": "2026-11-19T08:00:00Z"
+  },
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "pharmacy"
+      }
+    ]
+  },
+  "use": "claim",
+  "billablePeriod": {
+    "start": "2026-10-02",
+    "end": "2026-10-02"
+  },
+  "outcome": "complete"
+}
