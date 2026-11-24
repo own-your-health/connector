@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { appendFileSync, cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join, relative } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { synth } from '../scripts/synth.mjs';
 import { DriveSource, SUBREQUESTS } from '../src/records/drive-source';
 import { Folder, ParsedCache } from '../src/records/folder';
@@ -924,18 +924,61 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
       }
     });
 
-    it('answers without them when reading them fails', async () => {
-      class Failing extends LocalSource {
-        override async read(path: string): Promise<string | null> {
-          if (path.includes('code-names')) throw ToolError.usage('past the limit');
-          return super.read(path);
+    it('answers without them when reading them fails, whatever the error, and logs no more than its class', async () => {
+      for (const [what, fail] of [
+        ['ToolError', () => ToolError.usage('past the limit')],
+        ['Error', () => new Error('Network connection lost: secret')],
+        ['AbortError', () => new DOMException('secret', 'AbortError')],
+      ] as const) {
+        class Failing extends LocalSource {
+          override async read(path: string): Promise<string | null> {
+            if (path.includes('code-names')) throw fail();
+            return super.read(path);
+          }
+        }
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+          for (const [tool, args] of [['medrec_records', { kind: 'conditions', person: 'Robin' }], ['medrec_records', { kind: 'conditions' }], ['medrec_summary', { person: 'Robin' }]] as const) {
+            const r = (await callTool(tool, args as Record<string, unknown>, { store: new ViewsStore(new Folder(new Failing(demo), new ParsedCache(), demo)), today: TODAY }))!;
+            expect(r.isError ?? false, what).toBe(false);
+            expect(JSON.stringify(r)).not.toContain('plain_name');
+          }
+          if (what === 'ToolError') expect(logged).not.toHaveBeenCalled();
+          else {
+            expect(logged).toHaveBeenCalled();
+            expect(logged.mock.calls.flat().join(' ')).not.toContain('secret');
+          }
+        } finally {
+          logged.mockRestore();
         }
       }
-      for (const [tool, args] of [['medrec_records', { kind: 'conditions', person: 'Robin' }], ['medrec_records', { kind: 'conditions' }], ['medrec_summary', { person: 'Robin' }]] as const) {
-        const r = (await callTool(tool, args as Record<string, unknown>, { store: new ViewsStore(new Folder(new Failing(demo), new ParsedCache(), demo)), today: TODAY }))!;
-        expect(r.isError ?? false).toBe(false);
-        expect(JSON.stringify(r)).not.toContain('plain_name');
+    });
+
+    it('reads them last in a summary, so a request they take is none the answer needs', async () => {
+      class Last extends LocalSource {
+        private done = false;
+        override async read(path: string): Promise<string | null> {
+          if (this.done && !path.includes('code-names')) throw ToolError.usage('past the limit');
+          const body = await super.read(path);
+          if (path.includes('code-names')) this.done = true;
+          return body;
+        }
       }
+      // More bills than a summary lists and one of them settled: the bills are made again from documents.json.
+      const root = copy(demo, 'plain-last');
+      const pid = personId(root, 'Robin Example');
+      const summary = JSON.parse(readFileSync(stored(root, paths.summary(pid)), 'utf8')) as { bills: { items: { document: string }[]; more: number } };
+      summary.bills.more = 1;
+      setView(root, 'Robin Example', 'summary.json', summary as unknown as Record<string, unknown>);
+      const bills = JSON.parse(readFileSync(stored(root, `views/${pid}/bills.json`), 'utf8')) as { bills: Record<string, Record<string, unknown>> };
+      bills.bills[summary.bills.items[0]!.document]!.settled = true;
+      setView(root, 'Robin Example', 'bills.json', bills as unknown as Record<string, unknown>);
+      const { r: asked, read } = await ask(root, 'medrec_summary', { person: 'Robin' });
+      expect(read.some((f) => f.includes('documents'))).toBe(true);
+      const r = (await callTool('medrec_summary', { person: 'Robin' }, { store: new ViewsStore(new Folder(new Last(root), new ParsedCache(), root)), today: TODAY }))!;
+      expect(r.isError ?? false).toBe(false);
+      expect(r).toEqual(asked);
+      expect(JSON.stringify(r)).toContain('plain_name');
     });
   });
 

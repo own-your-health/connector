@@ -348,8 +348,9 @@ async function summaryTool(a: Args, ctx: Context): Promise<Record<string, unknow
     throw personError(e);
   }
   const [s, privacy, standing] = await Promise.all([ctx.store.summary(h, p, ctx.today, SUMMARY_LINES), ctx.store.privacy(h, p), ctx.store.bills(h, p)]);
-  const plain = s.conditions.items.some((l) => l.name_key !== undefined) ? await codeNames(ctx, h, p) : NO_NAMES;
   if (standing) s.bills = await unsettled(ctx, h, p, s.bills, standing);
+  // Last, so a request the labels take is never one the answer needs.
+  const plain = s.conditions.items.some((l) => l.name_key !== undefined) ? await codeNames(ctx, h, p) : NO_NAMES;
   return { people: rows, summary: sections(s, (id) => privacy.areas.get(id), plain) };
 }
 
@@ -370,8 +371,9 @@ async function codeNames(ctx: Context, h: Household, p: Person): Promise<CodeNam
   try {
     return await ctx.store.codeNames(h, p);
   } catch (e) {
-    if (e instanceof ToolError) return NO_NAMES;
-    throw e;
+    // Only the error's class is logged: a message could quote a record. A ToolError (Drive, a limit) is expected.
+    if (!(e instanceof ToolError)) console.error(`plain names failed: ${e instanceof Error ? e.name : typeof e}`);
+    return NO_NAMES;
   }
 }
 
