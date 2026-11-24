@@ -924,11 +924,11 @@
         "code": "professional",
         "display": "Professional"
       },
-      "display": "Day of discharge · Example OB Hospitalists",
+      "display": "Day of discharge · Sample Rheumatology Group",
       "status": "active",
       "fields": {
         "when": "2026-06-02",
-        "provider": "Example OB Hospitalists",
+        "provider": "Sample Rheumatology Group",
         "insurer": "Example Health Plan",
         "outcome": "complete",
         "billable_period": {
