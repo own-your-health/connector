@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Records what `medrec mcp` answers to test/golden/calls.json, over the demo
-// folder, the large synthetic one (scripts/synth.mjs) and medrec's own three, for
-// provider labels (scripts/labels-folder.mjs), for what sources say and for what
-// is entered in error (scripts/own-folder.mjs), into
+// folder, the large synthetic one (scripts/synth.mjs) and medrec's own four, for
+// provider labels (scripts/labels-folder.mjs), for what sources say, for what is
+// entered in error and for what a source gave (scripts/own-folder.mjs), into
 // test/golden/medrec-<version>.json. test/golden.test.ts then holds this
 // connector's answers to the same calls equal to medrec's.
 //

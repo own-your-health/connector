@@ -3091,6 +3091,213 @@
       "arguments": {
         "person": "Robin"
       }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "hearing"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "hearing"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "hearing"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "hearing",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "counseling"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "counseling",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "office visit"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "office visit",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "given",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_hearbillaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_footbillaaaaaaaaaaaa"
+      }
     }
   ]
 }

@@ -1,7 +1,8 @@
-// Writes the folder of test/fixtures/words or test/fixtures/errors (medrec's own
-// fixtures for what each source says of a condition, an allergy or a medicine,
-// and for what is entered in error) as medrec reads it, with the views medrec
-// wrote for it when `views`. Both are of the household in test/fixtures/words.
+// Writes the folder of test/fixtures/words, test/fixtures/errors or
+// test/fixtures/given (medrec's own fixtures for what each source says of a
+// condition, an allergy or a medicine, for what is entered in error, and for
+// what a source gave and no item shows) as medrec reads it, with the views
+// medrec wrote for it when `views`. All are of the household in test/fixtures/words.
 
 import { cpSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,7 +10,7 @@ import { join } from 'node:path';
 const FIXTURES = join(import.meta.dirname, '../test/fixtures');
 const HOUSEHOLD = join(FIXTURES, 'words/household.json');
 
-export const OWN = ['words', 'errors'];
+export const OWN = ['words', 'errors', 'given'];
 
 export function ownFolder(name, out, { views = false } = {}) {
   const from = join(FIXTURES, name);

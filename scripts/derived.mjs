@@ -5,8 +5,9 @@
 // test/fixtures/<view>/labels/<person id>.json over test/fixtures/labels, for each
 // of events.json, bills.json, private.json, providers.json (which a person
 // with no labelled provider has none of) and standing.json, byte for byte as
-// `medrec views write` wrote them, and test/fixtures/words/views/ and
-// test/fixtures/errors/views/, all of what it wrote for those two. medrec runs from a throwaway profile in a scratch home, so
+// `medrec views write` wrote them, and test/fixtures/words/views/,
+// test/fixtures/errors/views/ and test/fixtures/given/views/, all of what it wrote
+// for those three. medrec runs from a throwaway profile in a scratch home, so
 // nothing of this machine's medrec is read or changed.
 //
 //   node scripts/derived.mjs
