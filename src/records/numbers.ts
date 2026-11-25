@@ -18,52 +18,66 @@ export const isExact = isRawJSON;
 
 export const isObject = (v: Json | undefined): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v) && !isExact(v);
 
-const QUOTE = 34;
-const BACKSLASH = 92;
-/** Whether a character can be part of a number. */
-const numeric = (c: number) => (c >= 48 && c <= 57) || c === 45 || c === 46 || c === 43 || c === 101 || c === 69;
+/** A number JSON.parse may change, where a value could be, and then what may follow a value. */
+const MAYBE = /(?:^|[:,[])\s*(-0|-?(?:\d+\.\d*0|0\.0{6}\d+|\d[\d.]{15,}|\d[\d.]*[eE][-+]?\d+))(?=\s*(?:[,}\]]|$))/g;
+
+/** Whether the quote at `q` is one of a string's two, not one escaped in it. */
+function bare(text: string, q: number): boolean {
+  let k = q;
+  while (text[k - 1] === '\\') k--;
+  return (q - k) % 2 === 0;
+}
 
 /** Where `text` has a number JSON.parse would change, as [first character, after the last]. */
 function changed(text: string): [number, number][] {
   const out: [number, number][] = [];
-  for (let i = 0; i < text.length; ) {
-    const c = text.charCodeAt(i);
-    if (c === QUOTE) {
-      // To the end of the string: the next quote an even number of backslashes come before.
-      let end = i;
-      for (let escaped = true; escaped; ) {
-        end = text.indexOf('"', end + 1);
+  // Not in a string, and neither is anything before it that is still to be told.
+  let known = 0;
+  for (const m of text.matchAll(MAYBE)) {
+    const n = m[1]!;
+    const at = m.index;
+    if (String(Number(n)) === n) continue;
+    let told = false;
+    if (text[at] === ':') {
+      // Outside a string a ':' follows a string's end.
+      let q = at - 1;
+      while (text.charCodeAt(q) <= 32) q--;
+      if (text[q] !== '"' || !bare(text, q)) continue;
+      // A string's start follows one of these, or a space; after anything else, the quote is an end.
+      told = !'{[,:'.includes(text[q - 1]!) && text.charCodeAt(q - 1) > 32;
+    }
+    if (!told) {
+      for (let open = text.indexOf('"', known); open !== -1 && open < at; open = text.indexOf('"', known)) {
+        let end = text.indexOf('"', open + 1);
+        while (end !== -1 && !bare(text, end)) end = text.indexOf('"', end + 1);
         if (end === -1) return out;
-        let k = end;
-        while (text.charCodeAt(k - 1) === BACKSLASH) k--;
-        escaped = (end - k) % 2 === 1;
+        known = end + 1;
       }
-      i = end + 1;
-    } else if ((c >= 48 && c <= 57) || c === 45) {
-      let end = i + 1;
-      while (end < text.length && numeric(text.charCodeAt(end))) end++;
-      const n = text.slice(i, end);
-      if (String(Number(n)) !== n) out.push([i, end]);
-      i = end;
-    } else i++;
+      if (at < known) continue;
+    }
+    known = at + m[0].length;
+    out.push([known - n.length, known]);
   }
   return out;
 }
 
 /** Starts the string that stands for a number while the text is parsed. No string of it starts so: see parseExact. */
 const MARK = '\u0000#';
-const restored = (v: unknown): unknown => {
-  if (typeof v === 'string') return v.startsWith(MARK) ? rawJSON(v.slice(MARK.length)) : v;
-  if (typeof v === 'object' && v !== null) restore(v as Record<string | number, unknown>);
-  return v;
-};
-function restore(o: Record<string | number, unknown>): void {
-  if (Array.isArray(o)) for (let i = 0; i < o.length; i++) o[i] = restored(o[i]);
-  else {
+const marked = (v: unknown): v is string => typeof v === 'string' && v.startsWith(MARK);
+const restored = (s: string) => rawJSON(s.slice(MARK.length));
+/** Puts the numbers back in `o`, an object or array. */
+function restore(o: Record<string | number, unknown> | unknown[]): void {
+  if (Array.isArray(o)) {
+    for (let i = 0; i < o.length; i++) {
+      const x = o[i];
+      if (typeof x === 'object' && x !== null) restore(x as Record<string, unknown>);
+      else if (marked(x)) o[i] = restored(x);
+    }
+  } else {
     for (const k in o) {
       const x = o[k];
-      const y = restored(x);
-      if (y !== x) o[k] = y;
+      if (typeof x === 'object' && x !== null) restore(x as Record<string, unknown>);
+      else if (marked(x)) o[k] = restored(x);
     }
   }
 }
@@ -72,19 +86,18 @@ function restore(o: Record<string | number, unknown>): void {
 export function parseExact(text: string): unknown {
   const at = changed(text);
   if (at.length === 0) return JSON.parse(text);
-  // A string that starts with a NUL is written with this escape. Where the
-  // text has it, the engine's own account of each number is used: it needs no
+  // JSON writes a string that starts with a NUL only this way. Where the text
+  // has one, the engine's own account of each number is used: it needs no
   // mark, and takes several times as long.
-  if (text.includes('\\u0000')) return parse(text, (_, v, { source }) => (typeof v === 'number' && source !== undefined && String(v) !== source ? rawJSON(source) : v));
-  let marked = '';
+  if (text.includes('"\\u0000')) return parse(text, (_, v, { source }) => (typeof v === 'number' && source !== undefined && String(v) !== source ? rawJSON(source) : v));
+  let out = '';
   let from = 0;
   for (const [a, b] of at) {
-    // A number is followed by one of these, or by the end; where it is not, this is not JSON, and must not become it.
-    let next = b;
-    while (text.charCodeAt(next) <= 32) next++;
-    if (next < text.length && !',]}'.includes(text[next]!)) return JSON.parse(text);
-    marked += `${text.slice(from, a)}"\\u0000#${text.slice(a, b)}"`;
+    out += `${text.slice(from, a)}"\\u0000#${text.slice(a, b)}"`;
     from = b;
   }
-  return restored(JSON.parse(marked + text.slice(from)));
+  const v: unknown = JSON.parse(out + text.slice(from));
+  if (marked(v)) return restored(v);
+  if (typeof v === 'object' && v !== null) restore(v as Record<string, unknown>);
+  return v;
 }

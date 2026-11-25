@@ -15,7 +15,7 @@ import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 import { DEMO, LocalSource, addDerived, folderAt } from './support';
 
-const KEPT = ['4.0', '4.10', '0.90', '-1.0', '100.00', '0.0', '-0', '-0.0', '1e5', '1E-2', '1.50e+3', '12345678901234567890', '0.12345678901234567890', '-0.10', '0.0000005', '-0.0000005'];
+const KEPT = ['4.0', '4.10', '0.90', '-1.0', '100.00', '0.0', '-0', '-0.0', '1e5', '1E-2', '1.50e+3', '9007199254740993', '12345678901234567890', '0.12345678901234567890', '-0.10', '0.0000005', '-0.0000005'];
 const PLAIN = ['0', '4', '-4', '10', '100', '4.1', '0.9', '5.37', '-2.5', '1000000', '9007199254740991', '0.000001'];
 
 describe('numbers as their file writes them', () => {
@@ -36,7 +36,7 @@ describe('numbers as their file writes them', () => {
   });
 
   it('changes no string', () => {
-    for (const s of ['4.0', 'a":4.0,', '":4.0,', 'k":4.0}', '"k":4.0,"', '\\":4.0,', '\\\\":4.0}', ': 4.0,', '"', '\\', '\n"x":1.0,', 'x\\"y":2.0,', '\u0000#x', '\u0000#4.0', '\u0000', '\u0000#true', '\\u0000#4.0', '#4.0']) {
+    for (const s of ['4.0', 'a":4.0,', '":4.0,', 'k":4.0}', '"k":4.0,"', '\\":4.0,', '\\\\":4.0}', ': 4.0,', '"', '\\', '\n"x":1.0,', 'x\\"y":2.0,', '\u0000#x', '\u0000#4.0', '\u0000', '\u0000#true', '\\u0000#4.0', '#4.0', 'Potassium: 4.0, sodium: 140', '[4.0, 5.0]', 'x, 4.0, y', ': 4.0,', ',4.0,', '[4.0]', '{4.0}', 'a\\\\":4.0,']) {
       for (const text of [JSON.stringify({ s }), JSON.stringify({ [s]: s, s: [s] }), JSON.stringify({ [s]: 1, z: s }), JSON.stringify([s, { s: [s] }]), JSON.stringify({ a: s, b: 2 }, null, 2)]) {
         expect(JSON.stringify(parseExact(text)), text).toBe(JSON.stringify(JSON.parse(text)));
       }
@@ -76,7 +76,7 @@ describe('numbers as their file writes them', () => {
   it('gives back any file it reads', () => {
     let seed = 7;
     const rnd = (n: number) => (seed = (seed * 1103515245 + 12345) % 2147483648) % n;
-    const strings = ['', 'a', 'a":4.0,', '\\', '"', '{"x":1.0}', 'é', '\u0001', ' : 2.50 ', 'mg/dL', '":', '\u0000#4.0', '\u0000#x', '\\"'];
+    const strings = ['', 'a', 'a":4.0,', '\\', '"', '{"x":1.0}', 'é', '\u0001', ' : 2.50 ', 'mg/dL', '":', '\u0000#4.0', '\u0000#x', '\\"', 'Potassium: 4.0, sodium', '[1.0, 2.50]', 'x, 4.0, y', ',5.0,', ':6.0}'];
     const numbers = [...KEPT, ...PLAIN];
     const make = (depth: number): string => {
       const k = rnd(depth > 3 ? 3 : 5);
