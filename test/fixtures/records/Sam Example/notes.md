@@ -1,6 +1,6 @@
 # Notes: Sam Example
 
-## 2026-10-02 (n_657xq3j2nuvecgtn75zc)
-Tags: question
+## 2026-03-05 (n_xcy6pqtybrgkaaipt5in)
+Tags: sample
 
-Ask about the cholesterol recheck at the next visit.
+A sample note for the next visit.

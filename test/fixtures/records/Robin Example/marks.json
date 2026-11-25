@@ -1,44 +1,40 @@
 {
   "schema": "medrec-marks/v1",
-  "person": "p_xo4em46i7yj3hphlpajo",
+  "person": "p_wu3emtceodvtbhsakubm",
   "payments": [
     {
-      "id": "o_paidhealthaaaaaaaaaa",
-      "document": "d_pv57tjsi5ot4237rjcdf",
-      "on": "2026-11-06",
+      "id": "o_ixgj6jxlwx4ydzfshqkb",
+      "document": "d_2y6bxadn3veauhu236se",
+      "on": "2026-11-05",
       "amount": {
-        "amount": "13.68",
+        "amount": "10.00",
         "currency": "USD"
       },
-      "at": "2026-11-20T10:10:00Z",
-      "by": "Sam Example"
+      "at": "2026-11-22T19:58:28Z"
     },
     {
-      "id": "o_paidlabaaaaaaaaaaaaa",
-      "document": "d_kbw3kvi6dmg664qsv4aa",
-      "on": "2026-11-03",
+      "id": "o_vtm4sk6vbvc2rgvdqrzo",
+      "document": "d_vsx4afcrxddexluzqfrz",
+      "on": "2026-11-06",
       "amount": {
-        "amount": "4.28",
+        "amount": "20.00",
         "currency": "USD"
       },
-      "at": "2026-11-20T10:15:00Z",
-      "by": "Sam Example"
+      "at": "2026-11-22T19:58:29Z"
     }
   ],
   "private": [
     {
-      "id": "o_latexmarkaaaaaaaaaaa",
-      "item": "r_ltwnrzvqvzrnv7qb3oeb",
+      "id": "o_h2hkgu2m72ax7fs2sc5w",
+      "item": "r_4ta7rq3io3trni2dijdo",
       "private": true,
-      "at": "2026-11-20T10:00:00Z",
-      "by": "Sam Example"
+      "at": "2026-11-22T19:58:25Z"
     },
     {
-      "id": "o_potassiummarkaaaaaaa",
-      "item": "r_2vzuewf4srectrg5i4x3",
+      "id": "o_sdtjkj3is46uf5ta5ckc",
+      "item": "r_t4eiwqpkcez3dtf7mtju",
       "private": true,
-      "at": "2026-11-20T10:05:00Z",
-      "by": "Sam Example"
+      "at": "2026-11-22T19:58:26Z"
     }
   ]
 }

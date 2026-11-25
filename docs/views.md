@@ -13,12 +13,13 @@ Each view is derived from `household.json` and a person's `index.json` and
 `text.json`. `notes.md` has no view. It is small, and the app may change it,
 so readers read it as it is.
 
-The reference writer is `src/views/write.ts`. Its output for the demo folder
-and the large synthetic folder, with the `events.json` medrec wrote for them
-(`test/fixtures/events`; the reference writer does not write it), answers all
-268 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
-the views"). Another writer (medrec's) is right when its views pass the same
-calls:
+The reference writer is `src/views/write.ts`. Its output for the demo folder,
+the large synthetic folder and medrec's own folder for provider labels, with
+the views only medrec makes as it wrote them for each (`events.json`,
+`bills.json`, `private.json`, `code-names.json` and `providers.json`, in
+`test/fixtures`), answers all 305 recorded calls exactly as `medrec mcp` does
+(`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
+when its views pass the same calls:
 
 ```sh
 VIEWS_WRITER='medrec views write --folder {folder}' npx vitest run test/golden.test.ts
@@ -53,6 +54,7 @@ views/<person id>/events.json             medrec 0.9.0 on; medrec's own, below
 views/<person id>/bills.json              medrec 0.9.1 on; medrec's own, below
 views/<person id>/private.json            medrec 0.9.1 on; medrec's own, below
 views/<person id>/code-names.json         medrec 0.9.4 on; medrec's own, below
+views/<person id>/providers.json          medrec 0.9.7 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -156,13 +158,12 @@ cut to its first entry's `source`, keeping only `fhir_base`, `cli` and
 what the record came through, as `medrec mcp` shows it, or `null`. A reader
 shows the `label`.
 
-Views written by medrec 0.9.5 and earlier have no `label`. One CLI,
-organization and FHIR base can be several practices' and several people's, and
-a view does not hold the import runs that say which patient a record was read
-as. So this connector takes the person's own sources (`sources` of
-`household.json`) with the record's CLI, organization and FHIR base. The name
-they all have is the label. Where they differ, or one has none, or there are
-none, it is the CLI.
+Views written by medrec 0.9.5 and earlier have no `label`. A CLI, an
+organization and a FHIR base do not name a source, and a view does not hold
+the import runs that say which patient a record was read as. So this connector
+takes the person's own sources (`sources` of `household.json`) with the
+record's CLI, organization and FHIR base. The name they all have is the label.
+Where they differ, or one has none, or there are none, it is the CLI.
 
 medrec 0.9.3 and earlier leave `organization_id` out too. For such a record,
 this connector takes the organization of the person's only sign-in with that
@@ -176,8 +177,7 @@ in its data contract), and `npm run views` writes each `label` by it.
 
 `summary.json`, `timeline-<n>.json` and the `place` in `events.json` hold the
 name their writer gave, as they keep no `provenance`. Written by medrec 0.9.5
-and earlier, that can be another practice's of the person, or another
-person's, where one sign-in key serves both. medrec 0.9.6 rewrites every
+and earlier, that can be another source's. medrec 0.9.6 rewrites every
 person's views on its first pass, and they are right from then on.
 
 Shards are cut from the **oldest** end. `records-<kind>-0.json` holds the
@@ -337,7 +337,7 @@ matching rules. Its layout, `medrec-events/v1`, is medrec's, in medrec's
 It is stored and listed in `files` like every view. Each person's entry in
 `views.json` also gives what else their events were made from, and only the
 views medrec makes itself (`events.json`, `bills.json`, `private.json`,
-`code-names.json`) depend on these:
+`code-names.json`, `providers.json`) depend on these:
 
 | Field | What |
 |---|---|
@@ -385,7 +385,7 @@ too (medrec 0.9.7 and later). The person's entry in `views.json` gives these:
 
 A reader uses either only when the person's views are current and
 `overrides`, `marks` and `linked` still match, and for `private.json` (and
-`code-names.json`, below) `provider_state` too. `events.json` does not depend
+`code-names.json` and `providers.json`, below) `provider_state` too. `events.json` does not depend
 on `marks`, and neither it nor `bills.json` on `provider_state`. A
 `provider-state.json` that is not the one named, one where none is named, and
 one that is gone are each a difference. The file is medrec's own: a reader
@@ -424,6 +424,46 @@ about one person uses `codes`, then `private_codes`. Missing, stale or
 unreadable, it changes nothing else and gives no warning. This connector reads
 it for `kind: "conditions"` and a person's summary, after the page is cut, for
 the people with a coded condition on it.
+
+## `providers.json` (medrec 0.9.7 and later)
+
+Who the providers a person's items print are, in medrec's layout
+`medrec-providers/v1` (medrec's `docs/data-contract.md`, "Provider labels"):
+each label's name, practice, role and phone, with how sure medrec is
+(`confidence`) and why (`evidence`). `labels`, `by_name`, `by_item`, `claims`
+and `overrides` have what the person's open items say, and `private` the same
+of what only private ones do. A person with no labelled provider may have no
+file. The reference writer here does not write it.
+
+It depends on the same files as `private.json`, and a reader uses it only when
+current by the same rule. A reader only labels with it: it looks up, exactly
+as printed and by the item first, what an item it is already showing prints,
+and never lists, searches, sorts or filters by a label, or serves the file.
+The label stands beside the source's own words. A likely one whose every
+reason is left out (below) is left out too, a confidence the reader does not
+know is likely, and a phone is shown only with where it is from.
+
+A label that a first name told apart (`first_name`, medrec 0.9.8 and later)
+says which printed text did, once for each text that shares the label. A reader
+shows a text its own, and all of them for a text that has none. A claim on the
+timeline has no fields, so this connector takes the one of the label's texts
+that the claim's title ends with.
+
+An answer about the whole household uses nothing of `private`. It gives no
+label to a private item, even one it names, to one whose person's private items
+are not known, or to anything an event prints when that event is such an item.
+It leaves out a reason or a phone from such an item's paper, and one from what
+the household said of private items only. `medrec_document` names no person, so
+it answers by the same rule. An answer about one person looks a private item up
+in `private` alone, and takes its label from `private.labels`, then `labels`.
+
+Missing, stale or unreadable, it changes nothing else and gives no warning.
+This connector leaves out one of more than 256,000 bytes the same way, since
+its CPU could cost the answer. It reads it before the page is cut, for the people with a printed
+provider among the items the page can hold: claims, documents, bills and events,
+and any record in detail. The labels count in the page's size. An item keeps
+the first of its labels that fit a page beside it, and the
+`provider-labels-left-out` warning counts the items that lost any.
 
 ## Without a current `private.json` or `bills.json`
 

@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.6 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.8 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 268 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 305 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
 
 | Tool | What it answers |
@@ -25,7 +25,7 @@ in `private.json`, and the household can mark others. A document is private
 when a private record links it, and a study when its report is. An answer
 about the whole household leaves them out, and its `warnings` say how many
 each page left out. An answer about one person includes them, and so does one
-that names the item ("escitalopram", not "tablets"). Each one it includes
+that names the item ("sertraline", not "tablets"). Each one it includes
 carries `private`, its area. A study with no report is left out, counted and
 included the same way, but carries no area: nothing says what it is about.
 This is discretion, not access control: anyone the connector lets in can ask
@@ -37,6 +37,18 @@ own words when medrec 0.9.4 or later has the code's published name
 words are always shown too. An answer about the whole household gives none to a
 private item, even one it names. Names that are missing or older than the
 records are left out, with no warning.
+
+A claim, document, bill or event that prints a provider, and any record asked
+for in detail that does, carries `provider_labels` when medrec 0.9.7 or later
+knows who that is (`providers.json`): a name, practice, role and phone, how
+sure it is (`household`, `sure` or `likely`) and why, and where the phone is
+from. They stand beside the source's own words. Nothing is found, sorted or
+paged by one, and `medrec_search` and `medrec_summary` have none. An answer
+about the whole household, or a document's text, gives none to a private item,
+even one it names, and no reason that names one. Labels that are missing or
+older than the records are left out, with no warning. An item's labels that do
+not fit a page beside it are left out with a `provider-labels-left-out`
+warning.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -92,37 +104,39 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
   the tool says why it cannot answer (below), never answering from records
   that have since changed.
 
-| Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text, one record in 20 private | CPU, cold, least | CPU, cold, median | Requests to Google |
+| Call, over a synthetic folder of six people with views, 6.0 MB of index and 6.5 MB of text, one record in 20 private, every claim with a provider label | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
-| `medrec_summary` of one person | 1.8 ms | 2.0 ms | 14 |
-| `medrec_search`, one word | 3.2 ms | 4.0 ms | 38 |
-| `medrec_search`, one word, 100 hits | 4.4 ms | 8.1 ms | 38 |
-| `medrec_search`, three words | 2.8 ms | 3.8 ms | 42 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 4.0 ms | 4.9 ms | 25 |
-| `medrec_search` for "labs" (every lab record, by kind) | 3.0 ms | 5.2 ms | 41 |
-| `medrec_records` results, 200 | 3.0 ms | 3.5 ms | 15 |
-| `medrec_records` tests, everyone | 4.1 ms | 4.4 ms | 24 |
-| `medrec_records` timeline of one person | 1.6 ms | 1.9 ms | 8 |
-| `medrec_records` timeline, everyone, 200 | 2.8 ms | 3.1 ms | 18 |
-| `medrec_records` bills, everyone | 2.3 ms | 2.5 ms | 18 |
-| `medrec_records` conditions, everyone, 200, with plain names | 2.5 ms | 2.8 ms | 16 |
-| `medrec_records` conditions of one person, with plain names | 1.6 ms | 2.0 ms | 8 |
-| `medrec_records` events, everyone | 3.3 ms | 3.6 ms | 13 |
-| `medrec_records` events of one person, detailed, 200 | 2.4 ms | 2.8 ms | 7 |
-| `medrec_records` events with a name, everyone, 200 | 3.3 ms | 3.8 ms | 13 |
-| `medrec_records` one event by `id` | 2.6 ms | 3.0 ms | 13 |
-| `medrec_document`, a page | 2.6 ms | 3.3 ms | 9 |
-| for scale: `JSON.parse` of 0.96 MB | 2.8 ms | 2.9 ms | — |
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.7 ms | 0 |
+| `medrec_summary` of one person | 2.7 ms | 4.8 ms | 13 |
+| `medrec_search`, one word | 4.5 ms | 8.0 ms | 40 |
+| `medrec_search`, one word, 100 hits | 5.5 ms | 14.8 ms | 40 |
+| `medrec_search`, three words | 4.6 ms | 8.4 ms | 45 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 5.2 ms | 9.8 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 4.3 ms | 9.0 ms | 43 |
+| `medrec_records` results, 200 | 4.4 ms | 7.8 ms | 16 |
+| `medrec_records` tests, everyone | 5.6 ms | 12.0 ms | 28 |
+| `medrec_records` timeline of one person | 3.2 ms | 5.1 ms | 9 |
+| `medrec_records` timeline, everyone, 200 | 4.4 ms | 7.9 ms | 23 |
+| `medrec_records` claims, everyone, 200, with labels | 7.0 ms | 11.8 ms | 25 |
+| `medrec_records` bills, everyone | 5.2 ms | 8.6 ms | 23 |
+| `medrec_records` conditions, everyone, 200, with plain names | 4.1 ms | 7.0 ms | 17 |
+| `medrec_records` conditions of one person, with plain names | 2.4 ms | 4.0 ms | 8 |
+| `medrec_records` events, everyone | 5.1 ms | 9.0 ms | 18 |
+| `medrec_records` events of one person, detailed, 200 | 4.0 ms | 6.2 ms | 8 |
+| `medrec_records` events with a name, everyone, 200 | 5.0 ms | 8.8 ms | 20 |
+| `medrec_records` one event by `id` | 4.0 ms | 7.3 ms | 16 |
+| `medrec_document`, a page | 3.8 ms | 6.6 ms | 10 |
+| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.1 ms | — |
 
-Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-24, Apple
-silicon, 20 calls each). The Worker answered in Node, through its own OAuth
-check, MCP framing, Drive client and views, with Node's own `fetch` work
-counted. Google was a local fake on another thread, whose work is not
-counted. A cold call is the first on a fresh isolate, which downloads and
-parses every file it needs. The machine was busy (load 7): the scale row
-takes about 2.2 ms on a quiet one, and the medians spread with the load.
-Cloudflare's dashboard shows the deployed Worker's own CPU times.
+Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-25, Apple
+silicon, six runs of 15 calls each: the least of all, and the median of the
+runs' medians). The Worker answered in Node, through its own OAuth check, MCP
+framing, Drive client and views, with Node's own `fetch` work counted. Google
+was a local fake on another thread, whose work is not counted. A cold call is
+the first on a fresh isolate, which downloads and parses every file it needs.
+The machine was busy (load 14 to 20): the scale row takes about 2.2 ms on a quiet
+one, and the medians spread with the load. Cloudflare's dashboard shows the
+deployed Worker's own CPU times.
 
 At the limits:
 
@@ -180,16 +194,21 @@ At the limits:
   two results of one date and name. When one of them cannot be found there,
   that person's tests are left out of an answer about everyone with a
   `person-unavailable` warning, and an answer about them says to ask again.
-- **Several practices behind one sign-in.** One CLI, organization and FHIR
-  base can serve several practices and several people, as athenahealth's
-  does. Views from medrec 0.9.6 and later label each record with the practice
-  it came through, or with the CLI (`athena`) when none is known. In earlier
-  views, a list of records or tests names the practice only where the person
-  has no other under that sign-in. The timeline, the summary and events keep
-  the name their writer gave, which can be another practice's.
+- **Which source a record came from.** A CLI, an organization and a FHIR base
+  do not name one. Views from medrec 0.9.6 and later label each record with
+  the name of its source, or with the CLI when none is known. In earlier
+  views, a list of records or tests names a source only where the person's
+  own with those three all have one name. The timeline, the summary and events
+  keep the name their writer gave, which can be another source's.
 - **Plain names.** Each person with a coded condition on the page costs one
   more request to Google, and one for a summary with any. When that request
   fails, or would pass the limit, the answer comes without the names.
+- **Provider labels.** Each person with a printed provider on the page (a
+  claim, document, bill or event, and any record with
+  `response_format: "detailed"`) costs one more request to Google, and so does
+  a document's text. When that request fails or would pass the limit, or the
+  person's `providers.json` is over 256,000 bytes, the answer comes without
+  their labels.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

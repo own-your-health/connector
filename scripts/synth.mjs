@@ -36,11 +36,11 @@ function rng(seed) {
 }
 
 const B32 = 'abcdefghijklmnopqrstuvwxyz234567';
-// An id that ends in "key" reads as an API key to a secret scanner: another is drawn.
+// An id with "key" in it can read as an API key to a secret scanner: another is drawn.
 const id = (r, prefix) => {
   for (;;) {
     const x = Array.from({ length: 20 }, () => B32[Math.floor(r() * 32)]).join('');
-    if (!x.endsWith('key')) return prefix + x;
+    if (!x.includes('key')) return prefix + x;
   }
 };
 const pick = (r, xs) => xs[Math.floor(r() * xs.length)];
@@ -208,12 +208,6 @@ export function synth(out) {
     const tp = join(out, person, 'text.json');
     const idx = JSON.parse(readFileSync(ip, 'utf8'));
     const txt = JSON.parse(readFileSync(tp, 'utf8'));
-    // Alex's demo index is empty: lend it Robin's records to copy.
-    if (idx.records.length === 0 || idx.documents.length === 0) {
-      const robin = JSON.parse(readFileSync(join(DEMO, 'Robin Example', 'index.json'), 'utf8'));
-      if (idx.records.length === 0) idx.records = robin.records.map((x) => ({ ...structuredClone(x), id: id(r, 'r_') }));
-      if (idx.documents.length === 0) idx.documents = robin.documents.slice(0, 3).map((x) => ({ ...structuredClone(x), id: id(r, 'd_'), path: x.path.replace('Robin Example', person) }));
-    }
     grow(person, idx, txt, target, r);
     if (person !== 'Alex Example') {
       const robin = JSON.parse(readFileSync(join(DEMO, 'Robin Example', 'index.json'), 'utf8'));

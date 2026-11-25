@@ -38,6 +38,27 @@ describe('paging', () => {
     expect(page.truncated).toBe(true);
     expect(page.hint).toMatch(/^Stopped at \d+ records to stay under the 3500-character/);
   });
+  it('is the same page of the rows read until it is full', () => {
+    const rows = Array.from({ length: 60 }, (_, i) => 'x'.repeat((i * 37) % 300) + i);
+    for (const limit of [5, 60]) {
+      let cursor: string | undefined;
+      for (;;) {
+        const p = PageRequest.create({ limit, cursor }, filters, 4_000);
+        const full = p.full();
+        const read: string[] = [];
+        for (const row of rows) {
+          read.push(row);
+          if (read.length >= p.wanted() || full(row)) break;
+        }
+        const page = p.page(rows, 'person');
+        expect(p.page(read, 'person')).toEqual(page);
+        // The last row read is the first past the page, unless the list ends with it.
+        expect(read.length).toBe(Math.min(rows.length, p.offset + page.returned + 1));
+        cursor = page.next_cursor;
+        if (cursor === undefined) break;
+      }
+    }
+  });
 });
 
 /** A callback with a user name in its authority, which redirectOwner refuses. */

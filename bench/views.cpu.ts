@@ -22,7 +22,7 @@ import { synth } from '../scripts/synth.mjs';
 import { writeViewsAt } from '../src/views/local';
 import worker, { clearCacheForTests, type Env } from '../src/worker';
 import { CLIENT_ID, CLIENT_SECRET, FOLDER_ID, FakeGoogle } from '../test/fake-google';
-import { MemoryD1, MemoryKV, addDerived, markPrivate } from '../test/support';
+import { MemoryD1, MemoryKV, addDerived, labelClaims, markPrivate } from '../test/support';
 
 const N = Number(process.env.N ?? 20);
 const BASE = 'https://records.example.workers.dev';
@@ -40,9 +40,10 @@ it('measures', async () => {
   const scratch = mkdtempSync(join(tmpdir(), 'oyh-views-bench-'));
   const root = synth(join(scratch, 'records'));
   const written = writeViewsAt(root);
-  // medrec's events, bills and private items for this folder, and code names, as medrec wrote them; then one record in 20 private.
+  // medrec's events, bills, private items and provider labels for this folder, and code names, as medrec wrote them; then one record in 20 private, and every claim labelled.
   addDerived(root, 'large');
   const privateRecords = markPrivate(root, 20);
+  const labels = labelClaims(root, 150);
   const all = files(root);
   const touch = () => clearCacheForTests();
 
@@ -139,7 +140,16 @@ it('measures', async () => {
     return { min: spent[0]!, median: spent[Math.floor(N / 2)]!, subs };
   };
 
-  const docs = ((await call('medrec_records', { kind: 'documents', person: 'Sam', limit: 5 })()) as { structuredContent: { items: { id: string }[] } }).structuredContent.items;
+  const docs = ((await call('medrec_records', { kind: 'documents', person: 'Sam', limit: 100 })()) as { structuredContent: { items: { id: string; has_text?: boolean }[] } }).structuredContent.items;
+  // The newest with three pages of text.
+  let long = '';
+  for (const d of docs.filter((x) => x.has_text)) {
+    const page = (await call('medrec_document', { id: d.id })()) as { structuredContent: { text_pages?: number } };
+    if ((page.structuredContent.text_pages ?? 1) >= 3) {
+      long = d.id;
+      break;
+    }
+  }
   const eventId = ((await call('medrec_records', { kind: 'events', person: 'Robin', limit: 30 })()) as { structuredContent: { items: { id: string }[] } }).structuredContent.items[29]!.id;
   // A fixed piece of work, to read the rest against: on a quiet machine about 2.2 ms (2.62 MB took 5.87).
   const reference = JSON.stringify(Array.from({ length: 6000 }, (_, i) => ({ id: `r${i}`, kind: 'result', date: '2014-01-01', display: `Synthetic test ${i}`, fields: { value: i, unit: 'mg/dL' }, provenance: [{ source: { cli: 'x' } }] })));
@@ -165,13 +175,15 @@ it('measures', async () => {
     ['records conditions, Robin', call('medrec_records', { kind: 'conditions', person: 'Robin' })],
     ['records documents Sam', call('medrec_records', { kind: 'documents', person: 'Sam' })],
     ['records bills, everyone', call('medrec_records', { kind: 'bills' })],
+    ['records claims, everyone, 200', call('medrec_records', { kind: 'claims', limit: 200 })],
+    ['records visits, everyone, detailed, 200', call('medrec_records', { kind: 'visits', limit: 200, response_format: 'detailed' })],
     ['records timeline, everyone, 200', call('medrec_records', { kind: 'timeline', limit: 200 })],
     ['records events, everyone', call('medrec_records', { kind: 'events' })],
     ['records events Robin, detailed, 200', call('medrec_records', { kind: 'events', person: 'Robin', response_format: 'detailed', limit: 200 })],
     ['records events "er", everyone', call('medrec_records', { kind: 'events', name: 'er', limit: 200 })],
     ['records events, one id', call('medrec_records', { kind: 'events', id: eventId })],
-    ['document, page 1', call('medrec_document', { id: docs[0]!.id })],
-    ['document, page 3', call('medrec_document', { id: docs[0]!.id, page: 3 })],
+    ['document, page 1', call('medrec_document', { id: long })],
+    ['document, page 3', call('medrec_document', { id: long, page: 3 })],
   ];
   const rows: string[] = [];
   if (process.env.PROFILE) {
@@ -210,7 +222,7 @@ it('measures', async () => {
   rmSync(scratch, { recursive: true, force: true });
   writeFileSync(
     process.env.OUT ?? '/tmp/oyh-views.md',
-    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private\n` +
+    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private, every claim labelled (${(labels / 1e3).toFixed(0)} KB at most)\n` +
       `| Call | cold, least | cold, median | warm, least | subrequests |\n|---|---:|---:|---:|---:|\n${rows.join('\n')}\n`,
   );
 }, 600_000);

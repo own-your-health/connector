@@ -1,0 +1,64 @@
+{
+  "schema": "medrec-study/v1",
+  "person": "p_74kjconqhpreh6ybsgna",
+  "id": "m_2x66s54gisxfb5v64ewh",
+  "study_uid": "2.25.100000000000000000000000000000001",
+  "path": "Sam Example/Imaging/2026-05-20_dx_ankle_example_imaging",
+  "date": "2026-05-20",
+  "modalities": [
+    "DX"
+  ],
+  "body_part": "ANKLE",
+  "description": "XR ankle, 3 views",
+  "facility": "Example Imaging",
+  "accession": "ACC4D19E2",
+  "series": [
+    {
+      "uid": "2.25.200000000000000000000000000000001",
+      "number": 1,
+      "modality": "DX",
+      "description": "AP",
+      "instances": {
+        "2.25.300000000000000000000000000000001": "S001/00001.dcm"
+      }
+    },
+    {
+      "uid": "2.25.200000000000000000000000000000002",
+      "number": 2,
+      "modality": "DX",
+      "description": "Lateral",
+      "instances": {
+        "2.25.300000000000000000000000000000002": "S002/00001.dcm"
+      }
+    },
+    {
+      "uid": "2.25.200000000000000000000000000000003",
+      "number": 3,
+      "modality": "DX",
+      "description": "Oblique",
+      "instances": {
+        "2.25.300000000000000000000000000000003": "S003/00001.dcm"
+      }
+    }
+  ],
+  "instances": 3,
+  "size": 5238,
+  "files": {
+    "S001/00001.dcm": "e65de332a554e63c550dcd7d945d3e1e",
+    "S002/00001.dcm": "16a2292b0ab5a3ea148a21e155fcdc5c",
+    "S003/00001.dcm": "e1379143b8deb6df021d72f1b78fd141"
+  },
+  "filed_at": "2026-10-14T20:00:00Z",
+  "provenance": [
+    {
+      "source": {
+        "kind": "media"
+      },
+      "method": "media",
+      "filed_at": "2026-10-14T20:00:00Z",
+      "raw_path": "Sam Example/Imaging/2026-05-20_dx_ankle_example_imaging",
+      "classified_by": "hand",
+      "filed_by": "medrec 0.9.7"
+    }
+  ]
+}

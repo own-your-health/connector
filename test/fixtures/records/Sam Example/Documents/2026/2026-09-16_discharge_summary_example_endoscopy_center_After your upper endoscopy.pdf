@@ -1,0 +1,55 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 190 >>
+stream
+BT /F2 16 Tf 72 712 Td (After your upper endoscopy) Tj ET
+BT /F1 11 Tf 72 680 Td 18 TL
+(Example Endoscopy Center, 09/16/2026) Tj T*
+(Soft foods today. Do not drive until tomorrow.) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 8 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>
+endobj
+8 0 obj
+<< /Length 174 >>
+stream
+BT /F2 16 Tf 72 712 Td (Call us if) Tj ET
+BT /F1 11 Tf 72 680 Td 18 TL
+(You have a fever, or pain that does not ease.) Tj T*
+(The biopsy result takes about a week.) Tj T*
+ET
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000266 00000 n 
+0000000402 00000 n 
+0000000642 00000 n 
+0000000778 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R >>
+startxref
+1002
+%%EOF

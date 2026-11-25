@@ -16,6 +16,7 @@ import { parseExact } from '../records/numbers';
 import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
+import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type ProviderLabels, type ProvidersView } from '../records/provider-labels';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -161,7 +162,11 @@ const DEPENDS = {
   'bills.json': ['marks'],
   'private.json': ['marks', 'provider_state'],
   'code-names.json': ['marks', 'provider_state'],
+  'providers.json': ['marks', 'provider_state'],
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
+
+/** The largest providers.json read, in bytes: a label is never worth the CPU an answer needs. 1,500 claims of 150 providers take about 150,000. */
+export const LABELS_LIMIT = 256_000;
 
 /** private.json as a reader needs it (medrec-private/v1). */
 export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
@@ -280,15 +285,15 @@ export class ViewsStore implements Store {
 
   /**
    * A view medrec 0.9.1 and later make from the person's views and their
-   * marks.json (bills.json), and what provider labels make private too
-   * (private.json, code-names.json), when it is current, in `schema`;
-   * otherwise why not.
+   * marks.json (bills.json), and from what a provider directory gave too
+   * (private.json, code-names.json, providers.json), when it is current, in
+   * `schema`; otherwise why not.
    */
   private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
     const st = await this.state(h);
     if (st.newer) return { not: `their views are in a newer layout (${st.newer}) than this connector reads` };
     const v = st.index?.people[p.id];
-    // medrec writes all three beside every such view; without them, what it was made from cannot be checked.
+    // medrec writes these three beside every such view; without them, what it was made from cannot be checked.
     const from = v?.overrides !== undefined && v.marks !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
     if (!v?.files || v.files[name] === undefined || !from) return { not: `medrec has written no ${name} for them yet` };
     const on: readonly (keyof typeof MADE_FROM)[] = DEPENDS[name];
@@ -334,6 +339,14 @@ export class ViewsStore implements Store {
   async codeNames(h: Household, p: Person): Promise<CodeNames> {
     const got = await this.derived<CodeNamesView>(h, p, 'code-names.json', CODE_NAMES_SCHEMA);
     return 'not' in got ? NO_NAMES : codeNamesOf(got.view, p.id);
+  }
+
+  async providerLabels(h: Household, p: Person): Promise<ProviderLabels> {
+    const sum = (await this.state(h)).index?.people[p.id]?.files?.['providers.json'];
+    // The survey has its size, so a look costs no request.
+    if (sum !== undefined && ((await this.folder.size(personDir(p.id) + storedName('providers.json', sum))) ?? 0) > LABELS_LIMIT) return NO_LABELS;
+    const got = await this.derived<ProvidersView>(h, p, 'providers.json', PROVIDERS_SCHEMA);
+    return 'not' in got ? NO_LABELS : providerLabelsOf(got.view, p.id);
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */

@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-8df855b4","meta":{"lastUpdated":"2022-01-10T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"20"}],"text":"DTaP"},"occurrenceDateTime":"2022-01-10","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

@@ -1,6 +1,6 @@
 # Notes: Jamie Example
 
-## 2026-10-02 (n_gjdonvvnjan4qkds5gol)
-Tags: question
+## 2026-03-05 (n_pxuj7cid7eqoeygrvlg2)
+Tags: sample
 
-Ask about the cholesterol recheck at the next visit.
+A sample note for the next visit.

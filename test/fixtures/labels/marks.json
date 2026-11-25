@@ -1,0 +1,33 @@
+{
+  "schema": "medrec-marks/v1",
+  "person": "p_robinaaaaaaaaaaaaaaa",
+  "payments": [],
+  "private": [
+    {
+      "id": "o_markaaaaaaaaaaaaaaaa",
+      "item": "r_markedaaaaaaaaaaaaaa",
+      "private": false,
+      "at": "2026-01-02T00:00:00Z"
+    },
+    {
+      "id": "o_bothaaaaaaaaaaaaaaaa",
+      "item": "r_privatebothaaaaaaaaa",
+      "private": true,
+      "at": "2026-02-04T00:00:00Z"
+    }
+  ],
+  "providers": [
+    {
+      "id": "o_42tfwb2y3krkng7ilzjb",
+      "printed": [
+        "Example Family Practice"
+      ],
+      "set": {
+        "name": "Our practice",
+        "phone": "555-010-0142"
+      },
+      "at": "2026-11-25T07:12:34Z"
+    }
+  ],
+  "rev": 1
+}

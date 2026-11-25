@@ -15,6 +15,7 @@
 import { NO_NAMES, type CodeNames } from './code-names';
 import type { Folder } from './folder';
 import type { Privacy } from './private';
+import { NO_LABELS, type ProviderLabels } from './provider-labels';
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { sourcesOf } from './sources';
@@ -140,6 +141,8 @@ export interface Store {
   bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null>;
   /** The plain names of the person's condition codes (code-names.json, medrec 0.9.4 and later); none when missing or stale. */
   codeNames(h: Household, p: Person): Promise<CodeNames>;
+  /** Who the providers the person's items print are (providers.json, medrec 0.9.7 and later); none when missing or stale. */
+  providerLabels(h: Household, p: Person): Promise<ProviderLabels>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -158,15 +161,17 @@ export function passes(r: RecordEntry, kind: string, f: RecordFilter): boolean {
 
 /**
  * The first `want` items of several ordered lists merged, ties to the earlier
- * list: what a stable sort of their concatenation puts first.
+ * list: what a stable sort of their concatenation puts first. Of those `keep`
+ * keeps, as many as `item` makes one of before it says no more are needed.
  */
-export async function takeMerged<T>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) => number, want: number, keep: (x: T) => boolean = () => true): Promise<T[]> {
-  const out: T[] = [];
+export async function takeMerged<T, I>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) => number, want: number, keep: (x: T) => boolean, item: (x: T) => I, full: (x: I) => boolean): Promise<{ x: T; item: I }[]> {
+  const out: { x: T; item: I }[] = [];
   if (want <= 0) return out;
   for await (const x of merged(lists, cmp)) {
     if (!keep(x)) continue;
-    out.push(x);
-    if (out.length >= want) break;
+    const it = item(x);
+    out.push({ x, item: it });
+    if (out.length >= want || full(it)) break;
   }
   return out;
 }
@@ -251,6 +256,11 @@ export class RawStore implements Store {
   /** And the names of codes. */
   async codeNames(_h: Household, _p: Person): Promise<CodeNames> {
     return NO_NAMES;
+  }
+
+  /** And who a printed provider is. */
+  async providerLabels(_h: Household, _p: Person): Promise<ProviderLabels> {
+    return NO_LABELS;
   }
 
   household(): Promise<Household> {

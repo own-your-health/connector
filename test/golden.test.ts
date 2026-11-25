@@ -9,6 +9,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { labelsFolder } from '../scripts/labels-folder.mjs';
 import { synth } from '../scripts/synth.mjs';
 import { ParsedCache } from '../src/records/folder';
 import { parseExact } from '../src/records/numbers';
@@ -18,16 +19,20 @@ import { RawStore, type Store } from '../src/records/store';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 
+type Name = 'demo' | 'large' | 'labels';
+/** The folder's name among the fixtures. */
+const fixtures = (f: Name) => (f === 'demo' ? 'records' : f);
+
 interface Golden {
   medrec_version: string;
   as_of: string;
   instructions: string;
   tools: unknown[];
-  results: { folder: 'demo' | 'large'; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
+  results: { folder: Name; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
 }
 
 // Numbers as medrec printed them, as the tools hold them (src/records/numbers.ts).
-const golden = parseExact(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.6.json'), 'utf8')) as Golden;
+const golden = parseExact(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.8.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};
@@ -36,7 +41,8 @@ let scratch = '';
 beforeAll(() => {
   scratch = mkdtempSync(join(tmpdir(), 'oyh-test-'));
   roots.large = synth(join(scratch, 'large'));
-  for (const name of ['demo', 'large']) {
+  roots.labels = labelsFolder(join(scratch, 'labels'));
+  for (const name of ['demo', 'large', 'labels'] as const) {
     viewRoots[name] = join(scratch, `${name}-views`);
     cpSync(roots[name]!, viewRoots[name]!, { recursive: true });
     // Another writer's views, held to the same answers (docs/views.md).
@@ -44,10 +50,10 @@ beforeAll(() => {
     if (writer) {
       execSync(writer.replaceAll('{folder}', JSON.stringify(viewRoots[name]!)), { stdio: 'inherit' });
       // The writer has no published code table, so its own views hold no plain names.
-      addCodeNames(viewRoots[name]!, name === 'demo' ? 'records' : 'large');
+      if (name !== 'labels') addCodeNames(viewRoots[name]!, name === 'demo' ? 'records' : name);
     } else {
       writeViewsAt(viewRoots[name]!);
-      addDerived(viewRoots[name]!, name === 'demo' ? 'records' : 'large');
+      addDerived(viewRoots[name]!, fixtures(name));
     }
   }
 }, 120_000);
@@ -63,8 +69,8 @@ describe(`parity with medrec ${golden.medrec_version}`, () => {
     expect(instructions().endsWith(tail)).toBe(true);
   });
 
-  const stores: [string, (folder: 'demo' | 'large') => Store][] = [
-    ['files', (f) => new RawWithDerived(folderAt(roots[f]!, rawCache), f === 'demo' ? 'records' : 'large')],
+  const stores: [string, (folder: Name) => Store][] = [
+    ['files', (f) => new RawWithDerived(folderAt(roots[f]!, rawCache), fixtures(f))],
     ['views', (f) => new ViewsStore(folderAt(viewRoots[f]!, viewsCache))],
   ];
   const rawCache = new ParsedCache();

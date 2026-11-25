@@ -43,20 +43,16 @@
                   "type": "boolean"
                 },
                 "documents": {
-                  "type": "integer",
-                  "minimum": 0
+                  "type": "integer"
                 },
                 "records": {
-                  "type": "integer",
-                  "minimum": 0
+                  "type": "integer"
                 },
                 "studies": {
-                  "type": "integer",
-                  "minimum": 0
+                  "type": "integer"
                 },
                 "notes": {
-                  "type": "integer",
-                  "minimum": 0
+                  "type": "integer"
                 },
                 "newest": {
                   "type": "string"
@@ -79,8 +75,7 @@
               "counts": {
                 "type": "object",
                 "additionalProperties": {
-                  "type": "integer",
-                  "minimum": 0
+                  "type": "integer"
                 }
               },
               "sources": {
@@ -96,8 +91,7 @@
                       "type": "string"
                     },
                     "records": {
-                      "type": "integer",
-                      "minimum": 0
+                      "type": "integer"
                     },
                     "newest": {
                       "type": "string"
@@ -146,7 +140,6 @@
                       }
                     },
                     "more": {
-                      "minimum": 0,
                       "type": "integer"
                     }
                   },
@@ -443,7 +436,6 @@
                   "type": "string"
                 },
                 "results": {
-                  "minimum": 0,
                   "type": "integer"
                 },
                 "amount_due": {
@@ -463,6 +455,13 @@
                 },
                 "private": {
                   "type": "string"
+                },
+                "provider_labels": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
                 },
                 "fields": {
                   "type": "object",
@@ -540,7 +539,7 @@
           },
           "offset": {
             "type": "integer",
-            "description": "Start at a previous answer's `next_offset`.",
+            "description": "A previous answer's `next_offset`.",
             "minimum": 0
           }
         },
@@ -576,28 +575,22 @@
             "type": "string"
           },
           "text_chars": {
-            "type": "integer",
-            "minimum": 0
+            "type": "integer"
           },
           "offset": {
-            "type": "integer",
-            "minimum": 0
+            "type": "integer"
           },
           "next_offset": {
-            "type": "integer",
-            "minimum": 0
+            "type": "integer"
           },
           "first_page": {
-            "type": "integer",
-            "minimum": 0
+            "type": "integer"
           },
           "last_page": {
-            "type": "integer",
-            "minimum": 0
+            "type": "integer"
           },
           "text_pages": {
-            "type": "integer",
-            "minimum": 0
+            "type": "integer"
           },
           "text": {
             "type": "string"
@@ -610,6 +603,13 @@
           },
           "private": {
             "type": "string"
+          },
+          "provider_labels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
           },
           "hint": {
             "type": "string"

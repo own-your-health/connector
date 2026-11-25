@@ -50,7 +50,7 @@ const words = (s: string) => fold(s).split(/[^\p{Alphabetic}\p{N}]+/u).filter((w
 /**
  * Whether a question names an item: every word of it starts a word of the
  * item's title, and one of those title words is its own (not a form, unit or
- * kind of record), so "tablets" names no medicine and "escitalopram" does.
+ * kind of record), so "tablets" names no medicine and "sertraline" does.
  */
 export function names(title: string, query: string): boolean {
   const asked = new Set(words(query));

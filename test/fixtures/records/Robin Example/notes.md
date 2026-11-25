@@ -1,6 +1,12 @@
 # Notes: Robin Example
 
-## 2026-10-02 (n_qddnhu7vk4xfzxznsqee)
-Tags: question
+## 2026-03-05 (n_ac4ip43tvvxbliod5wrm)
+Tags: sample
 
-Ask about the cholesterol recheck at the next visit.
+A sample note for the next visit.
+
+## 2026-11-19 (n_d5nnqk4tigskczcem6kl)
+Tags: sample, paper
+About: d_n7tnco6hig24uh7tdzn2
+
+A sample note about a paper.

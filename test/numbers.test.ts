@@ -99,7 +99,7 @@ describe('numbers as their file writes them', () => {
 });
 
 describe('answers over them', () => {
-  const POTASSIUM = 'r_potassiumolderaaaaaa';
+  const POTASSIUM = 'r_ff3wvndyqw5rtw3uudvh';
   let root = '';
   beforeAll(() => {
     root = mkdtempSync(join(tmpdir(), 'oyh-numbers-'));
@@ -138,7 +138,7 @@ describe('answers over them', () => {
     expect(JSON.stringify(detailed.structuredContent)).toBe(detailed.content[0]!.text);
     expect(detailed.content[0]!.text).toContain('"value":7.10');
     expect(row(await ask({ kind: 'medications' }), ids.fill).detail).toBe('dispensed 30.0, 90.50 days');
-    expect(row(await ask({ kind: 'timeline' }), POTASSIUM).detail).toBe('4.0 mmol/L');
+    expect(row(await ask({ kind: 'timeline' }), POTASSIUM).detail).toBe('4.0 mmol/L (Normal)');
     const found = (await callTool('medrec_search', { query: '7.10', person: 'Robin' }, { store: store(), today: '2026-11-23' }))!;
     expect((found.structuredContent as { items: Row[] }).items.map((x) => x.id)).toContain(ids.result);
   });

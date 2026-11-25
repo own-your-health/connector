@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-e49317fb","meta":{"lastUpdated":"2023-12-19T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"83"}],"text":"Hep A, ped/adol, 2 dose"},"occurrenceDateTime":"2023-12-19","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

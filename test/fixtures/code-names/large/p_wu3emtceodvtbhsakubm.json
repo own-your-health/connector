@@ -1,0 +1,1 @@
+{"schema":"medrec-code-names/v1","person":"p_wu3emtceodvtbhsakubm","table":{"id":"icd10cm","version":"invented","date":"2000-01-01"},"codes":{"icd10cm|I10":{"name":"Sample pressure"},"icd10cm|J30.2":{"name":"Sample spring sneezes"}},"private_codes":{"icd10cm|F41.1":{"name":"Sample worry"}}}

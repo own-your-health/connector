@@ -1,6 +1,6 @@
 # Notes: Alex Example
 
-## 2026-10-02 (n_ga25mgpejenfpoqmgprp)
-Tags: question
+## 2026-03-05 (n_fhhwfuqtw7jpfvqn7zvs)
+Tags: sample
 
-Ask about the cholesterol recheck at the next visit.
+A sample note for the next visit.
