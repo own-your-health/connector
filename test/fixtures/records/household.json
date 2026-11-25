@@ -276,6 +276,49 @@
       "fhir_base": "https://fhir.example.org/r4",
       "patient_id": "pat-c4a5e1",
       "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_caseyfirstaaaaaaaaaa",
+      "kind": "fhir",
+      "person": "p_caseyexampleaaaaaaaa",
+      "cli": "athena",
+      "organization": "example-records",
+      "organization_name": "Example Walk-in Clinic",
+      "fhir_base": "https://records.example.net/fhir/r4",
+      "patient_id": "pat-c0f1a1",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_caseysecondaaaaaaaaa",
+      "kind": "fhir",
+      "person": "p_caseyexampleaaaaaaaa",
+      "cli": "athena",
+      "organization": "example-records",
+      "organization_name": "Sample Eye Center",
+      "fhir_base": "https://records.example.net/fhir/r4",
+      "patient_id": "pat-c0f1a2",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_robinthirdaaaaaaaaaa",
+      "kind": "fhir",
+      "person": "p_xo4em46i7yj3hphlpajo",
+      "cli": "athena",
+      "organization": "example-records",
+      "organization_name": "Placeholder Skin Clinic",
+      "fhir_base": "https://records.example.net/fhir/r4",
+      "patient_id": "pat-c0f1a3",
+      "last_pull": "2026-11-22T18:30:00Z"
+    },
+    {
+      "id": "s_caseynonameaaaaaaaaa",
+      "kind": "fhir",
+      "person": "p_caseyexampleaaaaaaaa",
+      "cli": "athena",
+      "organization": "example-records-2",
+      "fhir_base": "https://records.example.net/fhir/r4",
+      "patient_id": "pat-c0f1a4",
+      "last_pull": "2026-11-22T18:30:00Z"
     }
   ]
 }

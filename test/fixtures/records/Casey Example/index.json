@@ -4,7 +4,74 @@
   "rev": 1,
   "documents": [],
   "studies": [],
-  "imports": [],
+  "imports": [
+    {
+      "id": "i_caseyfirstaaaaaaaaaa",
+      "source_dir": "Casey Example/Records/athena-example-records-pat-c0f1a1",
+      "stream_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "stream_bytes": 2000,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records",
+      "patient_id": "pat-c0f1a1",
+      "pulled_at": "2026-11-20T18:00:00Z",
+      "imported_at": "2026-11-20T18:00:00Z",
+      "counts": {
+        "Encounter": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    },
+    {
+      "id": "i_caseysecondaaaaaaaaa",
+      "source_dir": "Casey Example/Records/athena-example-records-pat-c0f1a2",
+      "stream_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "stream_bytes": 2000,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records",
+      "patient_id": "pat-c0f1a2",
+      "pulled_at": "2026-11-20T18:05:00Z",
+      "imported_at": "2026-11-20T18:05:00Z",
+      "counts": {
+        "Encounter": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    },
+    {
+      "id": "i_caseynonameaaaaaaaaa",
+      "source_dir": "Casey Example/Records/athena-example-records-2-pat-c0f1a4",
+      "stream_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "stream_bytes": 2000,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records-2",
+      "patient_id": "pat-c0f1a4",
+      "pulled_at": "2026-11-20T18:10:00Z",
+      "imported_at": "2026-11-20T18:10:00Z",
+      "counts": {
+        "Encounter": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    }
+  ],
   "records": [
     {
       "id": "r_caseyconditionaaaaaa",
@@ -87,6 +154,138 @@
           "fetched_at": "2026-11-22T18:30:00Z",
           "filed_at": "2026-11-22T18:30:00Z",
           "filed_by": "medrec 0.9.2"
+        }
+      ]
+    },
+    {
+      "id": "r_caseyvisitoneaaaaaaa",
+      "kind": "encounter",
+      "key": "encounter|office visit|2025-03-04",
+      "date": "2025-03-04",
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-03-04",
+        "class": "AMB"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-c0f1b1",
+            "last_updated": "2025-03-04T15:00:00Z"
+          },
+          "fetched_at": "2026-11-20T18:00:00Z",
+          "filed_at": "2026-11-20T18:00:00Z",
+          "filed_by": "medrec 0.9.6"
+        }
+      ]
+    },
+    {
+      "id": "r_caseyvisittwoaaaaaaa",
+      "kind": "encounter",
+      "key": "encounter|office visit|2025-04-08",
+      "date": "2025-04-08",
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-04-08",
+        "class": "AMB"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-c0f1b2",
+            "last_updated": "2025-04-08T15:00:00Z"
+          },
+          "fetched_at": "2026-11-20T18:05:00Z",
+          "filed_at": "2026-11-20T18:05:00Z",
+          "filed_by": "medrec 0.9.6"
+        }
+      ]
+    },
+    {
+      "id": "r_caseyvisitthreeaaaaa",
+      "kind": "encounter",
+      "key": "encounter|office visit|2025-05-13",
+      "date": "2025-05-13",
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-05-13",
+        "class": "AMB"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-c0f1b3",
+            "last_updated": "2025-05-13T15:00:00Z"
+          },
+          "fetched_at": "2026-11-19T09:00:00Z",
+          "filed_at": "2026-11-19T09:00:00Z",
+          "filed_by": "medrec 0.9.6"
+        }
+      ]
+    },
+    {
+      "id": "r_caseyvisitfouraaaaaa",
+      "kind": "encounter",
+      "key": "encounter|office visit|2025-06-17",
+      "date": "2025-06-17",
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-06-17",
+        "class": "AMB"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records-2",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-c0f1b4",
+            "last_updated": "2025-06-17T15:00:00Z"
+          },
+          "fetched_at": "2026-11-20T18:10:00Z",
+          "filed_at": "2026-11-20T18:10:00Z",
+          "filed_by": "medrec 0.9.6"
         }
       ]
     }
