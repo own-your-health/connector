@@ -31,7 +31,7 @@
       "folder": "demo",
       "name": "medrec_summary",
       "arguments": {
-        "person": "p_bjpnvyvnmxv74q335tk4"
+        "person": "p_5kqwz7cb4mhit56zoy36"
       }
     },
     {
@@ -136,7 +136,7 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "recheck"
+        "query": "sample note"
       }
     },
     {
@@ -381,7 +381,8 @@
       "folder": "demo",
       "name": "medrec_records",
       "arguments": {
-        "kind": "claims"
+        "kind": "claims",
+        "limit": 20
       }
     },
     {
@@ -459,7 +460,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "notes",
-        "name": "cholesterol"
+        "name": "sample note"
       }
     },
     {
@@ -575,7 +576,7 @@
       "arguments": {},
       "id_from": {
         "label": "documents",
-        "item": 3
+        "item": 4
       }
     },
     {
@@ -1290,8 +1291,8 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "events",
-        "since": "2026-07-28",
-        "until": "2026-07-28"
+        "since": "2026-06-16",
+        "until": "2026-06-16"
       }
     },
     {
@@ -1300,8 +1301,8 @@
       "arguments": {
         "kind": "events",
         "person": "Robin",
-        "since": "2026-05-12",
-        "until": "2026-05-12",
+        "since": "2026-06-16",
+        "until": "2026-06-16",
         "response_format": "detailed"
       }
     },
@@ -1335,7 +1336,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "events",
-        "name": "jordan sample"
+        "name": "taylor placeholder"
       }
     },
     {
@@ -1557,7 +1558,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "conditions",
-        "name": "Social anxiety disorder"
+        "name": "Generalized anxiety"
       }
     },
     {
@@ -1565,7 +1566,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "medications",
-        "name": "escitalopram"
+        "name": "sertraline"
       }
     },
     {
@@ -1580,21 +1581,21 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "escitalopram"
+        "query": "sertraline"
       }
     },
     {
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "Social anxiety disorder"
+        "query": "Generalized anxiety"
       }
     },
     {
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "Example Counseling Center"
+        "query": "Example Counseling"
       }
     },
     {
@@ -1639,7 +1640,7 @@
       "folder": "demo",
       "name": "medrec_records",
       "arguments": {
-        "kind": "results",
+        "kind": "visits",
         "person": "Casey"
       }
     },
@@ -1647,7 +1648,7 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "ferritin",
+        "query": "seasonal allergies",
         "person": "Casey"
       }
     },
@@ -1670,7 +1671,7 @@
       "folder": "demo",
       "name": "medrec_document",
       "arguments": {
-        "id": "d_counselingletteraaaa"
+        "id": "d_73v3nrasyku7ji4sa7yg"
       }
     },
     {
@@ -1678,7 +1679,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "events",
-        "id": "e_6fntbcvphk5gnlqd3f2h"
+        "id": "e_ewxvm3e6zwqt3l3zrobr"
       }
     },
     {
@@ -1686,7 +1687,7 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "events",
-        "id": "e_krtjirupgkrvd43ibqj3"
+        "id": "e_tfqeoralxdkc5e4y3bnd"
       }
     },
     {
@@ -1766,7 +1767,8 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "timeline",
-        "person": "Robin"
+        "person": "Robin",
+        "limit": 100
       }
     },
     {
@@ -2054,8 +2056,8 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "timeline",
-        "since": "2026-01-10",
-        "until": "2026-01-31"
+        "since": "2025-12-01",
+        "until": "2025-12-31"
       }
     },
     {
@@ -2063,8 +2065,8 @@
       "name": "medrec_records",
       "arguments": {
         "kind": "timeline",
-        "since": "2026-01-10",
-        "until": "2026-01-31",
+        "since": "2025-12-01",
+        "until": "2025-12-31",
         "person": "Robin"
       }
     },
@@ -2081,14 +2083,14 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "brain"
+        "query": "pelvis"
       }
     },
     {
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "brain",
+        "query": "pelvis",
         "person": "Robin"
       }
     },
@@ -2096,14 +2098,14 @@
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "MR brain"
+        "query": "DX pelvis"
       }
     },
     {
       "folder": "demo",
       "name": "medrec_search",
       "arguments": {
-        "query": "MR brain report"
+        "query": "ultrasound report"
       }
     },
     {
@@ -2485,6 +2487,33 @@
       "name": "medrec_document",
       "arguments": {
         "id": "d_summaryaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Sam",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_document",
+      "arguments": {},
+      "id_from": {
+        "label": "documents",
+        "item": 3
       }
     }
   ]

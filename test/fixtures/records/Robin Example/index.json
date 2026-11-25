@@ -7786,7 +7786,7 @@
       "fields": {
         "when": "2024-09-10",
         "value": {
-          "value": 4.2,
+          "value": 4.0,
           "unit": "mmol/L",
           "system": "http://unitsofmeasure.org"
         },
@@ -8329,7 +8329,7 @@
     {
       "id": "i_p2e7fuermcerswnwn5a4",
       "source_dir": "Robin Example/Records/icanotes-example-counseling",
-      "stream_sha256": "7480440fcc480caf160c830e7aadbed93ad2ec4fd0de86ba82917eddef62b5f9",
+      "stream_sha256": "c9c087f4b14176c5f792be16aab62f09da87cb64085e42e8b12eb3835ba8fe7f",
       "stream_bytes": 2291,
       "cli": "icanotes",
       "cli_version": "0.2.0",

@@ -90,6 +90,11 @@ at(next(), 'private', 'mark', one('robin', 'the middle potassium result', record
 at(next(), 'bills', 'paid', one('sam', "the billing site's bill", bill('Example Billing', '2026-07-09')), '--on', '2026-08-20', '--amount', '120.00');
 at(next(), 'bills', 'paid', one('robin', "the lab's bill", bill('Example Lab', '2026-10-28')), '--on', '2026-11-05', '--amount', '10.00');
 at(next(), 'bills', 'paid', one('robin', "October's bill", bill('Example Health', '2026-10-01')), '--on', '2026-11-06', '--amount', '20.00');
+
+// ---- Their notes: one of the same day and words for each, and one of Robin's about a document ----
+
+for (const who of ['robin', 'sam', 'alex', 'jamie']) at(next(), 'note', 'add', people[who].name, 'A sample note for the next visit.', '--date', '2026-03-05', '--tag', 'sample');
+at(next(), 'note', 'add', people.robin.name, 'A sample note about a paper.', '--date', '2026-11-19', '--tag', 'sample,paper', '--about', one('robin', "November's lab report", (d) => d.doc_type === 'lab_report' && d.date === '2026-11-18'));
 at(next(), 'verify');
 
 // One that does not read.

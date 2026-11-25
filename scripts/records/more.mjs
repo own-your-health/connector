@@ -116,8 +116,8 @@ export function more({ lib, sample }) {
   const robinNotes = [
     encounter('robin counseling 2026-05-07', { start: '2026-05-07T17:00:00Z', end: '2026-05-07T17:45:00Z', type: 'Counseling visit', place: 'Example Counseling', clinician: 'Taylor Placeholder, LCSW' }),
     encounter('robin counseling 2026-08-06', { start: '2026-08-06T17:00:00Z', end: '2026-08-06T17:45:00Z', type: 'Counseling visit', place: 'Example Counseling', clinician: 'Taylor Placeholder, LCSW' }),
-    // An older result of a test whose newest is not private.
-    result('robin notes', '2024-09-10', ['2823-3', 'Potassium', 4.2, 'mmol/L', '3.5-5.1 mmol/L', 'Normal']),
+    // An older result of a test whose newest is not private, and a number with a zero at its end.
+    result('robin notes', '2024-09-10', ['2823-3', 'Potassium', JSON.rawJSON('4.0'), 'mmol/L', '3.5-5.1 mmol/L', 'Normal']),
   ];
   const robinShared = [encounter('robin skin 2026-03-17', { start: '2026-03-17T15:00:00Z', end: '2026-03-17T15:20:00Z', type: 'Office visit', place: 'Placeholder Skin Clinic', clinician: 'Dr. Riley Placeholder', npi: '0000000162' })];
 

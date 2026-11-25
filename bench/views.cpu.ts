@@ -139,7 +139,16 @@ it('measures', async () => {
     return { min: spent[0]!, median: spent[Math.floor(N / 2)]!, subs };
   };
 
-  const docs = ((await call('medrec_records', { kind: 'documents', person: 'Sam', limit: 5 })()) as { structuredContent: { items: { id: string }[] } }).structuredContent.items;
+  const docs = ((await call('medrec_records', { kind: 'documents', person: 'Sam', limit: 100 })()) as { structuredContent: { items: { id: string; has_text?: boolean }[] } }).structuredContent.items;
+  // The newest with three pages of text.
+  let long = '';
+  for (const d of docs.filter((x) => x.has_text)) {
+    const page = (await call('medrec_document', { id: d.id })()) as { structuredContent: { text_pages?: number } };
+    if ((page.structuredContent.text_pages ?? 1) >= 3) {
+      long = d.id;
+      break;
+    }
+  }
   const eventId = ((await call('medrec_records', { kind: 'events', person: 'Robin', limit: 30 })()) as { structuredContent: { items: { id: string }[] } }).structuredContent.items[29]!.id;
   // A fixed piece of work, to read the rest against: on a quiet machine about 2.2 ms (2.62 MB took 5.87).
   const reference = JSON.stringify(Array.from({ length: 6000 }, (_, i) => ({ id: `r${i}`, kind: 'result', date: '2014-01-01', display: `Synthetic test ${i}`, fields: { value: i, unit: 'mg/dL' }, provenance: [{ source: { cli: 'x' } }] })));
@@ -172,8 +181,8 @@ it('measures', async () => {
     ['records events Robin, detailed, 200', call('medrec_records', { kind: 'events', person: 'Robin', response_format: 'detailed', limit: 200 })],
     ['records events "er", everyone', call('medrec_records', { kind: 'events', name: 'er', limit: 200 })],
     ['records events, one id', call('medrec_records', { kind: 'events', id: eventId })],
-    ['document, page 1', call('medrec_document', { id: docs[0]!.id })],
-    ['document, page 3', call('medrec_document', { id: docs[0]!.id, page: 3 })],
+    ['document, page 1', call('medrec_document', { id: long })],
+    ['document, page 3', call('medrec_document', { id: long, page: 3 })],
   ];
   const rows: string[] = [];
   if (process.env.PROFILE) {
