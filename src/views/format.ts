@@ -132,6 +132,12 @@ export interface PersonViews {
    * payments and private marks; null when there is none.
    */
   marks?: string | null;
+  /**
+   * medrec 0.9.7 on, for private.json and code-names.json: the MD5 of the
+   * person's provider-state.json, what a provider directory gave; absent when
+   * there is none. The file is medrec's own, and is never read here.
+   */
+  provider_state?: string | null;
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */
@@ -148,6 +154,16 @@ export interface SummaryView {
   bills: Listed<Bill>;
 }
 
+/** Where a record came from, as a view keeps it. */
+export interface SlimSource {
+  fhir_base?: string | null;
+  cli?: string | null;
+  /** Null when it has none; absent in views medrec 0.9.3 and earlier wrote. */
+  organization_id?: string | null;
+  /** What it came through, as `medrec mcp` shows it; null when nothing names it. Absent in views medrec 0.9.5 and earlier wrote. */
+  label?: string | null;
+}
+
 /** A record as the tools need it: index.json's entry with only its first source's `source`. */
 export interface SlimRecord {
   id: string;
@@ -157,7 +173,7 @@ export interface SlimRecord {
   display: string;
   status?: string | null;
   fields?: JsonObject;
-  provenance?: { source: JsonObject }[];
+  provenance?: { source: SlimSource }[];
 }
 
 /** A name records of one kind carry (code, display, code display) and the shards holding them (UNDATED for the undated file). */

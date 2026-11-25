@@ -462,6 +462,23 @@ describe('events from the views (medrec 0.9.0)', () => {
     ]);
   });
 
+  it('makes only the payments, private items and plain names stale when marks.json changes, or is gone', async () => {
+    type Page = { items: { id: string }[]; warnings?: { code: string }[] };
+    for (const [name, change] of [
+      ['changed', (at: string) => appendFileSync(at, ' ')],
+      ['gone', (at: string) => rmSync(at)],
+    ] as const) {
+      const root = copy(base, `events-marks-${name}`);
+      change(join(root, 'Robin Example/marks.json'));
+      const ids = async (at: string) => items((await events(at, { person: 'Robin' })).r).map((x) => x.id);
+      expect(await ids(root), name).toEqual(await ids(base));
+      const bills = (await ask(root, 'medrec_records', { kind: 'bills', person: 'Robin' })).r.structuredContent as Page;
+      expect(bills.warnings?.map((w) => w.code).sort(), name).toEqual(['bills-not-prepared', 'private-not-prepared']);
+      const plain = async (at: string) => ((await ask(at, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r.structuredContent as { items: { plain_name?: string }[] }).items.filter((x) => x.plain_name !== undefined).length;
+      expect([(await plain(base)) > 0, await plain(root)], name).toEqual([true, 0]);
+    }
+  });
+
   it("makes a guardian's events stale when a linked newborn's text changes, and leaves the others", async () => {
     const root = copy(base, 'events-linked');
     appendFileSync(join(root, 'Jamie Example/text.json'), ' ');
@@ -840,6 +857,143 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     expect(sam.items).toHaveLength(6);
     expect(sam.items.every((x) => x.private === undefined)).toBe(true);
     expect(sam.warnings?.map((w) => w.code)).toEqual(['private-marks-unreadable']);
+  });
+
+  describe('what provider labels make private (medrec 0.9.7)', () => {
+    const PROVIDERS = 'Robin Example/provider-state.json';
+    const codes = (r: { structuredContent?: Record<string, unknown> }) => (page(r).warnings ?? []).map((w) => w.code);
+    const named = (r: { structuredContent?: Record<string, unknown> }) => page(r).items.filter((x) => (x as { plain_name?: string }).plain_name !== undefined).length;
+    /** A copy of the demo whose Robin has a provider-state.json, and what views.json says of it. */
+    function withState(name: string, text: string | null, said: string | null | undefined): string {
+      const root = copy(demo, `labels-${name}`);
+      if (text !== null) writeFileSync(join(root, PROVIDERS), text);
+      const at = join(root, VIEWS_INDEX);
+      const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+      if (said !== undefined) index.people[personId(root, 'Robin Example')]!.provider_state = said === null ? null : createHash('md5').update(said).digest('hex');
+      writeFileSync(at, JSON.stringify(index));
+      return root;
+    }
+    // Only its MD5 matters: the file is medrec's own, and is never read here.
+    const STATE = 'not read here';
+    const message = (why: string, medrec: string, every = '') =>
+      `medrec has not marked Robin Example's private items for assistants (${why}): Robin Example's items are left out of household-wide answers until it does, and may not all be marked in answers about Robin Example. Tell the user medrec ${medrec} or later marks them on its next pass on the household's computer (medrec refresh)${every}`;
+
+    it('holds a person back, and gives no plain name, while provider-state.json is not the one private.json was made with', async () => {
+      const bad: [string, string | null, string | null | undefined][] = [
+        ['older medrec', STATE, undefined],
+        ['made with none', STATE, null],
+        ['changed', `${STATE} `, STATE],
+        ['gone', null, STATE],
+      ];
+      for (const [name, text, said] of bad) {
+        const root = withState(name.replaceAll(' ', '-'), text, said);
+        const own = await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' });
+        expect(codes(own.r), name).toEqual(['private-not-prepared']);
+        const without = said === undefined || said === null;
+        expect(page(own.r).warnings![0]!.message, name).toBe(
+          message(without ? 'their views were made without the provider-state.json now in their folder' : 'their records changed after medrec last wrote their private.json', '0.9.7', ', and every computer that writes the folder needs medrec 0.9.7 or later'),
+        );
+        expect(page(own.r).items.length, name).toBeGreaterThan(0);
+        expect(named(own.r), name).toBe(0);
+        const everyone = await ask(root, 'medrec_records', { kind: 'conditions' });
+        expect(codes(everyone.r), name).toContain('private-not-prepared');
+        expect(page(everyone.r).items.some((x) => x.person === 'Robin Example'), name).toBe(false);
+        // Nothing else depends on it, for Robin or anyone.
+        for (const args of [{ kind: 'bills', person: 'Robin' }, { kind: 'events', person: 'Robin' }]) {
+          const r = (await ask(root, 'medrec_records', args)).r;
+          expect(r.isError ?? false, name).toBe(false);
+          expect(codes(r), name).toEqual(['private-not-prepared']);
+        }
+        expect(codes((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Sam' })).r), name).toEqual(codes((await ask(demo, 'medrec_records', { kind: 'conditions', person: 'Sam' })).r));
+        // It is medrec's own: compared, never read.
+        for (const read of [own.read, everyone.read]) expect(read.some((f) => f.includes('provider-state')), name).toBe(false);
+      }
+    });
+
+    it('asks for the medrec that judges by provider labels, whatever else made the views stale, once there is a provider-state.json', async () => {
+      const edit = (root: string, change: (index: ViewsIndex, id: string) => void) => {
+        const at = join(root, VIEWS_INDEX);
+        const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+        change(index, personId(root, 'Robin Example'));
+        writeFileSync(at, JSON.stringify(index));
+      };
+      const NONE = 'medrec has written no private.json for them yet';
+      const CHANGED = 'their records changed after medrec last wrote their private.json';
+      const OLD = 'the views medrec wrote for them do not cover linked documents and imaging studies';
+      const stale: [string, string, (root: string) => void][] = [
+        ['marks', CHANGED, (root) => appendFileSync(join(root, 'Robin Example/marks.json'), ' ')],
+        ['records', CHANGED, (root) => appendFileSync(join(root, 'Robin Example/index.json'), ' ')],
+        ['no private.json', NONE, (root) => edit(root, (index, id) => delete index.people[id]!.files['private.json'])],
+        ['not in views.json', NONE, (root) => edit(root, (index, id) => delete index.people[id])],
+        [
+          'from before 0.9.5',
+          OLD,
+          (root) => setView(root, 'Robin Example', 'private.json', { schema: 'medrec-private/v1', person: personId(root, 'Robin Example'), records: {}, documents: {}, events: {} }),
+        ],
+      ];
+      for (const [name, reason, change] of stale) {
+        for (const [has, text, said] of [['there', STATE, STATE], ['gone', null, STATE], ['none', null, null]] as const) {
+          const root = withState(`stale-${name.replaceAll(' ', '-')}-${has}`, text, said);
+          change(root);
+          const warned = page((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r).warnings!.find((w) => w.code === 'private-not-prepared')!.message;
+          // The file that is gone is said before what is in the view.
+          const why = has === 'gone' && reason === OLD ? CHANGED : reason;
+          // Neither the file nor the views say there was one.
+          const unknown = has === 'none' || (has === 'gone' && name === 'not in views.json');
+          expect(warned, `${name}, ${has}`).toBe(unknown ? message(why, '0.9.5') : message(why, '0.9.7', ', and every computer that writes the folder needs medrec 0.9.7 or later'));
+        }
+      }
+    });
+
+    it('changes nothing while it is the same, or there is none', async () => {
+      for (const [name, text, said] of [['same', STATE, STATE], ['none', null, null]] as const) {
+        const root = withState(name, text, said);
+        for (const args of [{ kind: 'conditions', person: 'Robin' }, { kind: 'conditions' }, { kind: 'timeline' }, { kind: 'events' }, { kind: 'bills' }]) {
+          const { r, read } = await ask(root, 'medrec_records', args);
+          expect(r, `${name} ${args.kind}`).toEqual((await ask(demo, 'medrec_records', args)).r);
+          expect(read.some((f) => f.includes('provider-state'))).toBe(false);
+        }
+      }
+    });
+
+    it("holds back all of a person's items when what their labels make private is not known", async () => {
+      // medrec 0.9.7 writes both; a reader that knows only the marks holds back the same.
+      for (const extra of [{ labels_unreadable: true, marks_unreadable: true }, { labels_unreadable: true }]) {
+        const root = plain('labels-unreadable');
+        privateOf(root, 'Sam Example', {}, extra);
+        const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
+        expect(everyone.items.some((x) => x.person === 'Sam Example')).toBe(false);
+        expect(left(everyone)).toBe(6);
+        expect(everyone.warnings?.slice(1)).toEqual([
+          {
+            code: 'private-labels-unreadable',
+            message:
+              "Sam Example's provider-state.json does not read, so which items provider labels make private is not known: Sam Example's items are left out of household-wide answers until medrec tables fetch nppes, then medrec views write, run on one machine (a newer medrec's file needs this one updated)",
+          },
+        ]);
+        const sam = page((await ask(root, 'medrec_records', { kind: 'medications', person: 'Sam' })).r);
+        expect(sam.items).toHaveLength(6);
+        expect(sam.warnings?.map((w) => w.code)).toEqual(['private-labels-unreadable']);
+      }
+    });
+
+    it('warns in the order of the people, and binds no cursor to them', async () => {
+      const root = plain('labels-order');
+      const cursor = async () => page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2 })).r).next_cursor!;
+      privateOf(root, 'Sam Example', {}, { marks_unreadable: true });
+      const marks = await cursor();
+      privateOf(root, 'Robin Example', {}, { marks_unreadable: true });
+      const both = await cursor();
+      privateOf(root, 'Robin Example', {}, { labels_unreadable: true, marks_unreadable: true });
+      expect(await cursor()).toBe(both);
+      expect(Buffer.from(marks, 'hex').toString()).not.toContain(':L');
+      expect(Buffer.from(both, 'hex').toString()).not.toContain(':L');
+      const warned = page((await ask(root, 'medrec_records', { kind: 'timeline' })).r).warnings!.filter((w) => w.code.endsWith('-unreadable'));
+      expect(warned.map((w) => [w.code, w.message.split("'")[0]])).toEqual([
+        ['private-labels-unreadable', 'Robin Example'],
+        ['private-marks-unreadable', 'Sam Example'],
+      ]);
+    });
   });
 
   it('marks private lines in a summary, a private document read by id, and a private event', async () => {
