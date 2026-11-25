@@ -507,6 +507,25 @@ async function privacyOf(ctx: Context, h: Household, people: Person[]): Promise<
   return new Map(await Promise.all(people.map(async (p) => [p.id, await ctx.store.privacy(h, p)] as const)));
 }
 
+/**
+ * The same of people an answer names beside those it is about. Theirs decides
+ * only which of their items are left out, so one that cannot be read leaves
+ * them all out, and the rest of the answer stands.
+ */
+async function privacyOfOthers(ctx: Context, h: Household, people: Person[]): Promise<Map<string, Privacy>> {
+  const one = async (p: Person): Promise<Privacy> => {
+    try {
+      return await ctx.store.privacy(h, p);
+    } catch (e) {
+      if (e instanceof ToolError && e.kind === 'auth') throw e;
+      // As for plain names: only the error's class is logged.
+      if (!(e instanceof ToolError)) console.error(`another person's privacy failed: ${e instanceof Error ? e.name : typeof e}`);
+      return { areas: new Map(), unknown: { why: 'not-prepared', detail: 'their private.json could not be read just now' } };
+    }
+  };
+  return new Map(await Promise.all(people.map(async (p) => [p.id, await one(p)] as const)));
+}
+
 /** A page cut, with the private items it left out counted, and its warnings: medrec's, then the connector's own. */
 function cutPage<T>(
   page: PageRequest,
@@ -842,13 +861,15 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   const kept = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it)));
   const onPage = (i: number) => i >= page.offset && i < page.offset + page.limit;
   const others = full ? othersNamed(h, kept.filter((_, i) => onPage(i))).filter((q) => !chosen.includes(q)) : [];
-  const judge = new Gate(true, new Map([...privacy, ...(await privacyOf(ctx, h, others))]));
+  const judge = new Gate(true, new Map([...privacy, ...(await privacyOfOthers(ctx, h, others))]));
   const items = kept.map(({ p, it }, i) => {
     const area = gate.area(p, it.id as string);
     return item({ ...it, private: area, fields: full && onPage(i) ? shownFields(h, judge, p, it.fields as JsonObject, household, area === undefined) : it.fields });
   });
   const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
-  return gatedPage(page, gate, chosen, left, household, items, hint, { gaps });
+  const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { gaps });
+  const named = new Set(othersNamed(h, kept.slice(page.offset, page.offset + out.returned)));
+  return pageJson(out, [...warnings, ...judge.warningsOfOthers(others.filter((q) => named.has(q)))]);
 }
 
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
@@ -867,8 +888,9 @@ const objects = (v: Json | undefined): JsonObject[] => (Array.isArray(v) ? v.fil
  * with a private claim or portal visit, so one that is not (`open`) can have
  * another private item: an answer about the whole household leaves it out of
  * `members`, and the ids of events held back out of `links` and `could_join`.
- * Any answer leaves out another person's paper or event that person's own
- * would not show. `private_members` counts the members left out.
+ * Any answer leaves out another person's paper or event that is private, or
+ * cannot be judged. `private_members` counts the members left out, where any
+ * are.
  */
 function shownFields(h: Household, judge: Gate, p: Person, fields: JsonObject, household: boolean, open: boolean): JsonObject {
   const held = (whose: string | undefined, id: string | undefined, own: boolean): boolean => {

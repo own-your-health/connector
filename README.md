@@ -11,7 +11,8 @@ It offers the four tools of `medrec mcp` 0.9.8 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
 same too: `test/golden.test.ts` holds 305 recorded calls of `medrec mcp` to
 this connector's answers, to the character. One thing differs until medrec
-0.9.9: `private_members` (below).
+0.9.9: what an event's `fields` leave out (`private_members`, below). The tools'
+descriptions and schemas do not mention it.
 
 | Tool | What it answers |
 |---|---|
@@ -29,10 +30,15 @@ each page left out. An answer about one person includes them, and so does one
 that names the item ("sertraline", not "tablets"). Each one it includes
 carries `private`, its area. A study with no report is left out, counted and
 included the same way, but carries no area: nothing says what it is about.
-An event that is not private can have a private record or document: an answer
-about the whole household gives its other `members`, says how many it left out
-in `private_members`, and names no private event it is linked to or could join.
-Another person's private document or event is in no answer about the first.
+An event that is not private can have a private record or document. Where an
+event's `fields` list its members (with `response_format: "detailed"`, or by
+its id), an answer about the whole household leaves those out of `members`,
+which can then be empty, and names no private event it is linked to or could
+join: `links` or `could_join` is absent when nothing is left of it.
+`fields.private_members`, a number, says how many members were left out. It is
+absent when none were. An answer about one person lists all of that person's
+own. Another person's private document or event is in no answer about the
+first, and `private_members` counts such a document there too.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 
@@ -194,7 +200,10 @@ At the limits:
   0.9.7 or later: an earlier one's views are made without it. The
   `private-not-prepared` warning then asks for a pass by 0.9.7 or later, which
   ends it. Each person with any private
-  item costs one more request to Google. A series of tests is private when
+  item costs one more request to Google, and so does each other person whose
+  document or event the events on a detailed page about one person name. When
+  that request fails, or that person's private items are not known, the page
+  leaves out theirs with one of those warnings. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds
   two results of one date and name. When one of them cannot be found there,
