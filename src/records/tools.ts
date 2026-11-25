@@ -7,6 +7,7 @@ import { ToolError, type ServerInfo } from '../mcp/errors';
 import { HARD_LIMIT, PageRequest, chars, type ListArgs, type Page, type Room } from '../mcp/shape';
 import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names';
 import { LeftOut, type Warning } from './partial';
+import { nameOf, notShown, shownEvent, shownText } from './parts';
 import { Gate, names, type Privacy } from './private';
 import { STANDING_KINDS, billsInError, differ, inError, paperNote, papersStanding, type Line as StandingLine, type Row, type Standings } from './standing';
 import { NO_EVENTS, eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Bills, type RecordFilter, type Standing, type Store, type Why } from './store';
@@ -60,7 +61,7 @@ const NOTE_CLIP = 2_000;
 
 /** medrec's own server instructions, after the standard ones (pk-cli-mcp `instructions`). */
 const MEDREC_INSTRUCTIONS =
-  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. provider_labels say who a printed provider is, beside the source\'s words: call a likely one likely and give its evidence, and say where a phone is from. standing is what a condition, an allergy or a medicine is by all of its sources, and says has each source\'s word and the day it was read: where sources differ, give each word and choose none. For decisions about care, suggest the user ask their clinician.';
+  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many, and leaves such lines out of a claim, an event or a bill\'s text, which not_shown or hint says; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. provider_labels say who a printed provider is, beside the source\'s words: call a likely one likely and give its evidence, and say where a phone is from. standing is what a condition, an allergy or a medicine is by all of its sources, and says has each source\'s word and the day it was read: where sources differ, give each word and choose none. For decisions about care, suggest the user ask their clinician.';
 
 export const SERVER: ServerInfo & { host: string } = {
   host: "through the open-source Own Your Health connector, running in the household's own Cloudflare account, which reads their records folder in Google Drive with their own Google sign-in",
@@ -656,7 +657,7 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
     const g = (gate = gates());
     // Where they rank: a question about everyone holds back the private hits it does not name, and none shows what is entered in error.
     const skip = (p: Person) => (c: { id: string; title: string }) => (household && g.heldBack(p, c.id) && !names(c.title, query) ? ('private' as const) : g.inError(p, c.id) ? ('error' as const) : undefined);
-    const hits = await searchHousehold(ctx.store, h, asked, terms, r, page.wanted(), left.of, skip);
+    const hits = await searchHousehold(ctx.store, h, asked, terms, r, page.wanted(), left.of, skip, (p) => g.parts(p));
     kept = hits.filter(({ c }) => {
       if (c.held) g.skipped(c.held);
       else g.kept();
@@ -677,8 +678,8 @@ async function searchTool(a: Args, ctx: Context): Promise<Record<string, unknown
   const items: Record<string, unknown>[] = kept.map(() => ({}));
   for (const [i, { p, c }] of shown.entries()) {
     items[page.offset + i] = ordered(
-      { person: p.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet(), private: gate.area(p, c.id) },
-      ['person', 'kind', 'id', 'date', 'title', 'snippet', 'private'],
+      { person: p.name, kind: c.kind, id: c.id, date: c.date, title: clip(c.title, CLIP), snippet: await c.snippet(), not_shown: c.not_shown, private: gate.area(p, c.id) },
+      ['person', 'kind', 'id', 'date', 'title', 'snippet', 'not_shown', 'private'],
     );
   }
   return gatedPage(page, gate, chosen, left, household, items, 'person, since/until, or more words');
@@ -717,6 +718,7 @@ const ITEM_KEYS = [
   'title',
   'plain_name',
   'detail',
+  'not_shown',
   'status',
   'standing',
   'says',
@@ -783,7 +785,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const left = new LeftOut(household);
   const hint = 'person, since/until, active or name';
   const gate = (await gateOf(ctx, h, chosen, household))();
-  const filterOf = (p: Person): RecordFilter => ({ range: r, active, name, errors: gate.errorsOf(p) });
+  const filterOf = (p: Person): RecordFilter => ({ range: r, active, name, errors: gate.errorsOf(p), parts: gate.parts(p) });
   // A question about everyone holds back the private items it does not name; each one an answer includes carries its area.
   // A test series is private when any of its results is (medrec 0.9.3): `members` are those of its results that are.
   const keep = (p: Person, it: Item, members?: string[], wrong?: Why) => gate.keep(p, it.id as string, () => name !== undefined && names(it.title as string, name), members, wrong);
@@ -834,13 +836,13 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       rows.push({ p, it: { kind: 'note', person: p.name, date: note.date, title: firstLine(text, 120), detail: clip(text, NOTE_CLIP), source: note.author, id: note.id } });
     }
   } else if (kind === 'timeline') {
-    const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.timeline(h, p, r))));
+    const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.timeline(h, p, r, gate.parts(p)))));
     const top = await takeMerged(
       tagged,
       (a, b) => eventOrder(a.x, b.x),
       page.wanted(),
       ({ p, x }) => named(x.title) && keep(p, { id: x.id, title: clip(x.title, CLIP) }),
-      ({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }),
+      ({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), not_shown: e.not_shown, source: e.source, id: e.id }),
       page.full(),
     );
     const events = top.map((t) => t.item);
@@ -966,9 +968,14 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
       const start = str(e.start) ?? '';
       const end = str(e.end) ?? '';
       if ((r.since !== undefined && cmpS(end, r.since) < 0) || (r.until !== undefined && cmpS(start, r.until) > 0)) continue;
-      rows.push({ p, e: household && id === undefined ? shownOf(e, (x) => !gate.heldBackOf(p, x)) : e, lost: i >= events.length });
+      const shown = shownEvent(e, gate.part(p, str(e.id) ?? ''), (record) => gate.part(p, record));
+      rows.push({ p, e: household && id === undefined ? shownOf(shown, (x) => !gate.heldBackOf(p, x)) : shown, lost: i >= events.length });
     }
   }
+  const linked = rows.filter(({ e }) => e.place_from === 'linked');
+  const bornOf = linkedTo(h, linked).filter((q) => !chosen.includes(q));
+  const theirs = gate.judging(await privacyOfOthers(ctx, h, bornOf));
+  for (const row of linked) if (!bornIn(h, theirs, row.e)) row.e = { ...row.e, place: null, place_from: null };
   const k = (e: JsonObject, f: string) => str(e[f]) ?? '';
   rows.sort((a, b) => cmpS(k(b.e, 'start'), k(a.e, 'start')) || cmpS(k(b.e, 'end'), k(a.e, 'end')) || cmpS(k(a.e, 'id'), k(b.e, 'id')));
   const full = detailed || id !== undefined;
@@ -991,7 +998,7 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   const kept = found.filter(({ p, it, lost }) => gate.keep(p, it.id as string, () => opens(it), [], lost && id === undefined ? 'error' : undefined));
   const onPage = (i: number) => i >= page.offset && i < page.offset + page.limit;
   const others = full ? othersNamed(h, kept.filter((_, i) => onPage(i))).filter((q) => !chosen.includes(q)) : [];
-  const judge = gate.judging(await privacyOfOthers(ctx, h, others));
+  const judge = theirs.judging(await privacyOfOthers(ctx, h, others.filter((q) => !bornOf.includes(q))));
   const items = kept.map(({ p, it }, i) => {
     const area = gate.area(p, it.id as string);
     return item({ ...it, private: area, fields: full && onPage(i) ? shownFields(h, judge, p, it.fields as JsonObject, household, area === undefined) : it.fields });
@@ -1012,6 +1019,23 @@ function othersNamed(h: Household, rows: readonly { p: Person; e: JsonObject }[]
 }
 
 const objects = (v: Json | undefined): JsonObject[] => (Array.isArray(v) ? v.filter(isObject) : []);
+
+const births = (e: JsonObject): JsonObject[] => objects(e.links).filter((l) => l.relation === 'born_during');
+
+/** The people whose stays these events' places are taken from. */
+function linkedTo(h: Household, rows: readonly { e: JsonObject }[]): Person[] {
+  const ids = new Set(rows.flatMap(({ e }) => births(e).flatMap((l) => str(l.person) ?? [])));
+  return h.people.filter((q) => ids.has(q.id));
+}
+
+/** Whether an event shows the place of the stays it is linked to: when they hold nothing private of that person's. */
+function bornIn(h: Household, judge: Gate, e: JsonObject): boolean {
+  const of = births(e);
+  return of.length > 0 && of.every((l) => {
+    const q = h.people.find((x) => x.id === l.person);
+    return q !== undefined && judge.clear(q, str(l.event) ?? '');
+  });
+}
 
 /**
  * An event's `fields` without what the answer holds back. An event is private
@@ -1093,6 +1117,7 @@ function eventItem(person: string, e: JsonObject, detailed: boolean, lost: boole
     end: end !== undefined && end !== start ? end : undefined,
     title: str(e.title) ?? '',
     detail: parts.length > 0 ? clip(parts.join('; '), CLIP) : undefined,
+    not_shown: str(e.not_shown),
     status: str(e.status),
     standing: lost ? 'entered in error' : undefined,
     source: str(e.place),
@@ -1164,6 +1189,7 @@ function recordItem(person: string, r: ListedRecord, detailed: boolean): Item {
     date: detailed ? (r.date ?? undefined) : day(r.date),
     title: clip(r.display, CLIP),
     detail: detail !== undefined && detail !== (r.status ?? undefined) ? clip(detail, CLIP) : undefined,
+    not_shown: r.not_shown,
     status: r.status ?? undefined,
     source: r.source,
     code: r.code?.code ?? undefined,
@@ -1238,7 +1264,21 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   const found = await ctx.store.findDocument(h, id);
   if (!found) throw ToolError.notFound(`no document \`${id}\`; \`medrec documents list\` shows them`).withFix('Find the id with medrec_search or medrec_records');
   const [p, d] = found;
-  const text = await ctx.store.documentText(h, p, d);
+  const person = given(a.person);
+  const household = person === undefined;
+  if (person !== undefined) {
+    let of;
+    try {
+      of = resolvePerson(h, person);
+    } catch (e) {
+      throw personError(e);
+    }
+    if (of.id !== p.id) throw ToolError.usage(`${id} is a document of ${p.name}`);
+  }
+  const [linked, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
+  const gate = new Gate(household, new Map([[p.id, privacy]]));
+  const part = gate.part(p, d.id);
+  const text = shownText(await ctx.store.documentText(h, p, d), part);
   const cs = Array.from(text);
   const breaks: number[] = [];
   cs.forEach((c, i) => {
@@ -1250,17 +1290,16 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page === 1 || (page === undefined && offset === undefined)) start = 0;
   else if (page !== undefined) start = breaks[page - 2]! + 1;
   else start = Math.min(offset!, cs.length);
-  const [linked, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
-  // It names no person, so it is an answer about the whole household: only a private document's private records are named.
-  const gate = new Gate(true, new Map([[p.id, privacy]]));
+  // When it names no person it is an answer about the whole household: only a private document's private records are named.
   // Views from before medrec 0.9.9 do not say which record a name is.
   const any = privacy.unknown !== undefined || [...privacy.areas.keys()].some((id) => id.startsWith('r_'));
   const held = (id: string | undefined) => (id === undefined ? any : gate.heldBack(p, id));
-  const records = linked.filter(({ id }) => privacy.areas.has(d.id) || !held(id)).map(({ name }) => name);
+  const records = linked.filter(({ id }) => !household || privacy.areas.has(d.id) || !held(id)).map(({ id, name }) => (id === undefined ? name : clip(nameOf(gate.part(p, id), name), CLIP)));
   const printed = printedOfDocument(d.organization);
-  const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).read.get(p.id)?.shown(d.id, printed, asked(gate, p, true)) ?? []) : [];
+  const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).read.get(p.id)?.shown(d.id, printed, asked(gate, p, household)) ?? []) : [];
   const note = await noteOf(ctx, h, p, d);
-  const hint = (text?: string) => [note, text].filter((x) => x !== undefined).join(' ') || undefined;
+  const more = notShown(part) === undefined ? undefined : `${notShown(part)}: pass ${p.name} as person for all of it.`;
+  const hint = (text?: string) => [note, more, text].filter((x) => x !== undefined).join(' ') || undefined;
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,

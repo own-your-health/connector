@@ -5,9 +5,10 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { open, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Folder, ParsedCache, type FileSource } from '../src/records/folder';
-import { VIEWS_INDEX, personDir, storedName, type SlimSource, type SummaryView, type ViewsIndex } from '../src/views/format';
-import type { Household, Person, PersonIndex } from '../src/records/model';
+import { HAY_ITEMS, ITEMS_HEADER, VIEWS_INDEX, personDir, storedName, type SlimSource, type SummaryView, type ViewsIndex } from '../src/views/format';
+import type { Household, JsonObject, Person, PersonIndex } from '../src/records/model';
 import { sourcesOf } from '../src/records/sources';
+import { fold, wordStarts } from '../src/records/text';
 import { allOf, errorsOf, standingsOf, type StandingView, type Standings } from '../src/records/standing';
 import { line, type Summary } from '../src/records/views';
 import type { Privacy } from '../src/records/private';
@@ -332,6 +333,76 @@ export function labelClaims(root: string, others: number): number[] {
     writeFileSync(join(root, personDir(p.id) + storedName('providers.json', sum)), body);
     v.files['providers.json'] = sum;
     sizes.push(body.length);
+  }
+  writeFileSync(at, JSON.stringify(index));
+  return sizes;
+}
+
+/**
+ * Gives every `every`-th claim and bill of each person a private part, a
+ * stretch of its text, in their private.json and search-parts.json, as medrec
+ * would list them, for measuring a household with private parts.
+ */
+export function markParts(root: string, every: number): number[] {
+  const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string }[] };
+  const at = join(root, VIEWS_INDEX);
+  const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+  const sizes: number[] = [];
+  for (const p of h.people) {
+    const v = index.people[p.id]!;
+    const read = (name: string) => readFileSync(join(root, personDir(p.id) + storedName(name, v.files[name]!)));
+    const write = (name: string, view: unknown) => {
+      const body = JSON.stringify(view);
+      v.files[name] = createHash('md5').update(body).digest('hex');
+      writeFileSync(join(root, personDir(p.id) + storedName(name, v.files[name]!)), body);
+      return body.length;
+    };
+    const items = read('search-items.bin');
+    const n = items.readUInt32LE(0);
+    const hay = Buffer.concat(Array.from({ length: Math.ceil(n / HAY_ITEMS) }, (_, k) => read(`search-hay-${k}.bin`)));
+    const priv = JSON.parse(read('private.json').toString()) as PrivateView & { parts?: JsonObject };
+    const parts: JsonObject = {};
+    const search: JsonObject = {};
+    const counted = (text: string) => {
+      const starts = wordStarts(text);
+      const seen = new Map<string, [number, number]>();
+      for (const [i, w] of fold(text).split(' ').entries()) {
+        const held = seen.get(w);
+        if (held) held[0]++;
+        else seen.set(w, [1, starts[i]!]);
+      }
+      return seen;
+    };
+    let nth = 0;
+    for (let ord = 0; ord < n; ord++) {
+      const [, kind, id, title] = JSON.parse(items.subarray(ITEMS_HEADER(n) + items.readUInt32LE(4 * (2 + n + ord)), ITEMS_HEADER(n) + items.readUInt32LE(4 * (3 + n + ord))).toString()) as [string | null, string, string, string];
+      if ((kind !== 'claim' && kind !== 'document') || priv.records?.[id] || priv.documents?.[id] || nth++ % every !== 0) continue;
+      const own = hay.subarray(items.readUInt32LE(4 * (1 + ord)), items.readUInt32LE(4 * (2 + ord)));
+      const text = own.toString();
+      const line = text.indexOf('\n') + 1;
+      const words = [...text.slice(line).matchAll(/ /g)].map((m) => line + m.index);
+      if (words.length < 12) continue;
+      const bytes = (i: number) => Buffer.byteLength(text.slice(0, i));
+      const from = words[2]!;
+      const to = words[9]!;
+      const display = kind === 'claim' ? `Shown · ${title}` : title;
+      const cuts = [...(kind === 'claim' ? [[0, bytes(line)]] : []), [bytes(from), bytes(to) - bytes(from)]];
+      const open = `${kind === 'claim' ? `${display}\n` : text.slice(0, line)}${text.slice(line, from)}${text.slice(to)}`;
+      const before = counted(text);
+      const after = counted(open);
+      const moved = (b: number) => b - cuts.reduce((sum, [start, length]) => sum + (start! + length! <= b ? length! : 0), 0) + (kind === 'claim' ? Buffer.byteLength(display) + 1 : 0);
+      const said: JsonObject = {};
+      for (const [w, [count, first]] of before) {
+        const is = after.get(w);
+        if (!is) said[w] = [0];
+        else if (is[0] !== count || is[1] !== moved(first)) said[w] = is;
+      }
+      for (const [w, is] of after) if (!before.has(w)) said[w] = is;
+      parts[id] = kind === 'claim' ? { display, lines: [0], says: '1 service not shown' } : { text: [[0, 1]], says: '1 line not shown' };
+      search[ord] = { cuts, words: said };
+    }
+    write('private.json', { ...priv, parts: { ...(priv.parts as JsonObject | undefined), ...parts } });
+    sizes.push(write('search-parts.json', search));
   }
   writeFileSync(at, JSON.stringify(index));
   return sizes;

@@ -11,8 +11,9 @@ import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
 import type { Folder } from '../records/folder';
-import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
-import { parseExact } from '../records/numbers';
+import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
+import { isObject, parseExact } from '../records/numbers';
+import { OpenText, nameOf, notShown, shownClaim, type Parts, type SearchParts } from '../records/parts';
 import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Bills, type Candidate, type Events, type RecordFilter, type Skip, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
@@ -98,7 +99,7 @@ function* shardsFor(run: Run, r: Range): Iterable<number> {
 
 /** A search hit from the views: its snippet is made from a few bytes of its pack. */
 interface ViewsCandidate extends Candidate {
-  hay?: { path: string; start: number; bytes: number; at: number; reader: PersonReader };
+  hay?: { path: string; start: number; bytes: number; at: number; reader: PersonReader; open?: OpenText };
 }
 
 /**
@@ -169,7 +170,7 @@ const DEPENDS = {
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
 
 /** private.json as a reader needs it (medrec-private/v1). */
-export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
+export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown; parts?: Json; clear_events?: Json } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
 
 /** The private items private.json gives, each by id with its area; all of the person's held back when their marks, or what their provider labels make private, did not read. */
 export function privacyOf(view: PrivateView): Privacy {
@@ -177,15 +178,18 @@ export function privacyOf(view: PrivateView): Privacy {
   for (const kind of ['records', 'documents', 'events', 'studies'] as const) {
     for (const [id, w] of Object.entries(view[kind] ?? {})) if (typeof w?.area === 'string') areas.set(id, w.area);
   }
+  const parts = new Map(isObject(view.parts) ? Object.entries(view.parts).flatMap(([id, v]) => (isObject(v) ? [[id, v] as const] : [])) : []);
+  const clear = new Set(Array.isArray(view.clear_events) ? view.clear_events.filter((id): id is string => typeof id === 'string') : []);
+  const known = { areas, ...(parts.size > 0 ? { parts } : {}), ...(clear.size > 0 ? { clear } : {}) };
   // First: every item is held back either way, and a newer medrec would not read the marks.
-  if (view.labels_unreadable === true) return { areas, unknown: { why: 'labels-unreadable' } };
-  if (view.marks_unreadable === true) return { areas, unknown: { why: 'marks-unreadable' } };
+  if (view.labels_unreadable === true) return { ...known, unknown: { why: 'labels-unreadable' } };
+  if (view.marks_unreadable === true) return { ...known, unknown: { why: 'marks-unreadable' } };
   const unreported = view.unreported_studies ?? [];
   if (view.studies === undefined || !Array.isArray(unreported) || !unreported.every((x) => typeof x === 'string')) {
     // medrec 0.9.4 and earlier say of no document or study that a private record or report makes it private.
     return { areas, unknown: { why: 'not-prepared', detail: 'the views medrec wrote for them do not cover linked documents and imaging studies' } };
   }
-  return { areas, unjudged: new Set(unreported) };
+  return { ...known, unjudged: new Set(unreported) };
 }
 
 /** bills.json as a reader needs it (medrec-bills/v1). */
@@ -485,20 +489,29 @@ export class ViewsStore implements Store {
     if (!r) return yield* this.raw.records(h, p, kind, filter, detailed);
     const from = viewSources(h, p);
     const run = r.v.records[kind];
+    const parts = kind === 'claim' ? filter.parts : undefined;
     // No record of the kind: no shards of it, nor names.
     if (!run) return;
     let only: Set<number> | null = null;
     if (filter.name !== undefined) {
       const names = await r.json<NameRow[]>(paths.names(p.id, kind));
       only = new Set(names.filter(([c, d, cd]) => nameMatches(c, d, cd, filter.name!)).flatMap((n) => n[3]));
+      // One that is shown by another name is in its day's shard.
+      for (const part of parts?.values() ?? []) {
+        const name = nameOf(part, '');
+        if (name === '' || !nameMatches(null, name, null, filter.name)) continue;
+        const on = day(typeof part.date === 'string' ? part.date : undefined);
+        if (on === undefined) only.add(UNDATED);
+        else for (const i of shardsFor(run, { since: on, until: on })) only.add(i);
+      }
     }
     for (const i of shardsFor(run, filter.range)) {
       if (only && !only.has(i)) continue;
       const shard = await r.records(kind, i);
-      const pass = shard.filter((x) => passes(x, kind, filter));
-      // A shard holds whole days in the concise order; detailed orders by the full date within them.
-      if (detailed) pass.sort(recordOrder(true));
-      for (const x of pass) yield { ...x, source: from(x) };
+      const pass = (parts ? shard.map((x) => shownClaim(x, parts.get(x.id))) : shard).filter((x) => passes(x, kind, filter));
+      // A shard holds whole days in the concise order; detailed orders by the full date within them, and a name shown for another by itself.
+      const sorted = parts ? await this.shownOrder(r, pass, recordOrder(detailed), parts) : detailed ? pass.sort(recordOrder(detailed)) : pass;
+      for (const x of sorted) yield { ...x, source: from(x) };
     }
   }
 
@@ -585,15 +598,18 @@ export class ViewsStore implements Store {
     return out;
   }
 
-  async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {
+  async *timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event> {
     const r = await this.views(h, p);
     if (!r) return yield* this.raw.timeline(h, p, range);
     const folder = this.folder;
+    const shown = (shard: Event[]) => (parts ? this.shownOrder(r, shard, eventOrder, parts) : shard);
     async function* fromViews(): AsyncIterable<Event> {
       for (const i of shardsFor(r!.v.timeline, range)) {
-        for (const e of await r!.json<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))) {
-          if (holds(range, e.date)) yield { ...e, person: p.id, person_name: p.name };
-        }
+        const shard = (await r!.json<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))).map((e): Event => {
+          const part = e.kind === 'claim' ? parts?.get(e.id) : undefined;
+          return { ...e, ...(part ? { title: nameOf(part, e.title), not_shown: notShown(part) } : {}), person: p.id, person_name: p.name };
+        });
+        yield* (await shown(shard)).filter((e) => holds(range, e.date));
       }
     }
     async function* fromNotes(): AsyncIterable<Event> {
@@ -652,6 +668,26 @@ export class ViewsStore implements Store {
     return linked.map((n, i) => ({ id: linked_ids[i], name: clip(n, CLIP) }));
   }
 
+  /**
+   * Items in an order by what is shown of them. Those it finds equal are as the
+   * files have them, which a shard has them in by their own names: where a part
+   * names one for another, search items say it, whose numbers run the other way
+   * within a date.
+   */
+  private async shownOrder<T extends { id: string }>(r: PersonReader, list: T[], order: (a: T, b: T) => number, parts: Parts): Promise<T[]> {
+    const sorted = [...list].sort(order);
+    const equal = new Set<string>();
+    for (let i = 0, end; i < sorted.length; i = end) {
+      for (end = i + 1; end < sorted.length && order(sorted[i]!, sorted[end]!) === 0; ) end++;
+      const run = sorted.slice(i, end);
+      if (run.length > 1 && run.some((x) => parts.get(x.id)?.display !== undefined)) for (const x of run) equal.add(x.id);
+    }
+    if (equal.size === 0) return sorted;
+    const items = await this.items(r);
+    const at = new Map(items.find(equal).map((ord) => [items.meta(ord)[2], ord]));
+    return sorted.sort((a, b) => order(a, b) || (at.get(b.id) ?? 0) - (at.get(a.id) ?? 0));
+  }
+
   /** A person's search items (search-items.bin): their count, and each one's text and details. */
   private async items(r: PersonReader): Promise<Items> {
     const b = await r.binary(paths.items(r.p.id));
@@ -688,10 +724,12 @@ export class ViewsStore implements Store {
     };
   }
 
-  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]> {
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip, parts?: Parts): Promise<Candidate[]> {
     const r = await this.views(h, p);
     if (!r) return this.raw.search(h, p, terms, range, want, skip);
     const labs = LAB_QUERIES.includes(terms.join(' '));
+    // An event is not searched.
+    const searched = parts !== undefined && [...parts.keys()].some((id) => !id.startsWith('e_'));
 
     const items = await this.items(r);
     // Refused here rather than at the snippets, so a question about everyone can leave this person out.
@@ -701,6 +739,7 @@ export class ViewsStore implements Store {
     const scores = new Float64Array(items.n);
     const firstAt = new Float64Array(items.n).fill(Infinity);
     const terms_ = new Uint8Array(items.n);
+    const shards: SearchShard[] = [];
     let matched = 0;
     for (let ti = 0; ti < terms.length; ti++) {
       const t = terms[ti]!;
@@ -711,7 +750,7 @@ export class ViewsStore implements Store {
       matched = 0;
       // No shard: no word starts so.
       if (r.has(at)) {
-        const shard = await r.json<SearchShard>(at);
+        const shard = (shards[ti] = await r.json<SearchShard>(at));
         for (const w in shard) {
           if (!w.startsWith(t)) continue;
           const list = shard[w]!;
@@ -728,15 +767,39 @@ export class ViewsStore implements Store {
           }
         }
       }
-      if (matched === 0) break;
+      // What is shown of a lab claim can hold a term that the rest of it does not.
+      if (matched === 0 && !(labs && searched)) break;
     }
     const all = terms.length;
-    const isHit = (ord: number) => matched > 0 && terms_[ord] === all;
+    const inText = (ord: number) => matched > 0 && terms_[ord] === all;
+    // The items found that an answer naming no person shows less of, and what of theirs holds every term.
+    // They are hits by all of theirs, and then by what is shown: its text, else as a lab record, else they are held back.
+    const less = new Map<number, Open>();
+    if (searched && (matched > 0 || labs) && r.has(paths.searchParts(p.id))) {
+      const open = await r.json<SearchParts>(paths.searchParts(p.id));
+      for (const k in open) {
+        const ord = Number(k);
+        if (!labs && !inText(ord)) continue;
+        const [start, end] = items.text(ord);
+        const [, , id, title] = items.meta(ord);
+        const text = OpenText.of(open[k]!, nameOf(parts!.get(id), title), end - start);
+        if (text) less.set(ord, { text, n: 0, first: Infinity, terms: 0 });
+      }
+      if (less.size > 0) countOpen(less, terms, shards, items.n);
+    }
+    const isLab = labs ? await this.labItems(r, [...less].flatMap(([ord, o]) => (inText(ord) !== (o.terms === all) ? [ord] : []))) : new Set<number>();
+    const found = new Map<number, 'text' | 'lab' | 'held'>();
+    for (const [ord, o] of less) {
+      if (!inText(ord) && !isLab.has(ord)) continue;
+      found.set(ord, o.terms === all ? 'text' : isLab.has(ord) && o.text.lab ? 'lab' : 'held');
+    }
+    const isHit = (ord: number) => (less.has(ord) ? found.get(ord) === 'text' || found.get(ord) === 'held' : inText(ord));
+    const rank = (ord: number) => (found.get(ord) === 'text' ? less.get(ord)!.n : scores[ord]!);
 
     // The best `want` by score, then item number, highest first: medrec's order, as the numbers run
     // oldest to newest. Keys sort ascending: -(score, then number).
     const keys: number[] = [];
-    if (matched > 0) for (let ord = lo; ord < hi; ord++) if (terms_[ord] === all) keys.push(-(scores[ord]! * 2 ** 26 + ord));
+    for (let ord = lo; ord < hi; ord++) if (isHit(ord)) keys.push(-(rank(ord) * 2 ** 26 + ord));
     const all_ = Float64Array.from(keys).sort();
     type Ranked = { c: ViewsCandidate; seq: number };
     const ranked: Ranked[] = [];
@@ -749,16 +812,20 @@ export class ViewsStore implements Store {
       // Offsets count over every pack; a pack starts at its first item's text.
       const k = Math.floor(ord / HAY_ITEMS);
       const base = items.text(k * HAY_ITEMS)[0];
+      const o = less.get(ord);
+      const part = parts?.get(id);
       const c: ViewsCandidate = {
         kind,
         id,
         date: date ?? undefined,
-        title,
-        score: scores[ord]!,
-        hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: firstAt[ord]!, reader: r },
+        title: nameOf(part, title),
+        score: rank(ord),
+        ...(part ? { not_shown: notShown(part) } : {}),
+        hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: o ? o.first : firstAt[ord]!, reader: r, ...(o ? { open: o.text } : {}) },
         snippet: () => this.snippet(c),
       };
-      c.held = skip?.(c);
+      // One with a part that the views do not say how to search is not shown.
+      c.held = found.get(ord) === 'held' || (part && !o) ? 'private' : skip?.(c);
       if (c.held === undefined) kept++;
       ranked.push({ c, seq });
     }
@@ -788,13 +855,27 @@ export class ViewsStore implements Store {
       for (let j = rows.length - 1; j >= 0 && shown < want; j--) {
         const [ord, date, kind, id, title, snippet] = rows[j]!;
         if (isHit(ord) || !holds(range, date)) continue;
-        const c: Candidate = { kind, id, date: date ?? undefined, title, score: 0, snippet: async () => snippet };
-        c.held = skip?.(c);
+        const part = parts?.get(id);
+        const c: Candidate = { kind, id, date: date ?? undefined, title: nameOf(part, title), score: 0, ...(part ? { not_shown: notShown(part) } : {}), snippet: async () => snippet };
+        c.held = part && less.get(ord)?.text.lab !== true ? 'private' : skip?.(c);
         if (c.held === undefined) shown++;
         out.push(c);
       }
     }
     return out;
+  }
+
+  /** Which of these search items a lab query finds by kind: rows are by item number, read from the last file back. */
+  private async labItems(r: PersonReader, ords: number[]): Promise<Set<number>> {
+    const asked = new Set(ords);
+    const found = new Set<number>();
+    const least = Math.min(...ords);
+    for (let i = r.v.search.labs - 1; ords.length > 0 && i >= 0; i--) {
+      const rows = await r.json<LabRow[]>(paths.labs(r.p.id, i));
+      for (const [ord] of rows) if (asked.has(ord)) found.add(ord);
+      if (rows.length > 0 && rows[0]![0] <= least) break;
+    }
+    return found;
   }
 
   /** Reads the bytes the hits' snippets need from each person's hay packs: near ones as one range, and as many ranges as the call may still make. */
@@ -803,7 +884,7 @@ export class ViewsStore implements Store {
     const readers = new Map<string, PersonReader>();
     for (const c of hits as ViewsCandidate[]) {
       if (!c.hay || this.covered(c)) continue;
-      const [ws, we] = snippetWindow(c.hay.bytes, c.hay.at);
+      const [ws, we] = spanOf(c.hay);
       const list = wanted.get(c.hay.path) ?? (wanted.set(c.hay.path, []), wanted.get(c.hay.path)!);
       list.push([c.hay.start + ws, c.hay.start + we]);
       readers.set(c.hay.path, c.hay.reader);
@@ -820,7 +901,7 @@ export class ViewsStore implements Store {
   /** The fetched window holding the hit's snippet, if one does. */
   private covered(c: ViewsCandidate): { start: number; bytes: Uint8Array } | undefined {
     const hay = c.hay!;
-    const [ws, we] = snippetWindow(hay.bytes, hay.at);
+    const [ws, we] = spanOf(hay);
     return this.windows.get(hay.path)?.find((w) => w.start <= hay.start + ws && w.start + w.bytes.length >= hay.start + we);
   }
 
@@ -830,9 +911,49 @@ export class ViewsStore implements Store {
       await this.prepare([c]);
       w = this.covered(c)!;
     }
-    // The window holds the file's bytes from w.start; the item's text starts at hay.start.
-    return snippetIn(w.bytes, w.start - c.hay!.start, c.hay!.bytes, c.hay!.at);
+    const { start, bytes, at, open } = c.hay!;
+    // The window holds the file's bytes from w.start; the item's text starts at `start`.
+    if (!open) return snippetIn(w.bytes, w.start - start, bytes, at);
+    const [from, to] = snippetWindow(open.bytes, at);
+    return snippetIn(open.read(w.bytes, w.start - start, from, to), from, open.bytes, at);
   }
+}
+
+type Open = { text: OpenText; n: number; first: number; terms: number };
+
+/** How often each of these items says every term in what is shown of it, where first, and how many of the terms it has, in order. */
+function countOpen(less: Map<number, Open>, terms: string[], shards: (SearchShard | undefined)[], n: number): void {
+  const asked = new Uint8Array(n);
+  for (const ord of less.keys()) asked[ord] = 1;
+  const held = (o: Open, ti: number, times: number, first: number) => {
+    if (times === 0 || (o.terms !== ti && o.terms !== ti + 1)) return;
+    o.terms = ti + 1;
+    o.n += times;
+    o.first = Math.min(o.first, first);
+  };
+  terms.forEach((t, ti) => {
+    const shard = shards[ti] ?? {};
+    for (const w in shard) {
+      if (!w.startsWith(t)) continue;
+      const list = shard[w]!;
+      for (let j = 0; j < list.length; j += 3) {
+        if (asked[list[j]!] === 0) continue;
+        const o = less.get(list[j]!)!;
+        if (o.text.word(w) === undefined) held(o, ti, list[j + 1]!, o.text.moved(list[j + 2]!));
+      }
+    }
+    for (const o of less.values()) {
+      for (const w of o.text.words(t)) {
+        const { n: times, first } = o.text.word(w)!;
+        held(o, ti, times, first);
+      }
+    }
+  });
+}
+
+/** The bytes of its item's text that a hit's snippet is made from. */
+function spanOf({ bytes, at, open }: NonNullable<ViewsCandidate['hay']>): [number, number] {
+  return open ? open.source(...snippetWindow(open.bytes, at)) : snippetWindow(bytes, at);
 }
 
 interface Items {

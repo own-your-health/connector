@@ -56,6 +56,7 @@ views/<person id>/private.json            medrec 0.9.1 on; medrec's own, below
 views/<person id>/code-names.json         medrec 0.9.4 on; medrec's own, below
 views/<person id>/providers.json          medrec 0.9.7 on; medrec's own, below
 views/<person id>/standing.json           medrec 0.9.9 on; medrec's own, below
+views/<person id>/search-parts.json       medrec 0.9.9 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -378,7 +379,11 @@ Two more views only medrec makes, in its layouts `medrec-bills/v1` and
   imaging studies with no report to judge them by (absent when there are
   none). A reader holds those back from an answer about the whole household
   as it does private items, counts them in the same `private-left-out`
-  count, and shows them in an answer about their person with no area.
+  count, and shows them in an answer about their person with no area. From
+  medrec 0.9.9, `parts` has what of an open item is private (Private parts,
+  below), `{}` when there is none. `clear_events` has the open events whose stay
+  another's event may name ("An event's members, links and `could_join`",
+  below), and is absent when there are none.
 
 Both are made from the person's views, their `overrides.json`, the
 `linked` people's records, and their `marks.json` (the household's payments
@@ -456,6 +461,78 @@ reader reads the other's `private.json` only to decide this: when it cannot, it
 leaves theirs out, answers the rest, and names them in a warning
 (`private-not-prepared`, `private-marks-unreadable` or
 `private-labels-unreadable`).
+
+An event whose `place_from` is `linked` has the place of another person's stay.
+A reader shows it, in an answer about the event's person too, only when the
+event has a `born_during` link, each of them is to an event in that person's
+`clear_events`, and what is private of theirs is known. Otherwise the event has
+no place: no name finds it by that, no provider label is of it, and nothing
+takes its place.
+
+## Private parts (medrec 0.9.9 and later)
+
+A claim of several services, a bill, a receipt, an explanation of benefits or an
+event can be open with a private part: a service, a diagnosis or a payer's note
+in a claim, a line of a paper's text, and what such a claim or a private paper
+says of an event. `private.json` has each in `parts`, by the item's id:
+
+| Item | Its part |
+|---|---|
+| claim | `lines`, `diagnoses` and `payer_notes`: places from 0 in its `items`, `diagnoses` and `payer_notes`, each absent when there is none; `display`, the name it is shown by; `date`, its date; `category` when the lines that are left have another, `null` when none has |
+| bill, receipt, explanation of benefits | `text`: `[offset, length]` of each private line, in bytes of its text |
+| event | any of `kind`, `title`, `what`, `what_from`, `place`, `place_from`, `clinicians`, `money`, `differences` and `expected`, to take the event's own place, `null` for none |
+
+`says` is how much is left out ("1 service not shown"); an event whose open
+claims have no private line has none. An item with a part is not private, and is
+counted in no `private-left-out`.
+
+Only an answer that names no person leaves the parts out; one about the person
+gives the items whole. Where it leaves them out, an item is listed, filtered by
+name, sorted and paged by what is left of it:
+
+- a list of claims, the timeline and events carry `says` as `not_shown`. A
+  claim's `fields` lose the lines, diagnoses and notes, and a list with nothing
+  left its key. An event calls a claim among its `members` by the claim's
+  `display`.
+- a paper's text has `(1 line not shown)`, or `(2 lines not shown)` for lines
+  that follow one another on a page, in place of the lines, and its size and
+  pages are those of what is given.
+- a search hit carries `not_shown`, whatever its kind.
+
+Claims of one day that are shown by one name are in the files' order. A shard has
+them by their own names, so a reader takes the order from their search items,
+whose numbers run the other way within a date.
+
+Places are those of the `index.json` and `text.json` the view was made from. A
+list they are not places of is left out, and a text they are not places of is
+empty.
+
+A search answers from the postings, which hold the whole text, so it needs to
+know what of it is left. `search-parts.json` says that, by search item number,
+and is current when `private.json` is. A person with no part has `{}`:
+
+```json
+{"12": {"cuts": [[0, 41], [58, 9]], "words": {"form": [1, 6], "quick": [0]}, "lab": false}}
+```
+
+- `cuts` are the bytes of the item's text that are left out, in order. The text
+  that is left is the rest, after the part's `display` and a line break when the
+  first cut starts at 0.
+- `words` are those that are there another number of times, or first at another
+  place, than the postings say: `[times, offset of the first]`, or `[0]` for one
+  that is gone. Any other word is there as often as the postings say, its first
+  place moved by the cuts before it and by the `display`.
+- `lab: false` is an item no lab query finds without its part.
+
+An item whose whole text holds every term, or that a lab query finds, is a hit
+when what is left does too, ranked and excerpted by that. Otherwise it is held
+back as a private item is, and counted as one. An item with a part that
+`search-parts.json` does not name, or of a person whose views have no such file,
+is held back from every search that names no person.
+
+`private.json` from an earlier medrec has neither key, as it judged no parts: its
+open items are shown whole until a later medrec makes the views again, and no
+place is taken from a linked stay.
 
 ## `providers.json` (medrec 0.9.7 and later)
 

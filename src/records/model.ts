@@ -97,6 +97,8 @@ export interface RecordEntry {
 export interface ListedRecord extends RecordEntry {
   /** What it came through (sources.ts), as `medrec mcp` labels it. */
   source: string | undefined;
+  /** How much of it an answer that names no person leaves out (parts.ts). */
+  not_shown?: string;
 }
 
 export interface Amount {

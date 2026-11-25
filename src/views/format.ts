@@ -24,6 +24,7 @@
 //   views/<person id>/events.json          medrec 0.9.0 on: what happened, one per visit, stay or fill
 //   views/<person id>/bills.json           medrec 0.9.1 on: what is paid and left on each bill
 //   views/<person id>/private.json         medrec 0.9.1 on: the private records, documents, events and studies
+//   views/<person id>/search-parts.json    medrec 0.9.9 on: what of an item's text is left without its private part
 //
 // Search items are numbered in the reverse of medrec's order for hits of
 // equal score (date, newest first, undated last, then as the files hold
@@ -253,6 +254,8 @@ export const paths = {
   labs: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-labs-${n}.json`,
   items: (pid: string) => `${VIEWS_DIR}/${pid}/search-items.bin`,
   hay: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-hay-${n}.bin`,
+  /** medrec 0.9.9 on: what search reads of an item with a private part; this connector does not write it. */
+  searchParts: (pid: string) => `${VIEWS_DIR}/${pid}/search-parts.json`,
   /** medrec 0.9.0 on: what happened, one event per visit, stay or fill (medrec-events/v1); this connector does not write it. */
   events: (pid: string) => `${VIEWS_DIR}/${pid}/events.json`,
   bills: (pid: string) => `${VIEWS_DIR}/${pid}/bills.json`,

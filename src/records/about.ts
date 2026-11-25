@@ -4,7 +4,7 @@
 // leave it out and name its ids; here it is left out of an index read whole.
 
 import type { DocumentEntry, Given, GivenPaper, Json, JsonObject, Person, PersonIndex, Provenance, RecordEntry } from './model';
-import { isObject } from './numbers';
+import { isObject, removed } from './numbers';
 import { grownAnswers } from './questionnaires';
 import { saysInError } from './standing';
 import { cmpStr } from './text';
@@ -145,7 +145,7 @@ function claimFields(fields: JsonObject, gone: ReadonlySet<string>): JsonObject 
     const ids = of[key];
     if (!Array.isArray(ids)) return of;
     const left = ids.filter((id) => typeof id !== 'string' || !gone.has(id));
-    return Object.fromEntries(Object.entries(of).flatMap(([k, v]): [string, Json][] => (k !== key ? [[k, v]] : left.length > 0 ? [[k, left]] : [])));
+    return left.length > 0 ? { ...of, [key]: left } : removed(of, key);
   };
   const out = less(fields, 'results');
   const lines = out.items;

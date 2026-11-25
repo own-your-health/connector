@@ -38,7 +38,15 @@ join: `links` or `could_join` is absent when nothing is left of it.
 `fields.private_members`, a number, says how many members were left out. It is
 absent when none were. An answer about one person lists all of that person's
 own. Another person's private document or event is in no answer about the
-first, and `private_members` counts such a document there too.
+first, and `private_members` counts such a document there too. The place of
+another person's stay, as of a birth, is an event's place only when that stay
+holds nothing private.
+A claim, a bill or an event can be open with a private part: a service among
+others, a diagnosis, a line of the text. When medrec 0.9.9 or later has marked
+those, an answer that names no person leaves them out, lists and finds the item
+by what is left, and says how much it left out: `not_shown`, or a text's `(1 line
+not shown)` and its `hint`. `medrec_document` gives all of the text with
+`person`, whose document it is. What an item cost stays.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 
@@ -219,7 +227,10 @@ At the limits:
   `private-not-prepared` warning then asks for a pass by 0.9.7 or later, which
   ends it. Each person with any private
   item costs one more request to Google, and so does each other person whose
-  document or event the events on a detailed page about one person name. When
+  document or event the events on a detailed page about one person name, or
+  whose stay an event found has its place from. An answer that names no person
+  costs one more for each person with a private part among what a search finds,
+  or with two claims of one day that it shows by one name. When
   that request fails, or that person's private items are not known, the page
   leaves out theirs with one of those warnings. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results

@@ -9,7 +9,8 @@
 // `names` and src/mcp.rs `PrivateItems`.
 
 import type { Warning } from './partial';
-import type { Person } from './model';
+import type { JsonObject, Person } from './model';
+import type { Parts } from './parts';
 import { billsInError, inError } from './standing';
 import type { Why } from './store';
 import { fold } from './text';
@@ -23,11 +24,15 @@ import { fold } from './text';
  * medrec 0.9.7), or this connector has no current private.json for
  * them (`not-prepared`, with why, and the medrec that makes it when a later
  * one than usual is needed). Either way their items are held back from
- * answers about the whole household.
+ * answers about the whole household. `parts` gives what of an open item is
+ * private, and `clear` the open events with a link that hold nothing private
+ * of theirs (medrec 0.9.9 and later).
  */
 export interface Privacy {
   areas: ReadonlyMap<string, string>;
   unjudged?: ReadonlySet<string>;
+  parts?: Parts;
+  clear?: ReadonlySet<string>;
   unknown?: { why: 'marks-unreadable' | 'labels-unreadable' } | { why: 'not-prepared'; detail: string; needs?: string };
 }
 
@@ -110,6 +115,22 @@ export class Gate {
     const areas = this.people.get(p.id)?.areas;
     if (!areas) return undefined;
     return areas.get(id) ?? members.map((m) => areas.get(m)).find((a) => a !== undefined);
+  }
+
+  /** What an answer that names no person leaves out of the person's open items; undefined when it shows them whole. */
+  parts(p: Person): Parts | undefined {
+    return this.household ? this.people.get(p.id)?.parts : undefined;
+  }
+
+  /** What such an answer leaves out of an item. */
+  part(p: Person, id: string): JsonObject | undefined {
+    return this.parts(p)?.get(id);
+  }
+
+  /** Whether an event is open, holds nothing private of its person's, and is linked to another's. */
+  clear(p: Person, event: string): boolean {
+    const v = this.people.get(p.id);
+    return v?.unknown === undefined && (v?.clear?.has(event) ?? false);
   }
 
   /** The ids of the person's private records not entered in error, for a test series to find among its results. */

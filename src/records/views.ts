@@ -590,6 +590,8 @@ export interface Event {
   id: string;
   title: string;
   detail?: string;
+  /** As a listed record's. */
+  not_shown?: string;
   source?: string;
 }
 

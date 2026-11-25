@@ -14,6 +14,7 @@
 
 import { NO_NAMES, type CodeNames } from './code-names';
 import type { Folder } from './folder';
+import type { Parts } from './parts';
 import type { Privacy } from './private';
 import type { LabelsFile } from './provider-labels';
 import type { Standings } from './standing';
@@ -49,6 +50,8 @@ export interface RecordFilter {
   active: boolean;
   /** Those entered in error: passed whatever their status, for the list to count. */
   errors?: ReadonlySet<string>;
+  /** What is left out of them, where the answer names no person. */
+  parts?: Parts;
   /** `matchesCode`: an exact code, or part of the name. */
   name?: string;
 }
@@ -60,6 +63,8 @@ export interface Candidate {
   date?: string;
   title: string;
   score: number;
+  /** As a listed record's. */
+  not_shown?: string;
   /** Ranked but left out of the answer (private.ts), and why: counted where it ranks, never shown. */
   held?: Why;
   snippet(): Promise<string>;
@@ -135,7 +140,7 @@ export interface Store {
    */
   tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]>;
   /** A person's documents, records, studies and notes as timeline events in the range, ordered as the records tool lists them. */
-  timeline(h: Household, p: Person, range: Range): AsyncIterable<Event>;
+  timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event>;
   documents(h: Household, p: Person): Promise<DocumentEntry[]>;
   /** The document with this id, and whose it is; null when no one has it. */
   findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null>;
@@ -143,9 +148,10 @@ export interface Store {
   /**
    * The person's `want` best hits, best first (score, then date, newest
    * first), not counting those `skip` holds back: these come where they
-   * rank, flagged `held` (upTo).
+   * rank, flagged `held` (upTo). With `parts`, an item is found by what is
+   * shown of it, and one found by the rest is held back.
    */
-  search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]>;
+  search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip, parts?: Parts): Promise<Candidate[]>;
   documentText(h: Household, p: Person, d: DocumentEntry): Promise<string>;
   /** The first 20 records filed from the document. Views from before medrec 0.9.9 give no ids. */
   documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]>;
@@ -258,8 +264,9 @@ export async function searchHousehold(
   each: <T>(p: Person, f: () => Promise<T>, none: T) => Promise<T> = (_p, f) => f(),
   /** Each person's hits left out where they rank. */
   skip?: (p: Person) => Skip | undefined,
+  parts?: (p: Person) => Parts | undefined,
 ): Promise<{ p: Person; c: Candidate }[]> {
-  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want, skip?.(p)), [])));
+  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want, skip?.(p), parts?.(p)), [])));
   const owner = new Map(found.flatMap((cs, i) => cs.map((c) => [c, people[i]!] as const)));
   return rankHits(found, want).map((c) => ({ p: owner.get(c)!, c }));
 }
