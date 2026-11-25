@@ -10,7 +10,8 @@ from the records, with no computer left on to serve them.
 It offers the four tools of `medrec mcp` 0.9.8 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
 same too: `test/golden.test.ts` holds 305 recorded calls of `medrec mcp` to
-this connector's answers, to the character.
+this connector's answers, to the character. One thing differs until medrec
+0.9.9: `private_members` (below).
 
 | Tool | What it answers |
 |---|---|
@@ -28,6 +29,9 @@ each page left out. An answer about one person includes them, and so does one
 that names the item ("sertraline", not "tablets"). Each one it includes
 carries `private`, its area. A study with no report is left out, counted and
 included the same way, but carries no area: nothing says what it is about.
+An event that is not private can have a private record or document: an answer
+about the whole household gives its other `members`, and `private_members` says
+how many it left out.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 

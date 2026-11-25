@@ -839,13 +839,35 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   // An event asked for by id is named; one whose title, detail or place the question names is too.
   const opens = (it: Item) => id !== undefined || (name !== undefined && [it.title, it.detail, it.source].some((t) => typeof t === 'string' && names(t, name)));
   const kept = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it)));
-  const items = kept.map(({ p, it }) => item({ ...it, private: gate.area(p, it.id as string) }));
+  const items = kept.map(({ p, it }) => {
+    const area = gate.area(p, it.id as string);
+    return item({ ...it, private: area, fields: household && full && area === undefined ? openMembers(h, gate, p, it.fields as JsonObject) : it.fields });
+  });
   const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
   return gatedPage(page, gate, chosen, left, household, items, hint, { gaps });
 }
 
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
 const strings = (v: Json | undefined): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+
+/**
+ * An open event's `fields` in an answer about the whole household: an event is
+ * private with a private claim or portal visit, and one with another private
+ * item is not, so its `members` are without those, and `private_members` counts them.
+ */
+function openMembers(h: Household, gate: Gate, p: Person, fields: JsonObject): JsonObject {
+  const members = Array.isArray(fields.members) ? fields.members : [];
+  const held = (m: Json): boolean => {
+    if (!isObject(m)) return false;
+    const whose = str(m.person);
+    const owner = whose === undefined ? p : h.people.find((q) => q.id === whose);
+    const id = str(m.record) ?? str(m.document);
+    return owner === undefined || (id !== undefined && gate.heldBack(owner, id));
+  };
+  const shown = members.filter((m) => !held(m));
+  if (shown.length === members.length) return fields;
+  return Object.fromEntries(Object.entries(fields).flatMap(([k, v]): [string, Json][] => (k === 'members' ? [[k, shown], ['private_members', members.length - shown.length]] : [[k, v]])));
+}
 
 const EXPECTED: Record<string, string> = { doctor_claims: "doctors' claims", facility_claim: "the facility's claim", claim: 'a claim', bill: 'a bill' };
 const EVENT_FIELDS = ['confidence', 'money', 'members', 'expected', 'differences', 'links', 'could_join'] as const;
