@@ -104,29 +104,29 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
   the tool says why it cannot answer (below), never answering from records
   that have since changed.
 
-| Call, over a synthetic folder of six people with views, 6.0 MB of index and 6.5 MB of text, one record in 20 private, every claim with a provider label | CPU, cold, least | CPU, cold, median | Requests to Google |
+| Call, over a synthetic folder of six people with views, 6.0 MB of index and 6.5 MB of text, one record in 20 private, every claim with a provider label (255 KB of them) | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.7 ms | 0 |
-| `medrec_summary` of one person | 2.7 ms | 4.8 ms | 13 |
-| `medrec_search`, one word | 4.5 ms | 8.0 ms | 40 |
-| `medrec_search`, one word, 100 hits | 5.5 ms | 14.8 ms | 40 |
-| `medrec_search`, three words | 4.6 ms | 8.4 ms | 45 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 5.2 ms | 9.8 ms | 25 |
-| `medrec_search` for "labs" (every lab record, by kind) | 4.3 ms | 9.0 ms | 43 |
-| `medrec_records` results, 200 | 4.4 ms | 7.8 ms | 16 |
-| `medrec_records` tests, everyone | 5.6 ms | 12.0 ms | 28 |
-| `medrec_records` timeline of one person | 3.2 ms | 5.1 ms | 9 |
-| `medrec_records` timeline, everyone, 200 | 4.4 ms | 7.9 ms | 23 |
-| `medrec_records` claims, everyone, 200, with labels | 7.0 ms | 11.8 ms | 25 |
-| `medrec_records` bills, everyone | 5.2 ms | 8.6 ms | 23 |
-| `medrec_records` conditions, everyone, 200, with plain names | 4.1 ms | 7.0 ms | 17 |
-| `medrec_records` conditions of one person, with plain names | 2.4 ms | 4.0 ms | 8 |
-| `medrec_records` events, everyone | 5.1 ms | 9.0 ms | 18 |
-| `medrec_records` events of one person, detailed, 200 | 4.0 ms | 6.2 ms | 8 |
-| `medrec_records` events with a name, everyone, 200 | 5.0 ms | 8.8 ms | 20 |
-| `medrec_records` one event by `id` | 4.0 ms | 7.3 ms | 16 |
-| `medrec_document`, a page | 3.8 ms | 6.6 ms | 10 |
-| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.1 ms | — |
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
+| `medrec_summary` of one person | 2.0 ms | 2.6 ms | 13 |
+| `medrec_search`, one word | 3.3 ms | 4.8 ms | 40 |
+| `medrec_search`, one word, 100 hits | 4.8 ms | 8.7 ms | 40 |
+| `medrec_search`, three words | 3.2 ms | 4.0 ms | 45 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 4.2 ms | 5.4 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 3.2 ms | 5.5 ms | 43 |
+| `medrec_records` results, 200 | 3.3 ms | 4.0 ms | 16 |
+| `medrec_records` tests, everyone | 4.5 ms | 5.7 ms | 28 |
+| `medrec_records` timeline of one person | 2.1 ms | 2.5 ms | 9 |
+| `medrec_records` timeline, everyone, 200 | 3.6 ms | 5.1 ms | 23 |
+| `medrec_records` claims, everyone, 200, with labels | 5.7 ms | 6.4 ms | 25 |
+| `medrec_records` bills, everyone | 3.3 ms | 4.0 ms | 23 |
+| `medrec_records` conditions, everyone, 200, with plain names | 2.8 ms | 3.4 ms | 17 |
+| `medrec_records` conditions of one person, with plain names | 1.7 ms | 2.1 ms | 8 |
+| `medrec_records` events, everyone | 4.2 ms | 5.2 ms | 18 |
+| `medrec_records` events of one person, detailed, 200 | 2.8 ms | 3.5 ms | 8 |
+| `medrec_records` events with a name, everyone, 200 | 4.2 ms | 5.1 ms | 20 |
+| `medrec_records` one event by `id` | 3.2 ms | 4.0 ms | 16 |
+| `medrec_document`, a page | 3.1 ms | 4.2 ms | 10 |
+| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-25, Apple
 silicon, six runs of 15 calls each: the least of all, and the median of the
@@ -134,7 +134,7 @@ runs' medians). The Worker answered in Node, through its own OAuth check, MCP
 framing, Drive client and views, with Node's own `fetch` work counted. Google
 was a local fake on another thread, whose work is not counted. A cold call is
 the first on a fresh isolate, which downloads and parses every file it needs.
-The machine was busy (load 14 to 20): the scale row takes about 2.2 ms on a quiet
+The machine was busy (load 12 to 23): the scale row takes about 2.2 ms on a quiet
 one, and the medians spread with the load. Cloudflare's dashboard shows the
 deployed Worker's own CPU times.
 
