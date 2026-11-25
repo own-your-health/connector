@@ -16,7 +16,7 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder
 and the large synthetic folder, with the `events.json` medrec wrote for them
 (`test/fixtures/events`; the reference writer does not write it), answers all
-251 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
+261 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
 the views"). Another writer (medrec's) is right when its views pass the same
 calls:
 

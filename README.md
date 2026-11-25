@@ -9,7 +9,7 @@ from the records, with no computer left on to serve them.
 
 It offers the four tools of `medrec mcp` 0.9.5 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 251 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 261 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
 
 | Tool | What it answers |
@@ -25,7 +25,7 @@ in `private.json`, and the household can mark others. A document is private
 when a private record links it, and a study when its report is. An answer
 about the whole household leaves them out, and its `warnings` say how many
 each page left out. An answer about one person includes them, and so does one
-that names the item ("sertraline", not "tablets"). Each one it includes
+that names the item ("escitalopram", not "tablets"). Each one it includes
 carries `private`, its area. A study with no report is left out, counted and
 included the same way, but carries no area: nothing says what it is about.
 This is discretion, not access control: anyone the connector lets in can ask
@@ -95,32 +95,32 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
 | Call, over a synthetic folder with views, 5.5 MB of index and 6.5 MB of text, one record in 20 private | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
 | `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
-| `medrec_summary` of one person | 1.8 ms | 2.2 ms | 14 |
-| `medrec_search`, one word | 2.8 ms | 3.9 ms | 38 |
-| `medrec_search`, one word, 100 hits | 4.0 ms | 6.8 ms | 38 |
-| `medrec_search`, three words | 3.1 ms | 3.5 ms | 42 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.3 ms | 4.2 ms | 25 |
-| `medrec_search` for "labs" (every lab record, by kind) | 3.2 ms | 3.9 ms | 42 |
-| `medrec_records` results, 200 | 2.7 ms | 3.5 ms | 15 |
-| `medrec_records` tests, everyone | 4.3 ms | 5.4 ms | 23 |
-| `medrec_records` timeline of one person | 1.7 ms | 2.3 ms | 8 |
-| `medrec_records` timeline, everyone, 200 | 3.0 ms | 3.4 ms | 19 |
-| `medrec_records` bills, everyone | 2.4 ms | 2.9 ms | 18 |
-| `medrec_records` conditions, everyone, 200, with plain names | 3.1 ms | 3.6 ms | 17 |
-| `medrec_records` conditions of one person, with plain names | 2.1 ms | 2.4 ms | 8 |
-| `medrec_records` events, everyone | 3.1 ms | 3.6 ms | 13 |
-| `medrec_records` events of one person, detailed, 200 | 2.2 ms | 2.5 ms | 7 |
-| `medrec_records` events with a name, everyone, 200 | 3.5 ms | 3.8 ms | 13 |
-| `medrec_records` one event by `id` | 2.6 ms | 3.0 ms | 13 |
-| `medrec_document`, a page | 2.0 ms | 2.5 ms | 9 |
-| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
+| `medrec_summary` of one person | 1.8 ms | 2.0 ms | 14 |
+| `medrec_search`, one word | 3.5 ms | 4.0 ms | 38 |
+| `medrec_search`, one word, 100 hits | 4.2 ms | 7.1 ms | 38 |
+| `medrec_search`, three words | 2.7 ms | 3.4 ms | 42 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.5 ms | 4.3 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 2.8 ms | 3.4 ms | 41 |
+| `medrec_records` results, 200 | 2.6 ms | 2.9 ms | 14 |
+| `medrec_records` tests, everyone | 3.6 ms | 4.4 ms | 24 |
+| `medrec_records` timeline of one person | 1.6 ms | 1.7 ms | 8 |
+| `medrec_records` timeline, everyone, 200 | 2.4 ms | 2.6 ms | 18 |
+| `medrec_records` bills, everyone | 2.2 ms | 2.5 ms | 18 |
+| `medrec_records` conditions, everyone, 200, with plain names | 2.4 ms | 2.8 ms | 16 |
+| `medrec_records` conditions of one person, with plain names | 1.4 ms | 1.7 ms | 8 |
+| `medrec_records` events, everyone | 3.1 ms | 3.5 ms | 13 |
+| `medrec_records` events of one person, detailed, 200 | 2.2 ms | 2.6 ms | 7 |
+| `medrec_records` events with a name, everyone, 200 | 3.5 ms | 4.1 ms | 13 |
+| `medrec_records` one event by `id` | 2.6 ms | 2.9 ms | 13 |
+| `medrec_document`, a page | 2.7 ms | 4.2 ms | 9 |
+| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 2.9 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-24, Apple
 silicon, 20 calls each). The Worker answered in Node, through its own OAuth
 check, MCP framing, Drive client and views, with Node's own `fetch` work
 counted. Google was a local fake on another thread, whose work is not
 counted. A cold call is the first on a fresh isolate, which downloads and
-parses every file it needs. The machine was busy (load 7): the scale row
+parses every file it needs. The machine was busy (load 6): the scale row
 takes about 2.2 ms on a quiet one, and the medians spread with the load.
 Cloudflare's dashboard shows the deployed Worker's own CPU times.
 
