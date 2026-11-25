@@ -33,7 +33,7 @@ interface Golden {
 }
 
 // Numbers as medrec printed them, as the tools hold them (src/records/numbers.ts).
-const golden = parseExact(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.9.json'), 'utf8')) as Golden;
+const golden = parseExact(readFileSync(join(import.meta.dirname, 'golden/medrec.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};
