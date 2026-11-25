@@ -4,11 +4,12 @@
 
 import spec from '../../spec/medrec-tools.json';
 import { ToolError, type ServerInfo } from '../mcp/errors';
-import { HARD_LIMIT, PageRequest, chars, type ListArgs, type Page } from '../mcp/shape';
+import { ENVELOPE_RESERVE, HARD_LIMIT, PageRequest, SIZE_BUDGET, chars, type ListArgs, type Page } from '../mcp/shape';
 import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names';
 import { LeftOut, type Warning } from './partial';
 import { Gate, names, type Privacy } from './private';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Standing, type Store } from './store';
+import { CLAIM_PROVIDER, NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, type Printed, type ProviderLabels } from './provider-labels';
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { isObject } from './numbers';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
@@ -56,7 +57,7 @@ const NOTE_CLIP = 2_000;
 
 /** medrec's own server instructions, after the standard ones (pk-cli-mcp `instructions`). */
 const MEDREC_INSTRUCTIONS =
-  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. For decisions about care, suggest the user ask their clinician.';
+  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. provider_labels say who a printed provider is, beside the source\'s words: call a likely one likely and give its evidence, and say where a phone is from. For decisions about care, suggest the user ask their clinician.';
 
 export const SERVER: ServerInfo & { host: string } = {
   host: "through the open-source Own Your Health connector, running in the household's own Cloudflare account, which reads their records folder in Google Drive with their own Google sign-in",
@@ -394,20 +395,91 @@ async function withPlainNames(ctx: Context, h: Household, gate: Gate, household:
   });
 }
 
+/** A person's provider labels; none when they cannot be read, as a label is never worth an answer. */
+async function providerLabels(ctx: Context, h: Household, p: Person): Promise<ProviderLabels> {
+  try {
+    return await ctx.store.providerLabels(h, p);
+  } catch (e) {
+    // As for plain names: only the error's class is logged.
+    if (!(e instanceof ToolError)) console.error(`provider labels failed: ${e instanceof Error ? e.name : typeof e}`);
+    return NO_LABELS;
+  }
+}
+
+/** What an answer, about the whole household or one person, may say of this person's labels. */
+const asked = (gate: Gate, p: Person, whole: boolean) => ({ whole, isPrivate: (id: string) => gate.area(p, id) !== undefined, heldBack: (id: string) => gate.heldBack(p, id) });
+
+/** Characters of JSON one item of a page may have: the page's, less its brackets and the item's comma. */
+const ITEM_ROOM = SIZE_BUDGET - ENVELOPE_RESERVE - 3;
+
+/** How many of an item's labels, the first ones, fit a page beside it: a label yields to the record. */
+function fitting(it: Record<string, unknown>, labels: JsonObject[]): number {
+  let size = chars(JSON.stringify(it)) + ',"provider_labels":[]'.length - 1;
+  let n = 0;
+  for (const l of labels) {
+    size += chars(JSON.stringify(l)) + 1;
+    if (size > ITEM_ROOM) break;
+    n++;
+  }
+  return n;
+}
+
+/**
+ * Adds to the items a page can have the labels of what they print (`printed`),
+ * before it is cut, so that they count in its size. Labels are read only for
+ * the people who print something there. Returns which items did not have room
+ * for all of theirs.
+ */
+async function addLabels(ctx: Context, h: Household, gate: Gate, household: boolean, page: PageRequest, items: Record<string, unknown>[], printed: (i: number) => { p: Person; printed: readonly Printed[] }): Promise<ReadonlySet<number>> {
+  const cut = new Set<number>();
+  const rows: { i: number; p: Person; printed: readonly Printed[] }[] = [];
+  for (let i = page.offset; i < Math.min(items.length, page.offset + page.limit); i++) {
+    const row = printed(i);
+    if (row.printed.length > 0) rows.push({ i, ...row });
+  }
+  const people = [...new Set(rows.map(({ p }) => p))];
+  const labels = new Map(await Promise.all(people.map(async (p) => [p.id, await providerLabels(ctx, h, p)] as const)));
+  for (const { i, p, printed } of rows) {
+    const it = items[i]!;
+    const shown = labels.get(p.id)!.shown(it.id as string, printed, asked(gate, p, household));
+    if (shown.length === 0) continue;
+    const n = fitting(it, shown);
+    if (n < shown.length) cut.add(i);
+    if (n > 0) items[i] = item({ ...it, provider_labels: shown.slice(0, n) });
+  }
+  return cut;
+}
+
 /** Each person's private items, for an answer that covers them. */
 async function privacyOf(ctx: Context, h: Household, people: Person[]): Promise<Map<string, Privacy>> {
   return new Map(await Promise.all(people.map(async (p) => [p.id, await ctx.store.privacy(h, p)] as const)));
 }
 
 /** A page cut, with the private items it left out counted, and its warnings: medrec's, then the connector's own. */
-function cutPage<T>(page: PageRequest, gate: Gate, people: Person[], left: LeftOut, household: boolean, items: T[], hint: string, extra: Warning[] = []): { out: Page<T>; warnings: Warning[] } {
+function cutPage<T>(
+  page: PageRequest,
+  gate: Gate,
+  people: Person[],
+  left: LeftOut,
+  household: boolean,
+  items: T[],
+  hint: string,
+  { extra = [], cut = NONE_CUT }: { extra?: Warning[]; /** Which items did not have room for all their labels. */ cut?: ReadonlySet<number> } = {},
+): { out: Page<T>; warnings: Warning[] } {
   // Everyone left out is that error, before any cursor is checked.
   const warnings = left.done(people);
   const out = page.page(items, hint, [...left.ids(), ...(household ? gate.notPreparedIds(people) : [])]);
   const gone = new Set(left.ids());
   const asked = people.filter((p) => !gone.has(p.id));
   const leftOut = household ? gate.leftOut(page.offset, out.returned, out.next_cursor === undefined) : 0;
-  return { out, warnings: [...gate.warnings(asked, leftOut), ...extra, ...warnings] };
+  return { out, warnings: [...labelsLeftOut([...cut].filter((i) => i >= page.offset && i < page.offset + out.returned).length), ...gate.warnings(asked, leftOut), ...extra, ...warnings] };
+}
+
+const NONE_CUT: ReadonlySet<number> = new Set();
+
+function labelsLeftOut(n: number): Warning[] {
+  if (n === 0) return [];
+  return [{ code: 'provider-labels-left-out', message: `${n} item${n === 1 ? '' : 's'} on this page: some of the provider_labels did not fit and are left out, the rest of it is whole` }];
 }
 
 function gatedPage<T>(...args: Parameters<typeof cutPage<T>>): Record<string, unknown> {
@@ -520,6 +592,7 @@ const ITEM_KEYS = [
   'has_text',
   'you_owe',
   'private',
+  'provider_labels',
   'fields',
 ] as const;
 type Item = Partial<Record<(typeof ITEM_KEYS)[number], unknown>>;
@@ -586,7 +659,11 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.records(h, p, recordKind, filter, detailed))));
     const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted(), ({ p, x }) => keep(p, { id: x.id, title: clip(x.display, CLIP) }));
     const items = top.map(({ p, x }) => marked(p, recordItem(p.name, x, detailed)));
-    const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint);
+    const cut = await addLabels(ctx, h, gate, household, page, items, (i) => {
+      const { p, x } = top[i]!;
+      return { p, printed: detailed ? printedOfRecord(x.fields) : x.kind === 'claim' ? printedOfClaim(x.fields) : [] };
+    });
+    const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { cut });
     if (kind === 'conditions') out.items = await withPlainNames(ctx, h, gate, household, top.slice(page.offset, page.offset + out.returned), out.items);
     return pageJson(out, warnings);
   } else if (kind === 'notes') {
@@ -602,7 +679,11 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.timeline(h, p, r))));
     const top = await takeMerged(tagged, (a, b) => eventOrder(a.x, b.x), page.wanted(), ({ p, x }) => named(x.title) && keep(p, { id: x.id, title: clip(x.title, CLIP) }));
     const events = top.map(({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
-    return gatedPage(page, gate, chosen, left, household, events, hint);
+    const cut = await addLabels(ctx, h, gate, household, page, events, (i) => {
+      const { p, x: e } = top[i]!;
+      return { p, printed: e.kind === 'document' ? printedOfDocument(e.source) : e.kind === 'claim' ? CLAIM_PROVIDER : [] };
+    });
+    return gatedPage(page, gate, chosen, left, household, events, hint, { cut });
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
@@ -621,8 +702,13 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     }
   }
   rows.sort((x, y) => cmpOptS(y.it.date, x.it.date) || cmpS(x.it.title as string, y.it.title as string));
-  const items = rows.filter(({ p, it, members }) => keep(p, it, members)).map(({ p, it, members }) => marked(p, it, members));
-  return gatedPage(page, gate, chosen, left, household, items, hint, extra);
+  const kept = rows.filter(({ p, it, members }) => keep(p, it, members));
+  const items = kept.map(({ p, it, members }) => marked(p, it, members));
+  const cut = await addLabels(ctx, h, gate, household, page, items, (i) => {
+    const { p, it } = kept[i]!;
+    return { p, printed: it.kind === 'document' ? printedOfDocument(it.source as string | undefined) : [] };
+  });
+  return gatedPage(page, gate, chosen, left, household, items, hint, { extra, cut });
 }
 
 /** The warning for a person whose bills.json this connector cannot read now. */
@@ -662,12 +748,13 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   }
   const k = (e: JsonObject, f: string) => str(e[f]) ?? '';
   rows.sort((a, b) => cmpS(k(b.e, 'start'), k(a.e, 'start')) || cmpS(k(b.e, 'end'), k(a.e, 'end')) || cmpS(k(a.e, 'id'), k(b.e, 'id')));
+  const full = detailed || id !== undefined;
   const n = name === undefined ? undefined : fold(name);
   const texts = (e: JsonObject) => [...['kind', 'title', 'what', 'place'].map((f) => str(e[f])), ...strings(e.clinicians)].filter((t): t is string => t !== undefined);
   const found = rows
     .filter(({ e }) => id === undefined || e.id === id)
     .filter(({ e }) => n === undefined || texts(e).some((t) => fold(t).includes(n)))
-    .map(({ p, e }) => ({ p, it: eventItem(p.name, e, detailed || id !== undefined) }));
+    .map(({ p, e }) => ({ p, e, it: eventItem(p.name, e, full) }));
   const hint = 'person, since/until or name';
   if (id !== undefined && found.length === 0) {
     // A question about everyone that left someone out may have missed it: say who, as a list would.
@@ -677,8 +764,10 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   }
   // An event asked for by id is named; one whose title, detail or place the question names is too.
   const opens = (it: Item) => id !== undefined || (name !== undefined && [it.title, it.detail, it.source].some((t) => typeof t === 'string' && names(t, name)));
-  const items = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it))).map(({ p, it }) => item({ ...it, private: gate.area(p, it.id as string) }));
-  return gatedPage(page, gate, chosen, left, household, items, hint);
+  const kept = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it)));
+  const items = kept.map(({ p, it }) => item({ ...it, private: gate.area(p, it.id as string) }));
+  const cut = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
+  return gatedPage(page, gate, chosen, left, household, items, hint, { cut });
 }
 
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
@@ -827,6 +916,7 @@ const DOCUMENT_KEYS = [
   'text',
   'records',
   'private',
+  'provider_labels',
   'hint',
 ] as const;
 
@@ -853,6 +943,9 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   else if (page !== undefined) start = breaks[page - 2]! + 1;
   else start = Math.min(offset!, cs.length);
   const [records, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
+  // It names no person, so its labels are those of an answer about the whole household.
+  const printed = printedOfDocument(d.organization);
+  const labels = printed.length > 0 ? (await providerLabels(ctx, h, p)).shown(d.id, printed, asked(new Gate(true, new Map([[p.id, privacy]])), p, true)) : [];
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,
@@ -872,6 +965,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
     records: records.length > 0 ? records : undefined,
     // Asked for by id: a private document is the person's, named.
     private: privacy.areas.get(d.id),
+    provider_labels: labels.length > 0 ? labels : undefined,
   };
   if (cs.length === 0) {
     out.hint = 'No text was extracted from this document: an image without OCR, or a file medrec cannot read.';

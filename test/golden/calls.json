@@ -2189,6 +2189,303 @@
         "limit": 200,
         "response_format": "detailed"
       }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 50,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "limit": 50,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "limit": 100
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 50,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 50,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 50,
+        "response_format": "detailed",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "limit": 50,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "limit": 50,
+        "response_format": "detailed",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "limit": 100,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "limit": 50,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "limit": 50,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "label": "label-events",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 50,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 50,
+        "response_format": "detailed",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "Sample service"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "C EXAMPLE",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "label": "label-page",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 3
+      },
+      "cursor_from": "label-page"
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "label-events",
+        "item": 0
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "label-events",
+        "item": 1
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "label-events",
+        "item": 2
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      },
+      "id_from": {
+        "label": "label-events",
+        "item": 3
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "psychologist"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "Our practice"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "Our practice"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "family doctor"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_billaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_counselingaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "labels",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_summaryaaaaaaaaaaaaa"
+      }
     }
   ]
 }

@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.6 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.7 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 268 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 302 recorded calls of `medrec mcp` to
 this connector's answers, to the character.
 
 | Tool | What it answers |
@@ -37,6 +37,17 @@ own words when medrec 0.9.4 or later has the code's published name
 words are always shown too. An answer about the whole household gives none to a
 private item, even one it names. Names that are missing or older than the
 records are left out, with no warning.
+
+A claim, record, document or event that prints a provider carries
+`provider_labels` when medrec 0.9.7 or later knows who that is
+(`providers.json`): a name, practice, role and phone, how sure it is
+(`household`, `sure` or `likely`) and why, and where the phone is from. They
+stand beside the source's own words. Nothing is found, sorted or paged by
+one, and `medrec_search` and `medrec_summary` have none. An answer about the
+whole household, or a document's text, gives none to a private item, even one
+it names, and no reason that names one. Labels that are missing or older than
+the records are left out, with no warning. An item's labels that do not fit a
+page beside it are left out with a `provider-labels-left-out` warning.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -190,6 +201,10 @@ At the limits:
 - **Plain names.** Each person with a coded condition on the page costs one
   more request to Google, and one for a summary with any. When that request
   fails, or would pass the limit, the answer comes without the names.
+- **Provider labels.** Each person with a printed provider on the page (a
+  claim, document or event, and any record with `response_format: "detailed"`)
+  costs one more request to Google, and so does a document's text. When that
+  request fails, or would pass the limit, the answer comes without the labels.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

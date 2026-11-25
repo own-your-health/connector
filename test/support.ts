@@ -9,6 +9,7 @@ import { VIEWS_INDEX, personDir, storedName, type SlimSource, type ViewsIndex } 
 import type { Household, Person } from '../src/records/model';
 import type { Privacy } from '../src/records/private';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
+import { NO_LABELS, providerLabelsOf, type ProviderLabels, type ProvidersView } from '../src/records/provider-labels';
 import { RawStore, type Standing } from '../src/records/store';
 import { privacyOf, standingOf, type BillsView, type PrivateView } from '../src/views/store';
 
@@ -128,18 +129,18 @@ export class MemoryD1 {
  * The views only medrec makes, each in test/fixtures/<view>/<folder>/<person id>.json
  * (scripts/derived.mjs; code-names.json is not rebuilt, see its README).
  */
-export const DERIVED = ['events.json', 'bills.json', 'private.json', 'code-names.json'] as const;
+export const DERIVED = ['events.json', 'bills.json', 'private.json', 'code-names.json', 'providers.json'] as const;
 
 /**
  * Gives views this connector wrote what medrec adds beside them: each
- * person's events.json (0.9.0), bills.json and private.json (0.9.1) and code-names.json (0.9.4), from
+ * person's events.json (0.9.0), bills.json and private.json (0.9.1), code-names.json (0.9.4) and providers.json (0.9.7), from
  * test/fixtures/<view>/`folder` as medrec wrote them for that folder,
  * stored under content-addressed names and listed in `files`, and the
- * `overrides`, `marks` and `linked` MD5s they were made from. `linked`
+ * `overrides`, `marks`, `provider_state` and `linked` MD5s they were made from. `linked`
  * follows medrec's own rule: a person with a birth date and their
  * guardians, both ways. `views` limits it to some of them.
  */
-export function addDerived(root: string, folder: 'records' | 'large', views: readonly (typeof DERIVED)[number][] = DERIVED): void {
+export function addDerived(root: string, folder: 'records' | 'large' | 'labels', views: readonly (typeof DERIVED)[number][] = DERIVED): void {
   const md5 = (path: string) => (existsSync(path) ? createHash('md5').update(readFileSync(path)).digest('hex') : null);
   const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string; birth_date?: string | null; guardians?: string[] }[] };
   const at = join(root, VIEWS_INDEX);
@@ -157,6 +158,8 @@ export function addDerived(root: string, folder: 'records' | 'large', views: rea
     }
     v.overrides = md5(join(root, p.folder, 'overrides.json'));
     v.marks = md5(join(root, p.folder, 'marks.json'));
+    const state = md5(join(root, p.folder, 'provider-state.json'));
+    if (state !== null) v.provider_state = state;
     const linked = h.people.filter((q) => q.id !== p.id && ((p.birth_date && p.guardians?.includes(q.id)) || (q.birth_date && q.guardians?.includes(p.id))));
     v.linked = Object.fromEntries(linked.map((q) => [q.id, { index: md5(join(root, q.folder, 'index.json')), text: md5(join(root, q.folder, 'text.json')) }]));
   }
@@ -180,22 +183,22 @@ export function addCodeNames(root: string, folder: 'records' | 'large'): void {
 
 /**
  * The files read whole, with what only medrec's views say beside them: the
- * private items and bill standing medrec wrote for `folder`
- * (test/fixtures/private, test/fixtures/bills). The parity test's files pass,
+ * private items, bill standing and provider labels medrec wrote for `folder`
+ * (test/fixtures/private, bills and providers). The parity test's files pass,
  * so it checks the tools' answers from the files, privacy and payments
  * included, against medrec's.
  */
 export class RawWithDerived extends RawStore {
   constructor(
     folder: Folder,
-    private readonly which: 'records' | 'large',
+    private readonly which: 'records' | 'large' | 'labels',
     /** A folder whose own views, as a test changed them, come first. */
     private readonly root?: string,
   ) {
     super(folder);
   }
 
-  private fixture<T>(view: 'private' | 'bills' | 'code-names', p: Person): T | undefined {
+  private fixture<T>(view: 'private' | 'bills' | 'code-names' | 'providers', p: Person): T | undefined {
     const index = this.root === undefined ? undefined : join(this.root, VIEWS_INDEX);
     const sum = index !== undefined && existsSync(index) ? (JSON.parse(readFileSync(index, 'utf8')) as ViewsIndex).people[p.id]?.files[`${view}.json`] : undefined;
     const file = sum !== undefined ? join(this.root!, personDir(p.id) + storedName(`${view}.json`, sum)) : join(import.meta.dirname, 'fixtures', view, this.which, `${p.id}.json`);
@@ -215,6 +218,11 @@ export class RawWithDerived extends RawStore {
   override async codeNames(_h: Household, p: Person): Promise<CodeNames> {
     const v = this.fixture<CodeNamesView>('code-names', p);
     return v ? codeNamesOf(v, p.id) : NO_NAMES;
+  }
+
+  override async providerLabels(_h: Household, p: Person): Promise<ProviderLabels> {
+    const v = this.fixture<ProvidersView>('providers', p);
+    return v ? providerLabelsOf(v, p.id) : NO_LABELS;
   }
 }
 

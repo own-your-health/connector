@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Records what `medrec mcp` answers to test/golden/calls.json, over the demo
-// folder and the large synthetic one (scripts/synth.mjs), into
+// folder, the large synthetic one (scripts/synth.mjs) and medrec's own for
+// provider labels (scripts/labels-folder.mjs), into
 // test/golden/medrec-<version>.json. test/golden.test.ts then holds this
 // connector's answers to the same calls equal to medrec's.
 //
@@ -18,6 +19,7 @@ import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { parseExact } from '../src/records/numbers.ts';
+import { labelsFolder } from './labels-folder.mjs';
 import { synth } from './synth.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -34,16 +36,17 @@ const env = {
 };
 const medrec = (...args) => execFileSync('medrec', args, { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
-const folders = { demo: join(scratch, 'demo'), large: join(scratch, 'large') };
+const folders = { demo: join(scratch, 'demo'), large: join(scratch, 'large'), labels: join(scratch, 'labels') };
 cpSync(join(ROOT, 'test/fixtures/records'), folders.demo, { recursive: true });
 synth(folders.large);
+labelsFolder(folders.labels);
 for (const [name, path] of Object.entries(folders)) {
   medrec('profiles', 'add', name);
   medrec('--profile', name, 'config', 'set', 'folder', path);
   // medrec reads a code's plain name from the folder's views. The recorded
   // views stand in for a machine with the published table.
   medrec('--profile', name, 'views', 'write', '--json');
-  codeNames(path, join(ROOT, 'test/fixtures/code-names', name === 'demo' ? 'records' : name));
+  if (name !== 'labels') codeNames(path, join(ROOT, 'test/fixtures/code-names', name === 'demo' ? 'records' : name));
 }
 
 /** Puts the recorded code-names.json files in a folder's views. */

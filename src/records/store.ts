@@ -15,6 +15,7 @@
 import { NO_NAMES, type CodeNames } from './code-names';
 import type { Folder } from './folder';
 import type { Privacy } from './private';
+import { NO_LABELS, type ProviderLabels } from './provider-labels';
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { sourcesOf } from './sources';
@@ -140,6 +141,8 @@ export interface Store {
   bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null>;
   /** The plain names of the person's condition codes (code-names.json, medrec 0.9.4 and later); none when missing or stale. */
   codeNames(h: Household, p: Person): Promise<CodeNames>;
+  /** Who the providers the person's items print are (providers.json, medrec 0.9.7 and later); none when missing or stale. */
+  providerLabels(h: Household, p: Person): Promise<ProviderLabels>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -251,6 +254,11 @@ export class RawStore implements Store {
   /** And the names of codes. */
   async codeNames(_h: Household, _p: Person): Promise<CodeNames> {
     return NO_NAMES;
+  }
+
+  /** And who a printed provider is. */
+  async providerLabels(_h: Household, _p: Person): Promise<ProviderLabels> {
+    return NO_LABELS;
   }
 
   household(): Promise<Household> {
