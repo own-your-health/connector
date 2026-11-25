@@ -217,11 +217,12 @@ Each test series (records of kind `result` with one `seriesKey`: the code's
  "entries":[[date, name number, shard, place in shard, rank], …]}
 ```
 
-`entries` lists every result of the series, newest first.
+`entries` lists every result of the series that is not entered in error (medrec
+0.9.9 and later), newest first.
 - `shard` and `place` locate the record in `records-result-<shard>.json`
   (`-1`: `records-result-undated.json`).
-- `rank` is the result's place among all the person's results, newest first,
-  stable over `index.json`'s order.
+- `rank` is the result's place among all those results of the person, newest
+  first, stable over `index.json`'s order.
 
 ## `timeline-<n>.json`
 

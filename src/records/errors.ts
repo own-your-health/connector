@@ -2,13 +2,28 @@
 // error"): a record or a paper, while every source of it says so. medrec's
 // views name its ids; here it is told from an index read whole.
 
-import type { DocumentEntry, PersonIndex, Provenance, RecordEntry, SourceWord } from './model';
-import { saysInError } from './standing';
+import type { DocumentEntry, Json, PersonIndex, Provenance, RecordEntry, SourceWord } from './model';
+import { isObject } from './numbers';
 
 /** A person's records and papers entered in error, by kind (`document` for a paper), as views.json has them. */
 export type Errors = ReadonlyMap<string, ReadonlySet<string>>;
 
 export const NO_ERRORS: Errors = new Map();
+
+/** As standing.json and views.json give them. */
+export function errorsOf(v: Json | undefined): Errors {
+  const texts = (ids: Json) => (Array.isArray(ids) ? ids.filter((x) => typeof x === 'string') : []);
+  return new Map(isObject(v) ? Object.entries(v).map(([kind, ids]) => [kind, new Set(texts(ids))]) : []);
+}
+
+/** The ids of every kind. */
+export const allOf = (errors: Errors): ReadonlySet<string> => new Set([...errors.values()].flatMap((ids) => [...ids]));
+
+/** A code as its letters, whatever its case and its spaces. */
+export const code = (s: string) => s.trim().toLowerCase().replace(/[ _]/g, '-');
+
+/** Whether a source's word is that the item is entered in error. */
+export const saysInError = (w: { status?: string | null; verification?: string | null }) => [w.status, w.verification].some((s) => s != null && code(s) === 'entered-in-error');
 
 export function enteredInError(idx: PersonIndex): Errors {
   const out = new Map<string, Set<string>>();
@@ -56,5 +71,13 @@ export function canWrite(r: RecordEntry, v: Provenance): boolean {
   return (like.find((q) => !isError(q)) ?? like[0]) === v;
 }
 
-/** The ids of every kind. */
-export const allOf = (errors: Errors): ReadonlySet<string> => new Set([...errors.values()].flatMap((ids) => [...ids]));
+/** What a list says of those it does not show. */
+export const inError = (n: number) => `${n} entered in error, not shown`;
+
+/** The same of `n` bills, `paid` of them with a payment the household marked. */
+export function billsInError(n: number, paid: number): string {
+  const of = `${n} bill${n === 1 ? '' : 's'} entered in error`;
+  if (paid === 0) return `${of}, not shown`;
+  if (n === 1) return `${of}, with a payment you marked`;
+  return paid === n ? `${of}, each with a payment you marked` : `${of}, ${paid} with a payment you marked`;
+}

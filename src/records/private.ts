@@ -11,7 +11,7 @@
 import type { Warning } from './partial';
 import type { JsonObject, Person } from './model';
 import type { Parts } from './parts';
-import { billsInError, inError } from './standing';
+import { billsInError, inError } from './errors';
 import type { Why } from './store';
 import { fold } from './text';
 

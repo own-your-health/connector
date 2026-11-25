@@ -389,10 +389,8 @@ export class RawStore implements Store {
   }
 
   async tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]> {
-    const idx = await this.index(h, p);
-    const rs = (idx.records ?? []).filter(
-      (r) => r.kind === 'result' && holds(filter.range, r.date) && !filter.errors?.has(r.id) && (filter.name === undefined || matchesCode(r, filter.name)),
-    );
+    const [idx, gone] = await Promise.all([this.index(h, p), this.errorsIn(h, p)]);
+    const rs = (idx.records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && !gone.has(r.id) && (filter.name === undefined || matchesCode(r, filter.name)));
     const sorted = newestFirst(rs);
     const rows = latestResults(sorted, sourcesOf(h, p.id, idx.imports));
     if (!look || look.size === 0) return rows;

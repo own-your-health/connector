@@ -56,9 +56,9 @@ about one person.
 What a chart holds about somebody else (a screening a parent answers of
 themselves in their child's chart, or a result its source says is of another) is
 in no answer. A list of that person's results, tests, timeline or documents says
-how many. For someone too large to read from their files this needs views from
-medrec 0.9.9 or later, or from this version's `npm run views`: earlier views
-list it, and nothing counts it.
+how many. Current views from before medrec 0.9.9, or from an earlier version's
+`npm run views`, list it whatever the size of the person's files, and nothing
+counts it.
 
 A condition with a diagnosis code carries `plain_name` beside the source's
 own words when medrec 0.9.4 or later has the code's published name
@@ -99,9 +99,9 @@ What is entered in error by every source that has it is in no list, event, bill
 or total, and an `entered-in-error` warning says how many. A paper or an event
 of it opens by its id, and says so. A record or paper that only some of its
 sources say it of says `sources differ` and each word, from medrec's views.
-Views from before medrec 0.9.9 list what is entered in error, and nothing
-counts it. Everyone else's is told from their files, or from what medrec's or
-this version's views name.
+Current views from before medrec 0.9.9, or from an earlier version's `npm run
+views`, list what is entered in error, and nothing counts it. Everyone else's is
+told from their files, or from what medrec's or this version's views name.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 

@@ -8,11 +8,12 @@ import { join } from 'node:path';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { OWN, ownFolder } from '../scripts/own-folder.mjs';
 import { shownIndex } from '../src/records/about';
-import { allOf, enteredInError } from '../src/records/errors';
+import { allOf, billsInError, enteredInError } from '../src/records/errors';
 import type { DocumentEntry, Household, Json, Person, PersonIndex, Provenance, RecordEntry } from '../src/records/model';
 import { withoutPapers } from '../src/records/papers';
+import { RawStore } from '../src/records/store';
 import { SUMMARY_LINES, summarize } from '../src/records/views';
-import { billsInError, differ, paperNote, saysOf } from '../src/records/standing';
+import { differ, paperNote, saysOf } from '../src/records/standing';
 import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
@@ -209,6 +210,18 @@ describe('what is entered in error, with no views from medrec', () => {
       const [g, w] = [await ask(root, 'medrec_search', { query, person: 'Robin', limit: 50 }), await ask(medrecs, 'medrec_search', { query, person: 'Robin', limit: 50 })];
       expect([g.items.map((i: { id: string }) => i.id), said(g)]).toEqual([w.items.map((i: { id: string }) => i.id), said(w)]);
     }
+  });
+
+  it('is in no series of tests, whatever the filter says of it', async () => {
+    const rows = [];
+    for (const store of [new RawStore(folderAt(files)), new ViewsStore(folderAt(files)), new ViewsStore(folderAt(own)), new ViewsStore(folderAt(medrecs))]) {
+      const h = await store.household();
+      const gone = (await store.errors(h, h.people[0]!)).get('result')!;
+      expect(gone.size).toBeGreaterThan(0);
+      rows.push(await store.tests(h, h.people[0]!, { range: {}, active: false }));
+      expect(rows.at(-1)!.filter((r) => gone.has(r.id!))).toEqual([]);
+    }
+    for (const r of rows) expect(r).toEqual(rows.at(-1));
   });
 
   it('opens by its id as entered in error', async () => {

@@ -9,9 +9,9 @@ import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names'
 import { LeftOut, type Warning } from './partial';
 import { nameOf, notShown, shownEvent, shownText } from './parts';
 import { Gate, names, type Privacy } from './private';
-import { allOf, type Errors } from './errors';
+import { allOf, billsInError, inError, type Errors } from './errors';
 import { withoutPapers } from './papers';
-import { STANDING_KINDS, billsInError, differ, inError, paperNote, type Line as StandingLine, type Standings } from './standing';
+import { STANDING_KINDS, differ, paperNote, type Line as StandingLine, type Standings } from './standing';
 import { each, mapped, standingRows, type ListRows } from './standing-rows';
 import { NO_EVENTS, eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Bills, type RecordFilter, type Standing, type Store, type Why } from './store';
 import { printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, type LabelsFile, type Printed, type ProviderLabels } from './provider-labels';

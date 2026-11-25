@@ -2,9 +2,12 @@
 // what each of their sources says of it (medrec 0.9.9 and later), from the
 // person's standing.json. No source's word wins over another's. Without a
 // current standing.json they are listed by each record's own status, as
-// medrec 0.9.8 did. medrec-cli docs/data-contract.md, "Standing" and
-// "Readers"; medrec's src/standing.rs.
+// medrec 0.9.8 did. And what is said of any other record or paper whose
+// sources differ on whether it is entered in error, from its `says`.
+// medrec-cli docs/data-contract.md, "Standing" and "Readers"; medrec's
+// src/standing.rs.
 
+import { code, errorsOf, type Errors } from './errors';
 import type { Json, JsonObject, RecordEntry } from './model';
 import { isObject } from './numbers';
 
@@ -80,12 +83,6 @@ const differsOn = (s: Standing, today: string) => s.differs || (s.differs_after 
 
 const isEnded = (w: Word) => w.is === 'ended' || w.is === 'refuted';
 
-/** A code as its letters, whatever its case and its spaces. */
-const code = (s: string) => s.trim().toLowerCase().replace(/[ _]/g, '-');
-
-/** Whether a source's word is that the item is entered in error. */
-export const saysInError = (w: { status?: string | null; verification?: string | null }) => [w.status, w.verification].some((s) => s != null && code(s) === 'entered-in-error');
-
 /** A word as a line says it, with the day it was read. */
 function wordText(w: Word): string {
   const said = [w.status ?? 'no status'];
@@ -93,17 +90,6 @@ function wordText(w: Word): string {
   if (w.abatement !== undefined) said.push(`ended ${w.abatement}`);
   if (w.end !== undefined) said.push(`ends ${w.end}${w.end_of === undefined ? '' : ` (${w.end_of})`}`);
   return said.join(', ') + (w.read === undefined ? '' : ` (read ${w.read})`);
-}
-
-/** What a list says of those it does not show. */
-export const inError = (n: number) => `${n} entered in error, not shown`;
-
-/** The same of `n` bills, `paid` of them with a payment the household marked. */
-export function billsInError(n: number, paid: number): string {
-  const of = `${n} bill${n === 1 ? '' : 's'} entered in error`;
-  if (paid === 0) return `${of}, not shown`;
-  if (n === 1) return `${of}, with a payment you marked`;
-  return paid === n ? `${of}, each with a payment you marked` : `${of}, ${paid} with a payment you marked`;
 }
 
 /** What each source says of an item that one says is entered in error: `says` of a record or a paper. */
@@ -150,7 +136,7 @@ export class Standings {
     private readonly sources: readonly (string | null)[],
     private readonly order: ReadonlyMap<string, readonly string[]>,
     private readonly records: ReadonlyMap<string, Standing>,
-    private readonly errors: ReadonlyMap<string, ReadonlySet<string>>,
+    private readonly errors: Errors,
     private readonly noList: readonly { source: number; records: readonly string[] }[],
   ) {}
 
@@ -337,11 +323,6 @@ function standingOf(v: JsonObject): Standing {
     words: list(v.words).filter(isObject).map(wordOf),
     unheard: numbers(v.unheard),
   };
-}
-
-/** The ids of the records entered in error, by kind, as standing.json and views.json give them. */
-export function errorsOf(v: Json | undefined): Map<string, ReadonlySet<string>> {
-  return new Map(entries(v).map(([kind, ids]) => [kind, new Set(texts(ids))]));
 }
 
 /** A person's standings; null when the view is another person's. */
