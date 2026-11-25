@@ -111,8 +111,12 @@ export function valueText(v: Json | undefined): string {
   return trim(`${num} ${unit}`);
 }
 
-/** Every string and number in `v`, each followed by a space, for search. */
+/** An id of anything in the folder. */
+const AN_ID = /^[a-z]_[a-z2-7]{20}$/;
+
+/** Every string and number in `v` but an id, each followed by a space, for search. */
 function flatText(v: Json | undefined, out: string[]): void {
+  if (typeof v === 'string' && v.length === 22 && AN_ID.test(v)) return;
   if (typeof v === 'string' || typeof v === 'number' || isExact(v)) out.push(valueText(v), ' ');
   else if (Array.isArray(v)) for (const x of v) flatText(x, out);
   else if (v && typeof v === 'object') for (const x of Object.values(v)) flatText(x, out);

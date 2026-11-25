@@ -269,7 +269,9 @@ bytes. A text is never split.
 Search items are what `medrec_search` searches, notes aside:
 - **Documents.** The text is the title, then the organization and the
   document type, then the document's text.
-- **Records.** The name, then the record's fields flattened.
+- **Records.** The name, then the record's fields flattened: every text and
+  number, each with a space after it, but the ids of other items (medrec 0.9.9
+  and later).
 - **Studies.** The description, then the modalities, body part, facility and
   series.
 
