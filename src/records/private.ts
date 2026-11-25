@@ -19,13 +19,14 @@ import { fold } from './text';
  * private beyond those: medrec could not read their marks.json
  * (`marks-unreadable`) or their provider-state.json (`labels-unreadable`,
  * medrec 0.9.7), or this connector has no current private.json for
- * them (`not-prepared`, with why). Either way their items are held back from
+ * them (`not-prepared`, with why, and the medrec that makes it when a later
+ * one than usual is needed). Either way their items are held back from
  * answers about the whole household.
  */
 export interface Privacy {
   areas: ReadonlyMap<string, string>;
   unjudged?: ReadonlySet<string>;
-  unknown?: { why: 'marks-unreadable' | 'labels-unreadable' } | { why: 'not-prepared'; detail: string };
+  unknown?: { why: 'marks-unreadable' | 'labels-unreadable' } | { why: 'not-prepared'; detail: string; needs?: string };
 }
 
 export const NO_PRIVATE: Privacy = { areas: new Map() };
@@ -177,7 +178,7 @@ export class Gate {
       if (u?.why !== 'not-prepared') continue;
       out.push({
         code: 'private-not-prepared',
-        message: `medrec has not marked ${p.name}'s private items for assistants (${u.detail}): ${p.name}'s items are left out of household-wide answers until it does, and may not all be marked in answers about ${p.name}. Tell the user medrec 0.9.5 or later marks them on its next pass on the household's computer (medrec refresh)`,
+        message: `medrec has not marked ${p.name}'s private items for assistants (${u.detail}): ${p.name}'s items are left out of household-wide answers until it does, and may not all be marked in answers about ${p.name}. Tell the user medrec ${u.needs ?? '0.9.5'} or later marks them on its next pass on the household's computer (medrec refresh)${u.needs ? `, and every computer that writes the folder needs medrec ${u.needs} or later` : ''}`,
       });
     }
     return out;

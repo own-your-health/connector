@@ -375,24 +375,23 @@ Two more views only medrec makes, in its layouts `medrec-bills/v1` and
 
 Both are made from the person's views, their `overrides.json`, the
 `linked` people's records, and their `marks.json` (the household's payments
-and private marks). The person's entry in `views.json` gives that one too:
+and private marks). `private.json` is made from their `provider-state.json`
+too (medrec 0.9.7 and later). The person's entry in `views.json` gives these:
 
 | Field | What |
 |---|---|
 | `marks` | the MD5 of `<person folder>/marks.json`; `null` when there is none |
+| `provider_state` | the MD5 of `<person folder>/provider-state.json`, what a provider directory gave; absent when there is none |
 
 A reader uses either only when the person's views are current and
-`overrides`, `marks` and `linked` still match; `events.json` does not
-depend on `marks`. `private.json` depends on one more, which makes items
-private by the provider a source's identifier names:
-
-| Field | What |
-|---|---|
-| `provider_state` | the MD5 of `<person folder>/provider-state.json` (medrec 0.9.7 and later); absent when there is none |
-
-A `provider-state.json` that is not the one named, one where none is named,
-and one that is gone each make `private.json` stale. The file is medrec's own:
-a reader compares its MD5, and never reads or serves it.
+`overrides`, `marks` and `linked` still match, and for `private.json` (and
+`code-names.json`, below) `provider_state` too. `events.json` does not depend
+on `marks`, and neither it nor `bills.json` on `provider_state`. A
+`provider-state.json` that is not the one named, one where none is named, and
+one that is gone are each a difference. The file is medrec's own: a reader
+compares its MD5, and never reads or serves it. medrec 0.9.6 and earlier leave
+the file and make the views without it, so every computer that writes the
+folder needs 0.9.7 or later once one has.
 
 medrec writes both views for every person, even with nothing in them.
 
@@ -438,8 +437,9 @@ document for being linked by a private record. What it does mark stays marked
 in answers about the person. An `unreported_studies` that is not a list of ids
 counts as missing too. `marks_unreadable` comes before either: the person's
 items are held back with the `private-marks-unreadable` warning, whichever
-medrec wrote the file, or with `labels_unreadable` the
-`private-labels-unreadable` one. Without a current
+medrec wrote the file. With `labels_unreadable`, which medrec never writes
+without it, the warning is `private-labels-unreadable` alone, as medrec's own
+is. Without a current
 `bills.json`, bills are shown by their statements with a
 `bills-not-prepared` warning. medrec's own reader judges from the files, so
 it gives neither warning.

@@ -169,7 +169,10 @@ At the limits:
   as a `private.json` from medrec 0.9.1 to 0.9.4 says. A person
   whose `marks.json` or `provider-state.json` medrec could not read is held
   back the same way, with medrec's `private-marks-unreadable` or
-  `private-labels-unreadable` warning. Each person with any private
+  `private-labels-unreadable` warning. Once a computer with medrec 0.9.7 has
+  written a `provider-state.json`, every computer that writes the folder needs
+  0.9.7 or later: an earlier one's views are made without it, and the warning
+  says so. Each person with any private
   item costs one more request to Google. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds

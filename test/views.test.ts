@@ -871,7 +871,8 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
       writeFileSync(at, JSON.stringify(index));
       return root;
     }
-    const STATE = JSON.stringify({ schema: 'medrec-provider-state/v1', person: 'p_x', by_npi: { '0000000000': { name: 'Jordan Sample, MD' } } });
+    // Only its MD5 matters: the file is medrec's own, and is never read here.
+    const STATE = 'not read here';
 
     it('holds a person back, and gives no plain name, while provider-state.json is not the one private.json was made with', async () => {
       const bad: [string, string | null, string | null | undefined][] = [
@@ -884,7 +885,10 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
         const root = withState(name.replaceAll(' ', '-'), text, said);
         const own = await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' });
         expect(codes(own.r), name).toEqual(['private-not-prepared']);
-        expect(page(own.r).warnings![0]!.message, name).toMatch(/^medrec has not marked Robin Example's private items for assistants \(their records changed after medrec last wrote their private\.json\)/);
+        const without = said === undefined || said === null;
+        expect(page(own.r).warnings![0]!.message, name).toBe(
+          `medrec has not marked Robin Example's private items for assistants (${without ? 'their views were made without the provider-state.json in their folder' : 'their records changed after medrec last wrote their private.json'}): Robin Example's items are left out of household-wide answers until it does, and may not all be marked in answers about Robin Example. Tell the user medrec ${without ? '0.9.7' : '0.9.5'} or later marks them on its next pass on the household's computer (medrec refresh)${without ? ', and every computer that writes the folder needs medrec 0.9.7 or later' : ''}`,
+        );
         expect(page(own.r).items.length, name).toBeGreaterThan(0);
         expect(named(own.r), name).toBe(0);
         const everyone = await ask(root, 'medrec_records', { kind: 'conditions' });
