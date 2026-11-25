@@ -17,5 +17,58 @@
     "start": "2026-10-01",
     "end": "2026-10-01"
   },
-  "outcome": "complete"
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "99396",
+            "display": "Preventive visit"
+          }
+        ]
+      },
+      "servicedDate": "2026-10-01",
+      "net": {
+        "value": 320,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 2,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "90686",
+            "display": "Flu vaccine"
+          }
+        ]
+      },
+      "servicedDate": "2026-10-01",
+      "net": {
+        "value": 62,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 3,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "90471",
+            "display": "Vaccine given"
+          }
+        ]
+      },
+      "servicedDate": "2026-10-01",
+      "net": {
+        "value": 30,
+        "currency": "USD"
+      }
+    }
+  ]
 }

@@ -1,6 +1,6 @@
 # Code names
 
-medrec 0.9.4's `views/<person id>/code-names.json` (`medrec-code-names/v1`, medrec-cli docs/data-contract.md, "Code names"), the plain names of the diagnosis codes a person's records use, byte for byte, as `medrec views write` wrote them:
+medrec 0.9.5's `views/<person id>/code-names.json` (`medrec-code-names/v1`, medrec-cli docs/data-contract.md, "Code names"), the plain names of the diagnosis codes a person's records use, byte for byte, as `medrec views write` wrote them:
 
 - `records/<person id>.json`: over `test/fixtures/records`;
 - `large/<person id>.json`: over `node scripts/synth.mjs <out-dir>`, run from the same commit.

@@ -2,15 +2,15 @@
   "resourceType": "Encounter",
   "id": "encounter-021d5d27",
   "meta": {
-    "lastUpdated": "2026-06-15T08:00:00Z"
+    "lastUpdated": "2026-11-22T08:00:00Z"
   },
   "status": "finished",
   "type": [
     {
-      "text": "Weight check"
+      "text": "Well child visit, 2 months"
     }
   ],
   "period": {
-    "start": "2026-06-12T15:00:00Z"
+    "start": "2026-09-29T15:00:00Z"
   }
 }

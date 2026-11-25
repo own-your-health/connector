@@ -2,15 +2,15 @@
   "resourceType": "Encounter",
   "id": "encounter-f694ce41",
   "meta": {
-    "lastUpdated": "2026-06-15T08:00:00Z"
+    "lastUpdated": "2026-11-22T08:00:00Z"
   },
   "status": "finished",
   "type": [
     {
-      "text": "Newborn visit"
+      "text": "Well child visit, 1 month"
     }
   ],
   "period": {
-    "start": "2026-06-05T15:00:00Z"
+    "start": "2026-08-31T15:00:00Z"
   }
 }

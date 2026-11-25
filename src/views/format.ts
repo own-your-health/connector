@@ -23,7 +23,7 @@
 //   views/<person id>/search-labs-<n>.json what a lab query finds by kind
 //   views/<person id>/events.json          medrec 0.9.0 on: what happened, one per visit, stay or fill
 //   views/<person id>/bills.json           medrec 0.9.1 on: what is paid and left on each bill
-//   views/<person id>/private.json         medrec 0.9.1 on: the private records, documents and events
+//   views/<person id>/private.json         medrec 0.9.1 on: the private records, documents, events and studies
 //
 // Search items are numbered in the reverse of medrec's order for hits of
 // equal score (date, newest first, undated last, then as the files hold

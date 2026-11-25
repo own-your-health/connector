@@ -1,0 +1,61 @@
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "explanationofbenefit-5fcf6dcb",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "professional"
+      }
+    ]
+  },
+  "use": "claim",
+  "billablePeriod": {
+    "start": "2025-10-20",
+    "end": "2025-10-20"
+  },
+  "benefitPeriod": {
+    "start": "2025-07-01",
+    "end": "2026-06-30"
+  },
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "90686",
+            "display": "Flu vaccine"
+          }
+        ]
+      },
+      "servicedDate": "2025-10-20",
+      "net": {
+        "value": 55,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 2,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "90471",
+            "display": "Vaccine given"
+          }
+        ]
+      },
+      "servicedDate": "2025-10-20",
+      "net": {
+        "value": 28,
+        "currency": "USD"
+      }
+    }
+  ]
+}

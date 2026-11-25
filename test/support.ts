@@ -231,7 +231,7 @@ export function markPrivate(root: string, every: number): number {
     const records = (JSON.parse(readFileSync(join(root, p.folder, 'index.json'), 'utf8')) as { records?: { id: string }[] }).records ?? [];
     const marked = records.filter((_, i) => i % every === every - 1);
     n += marked.length;
-    const body = JSON.stringify({ schema: 'medrec-private/v1', person: p.id, records: Object.fromEntries(marked.map((r) => [r.id, { area: 'mental_health', from: 'code' }])), documents: {}, events: {} });
+    const body = JSON.stringify({ schema: 'medrec-private/v1', person: p.id, records: Object.fromEntries(marked.map((r) => [r.id, { area: 'mental_health', from: 'code' }])), documents: {}, events: {}, studies: {} });
     const sum = createHash('md5').update(body).digest('hex');
     writeFileSync(join(root, personDir(p.id) + storedName('private.json', sum)), body);
     index.people[p.id]!.files['private.json'] = sum;

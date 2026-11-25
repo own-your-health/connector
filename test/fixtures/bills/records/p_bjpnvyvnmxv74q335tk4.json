@@ -1,1 +1,1 @@
-{"schema":"medrec-bills/v1","person":"p_bjpnvyvnmxv74q335tk4","bills":{},"copy_of":{},"receipts":[],"worth_a_call":[],"not_billed":[]}
+{"schema":"medrec-bills/v1","person":"p_bjpnvyvnmxv74q335tk4","bills":{},"copy_of":{},"receipts":[],"worth_a_call":[],"not_billed":[{"event":"e_zzzq4jsnchvevie6tqwq","start":"2026-11-20","provider":"Example Pediatrics","claims":["r_37377bnnog2m6srs5doo"],"you_owe":"25.00","currency":"USD"}]}

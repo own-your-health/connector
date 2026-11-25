@@ -1,0 +1,44 @@
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "explanationofbenefit-e311f636",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "professional"
+      }
+    ]
+  },
+  "use": "claim",
+  "billablePeriod": {
+    "start": "2026-08-26",
+    "end": "2026-08-26"
+  },
+  "benefitPeriod": {
+    "start": "2026-07-01",
+    "end": "2027-06-30"
+  },
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "E0114",
+            "display": "Crutches"
+          }
+        ]
+      },
+      "servicedDate": "2026-08-26",
+      "net": {
+        "value": 62,
+        "currency": "USD"
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema": "medrec-index/v1",
   "person": "p_wwezzed7kml67hnp6s7n",
-  "rev": 10,
+  "rev": 9,
   "documents": [
     {
       "id": "d_x3qad3sdurwcpiioun23",
@@ -81,6 +81,85 @@
         },
         "due_date": "2026-08-31",
         "account": "EX-000000"
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_aipiyvveklwqqrz7ejff",
+      "path": "Sam Example/Claims/2026/2026-08-26_bill_example_surgery_center_surgery_center_statement_sep.pdf",
+      "sha256": "128d6d85a4d6bffd50a2156435ca418823879b5bb7c9931a07d870694d6cf944",
+      "md5": "fa073229367f8975fa2bfd0540f24021",
+      "size": 59393,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "original_name": "surgery_center_statement_sep.pdf",
+      "title": "Statement from Example Surgery Center",
+      "doc_type": "bill",
+      "date": "2026-08-26",
+      "organization": "Example Surgery Center",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "surgery_center_statement_sep.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 117,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
+      },
+      "statement": {
+        "statement_date": "2026-09-21",
+        "amount_due": {
+          "amount": "175.00",
+          "currency": "USD"
+        },
+        "due_date": "2026-10-21",
+        "account": "****2222"
+      },
+      "provenance": {
+        "source": {
+          "kind": "scan"
+        },
+        "method": "scan",
+        "filed_at": "2026-11-02T20:00:00Z",
+        "classified_by": "medrec intake",
+        "filed_by": "medrec 0.2.11"
+      }
+    },
+    {
+      "id": "d_d6i3awfvotrthuovzda3",
+      "path": "Sam Example/Documents/2026/2026-08-26_discharge_summary_example_surgery_center_knee_going_home.pdf",
+      "sha256": "cdb8081afeb9098f029ef75c1d92d13850a898ddf1c571a1960f132cb643555e",
+      "md5": "9a17a37e613591c5b5702f9cc4e7561a",
+      "size": 211798,
+      "media_type": "application/pdf",
+      "pages": 2,
+      "original_name": "knee_going_home.pdf",
+      "title": "Going home after knee surgery",
+      "doc_type": "discharge_summary",
+      "date": "2026-08-26",
+      "organization": "Example Surgery Center",
+      "filed_at": "2026-11-02T20:00:00Z",
+      "origin": {
+        "kind": "inbox",
+        "name": "knee_going_home.pdf",
+        "action": "moved"
+      },
+      "text": {
+        "chars": 132,
+        "engines": [
+          "pdftotext 26.10.0"
+        ]
       },
       "provenance": {
         "source": {
@@ -772,88 +851,3192 @@
       ]
     },
     {
-      "id": "r_sambirthaaaaaaaaaaaa",
-      "kind": "claim",
-      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-ad1401d0|2026-05-31",
-      "date": "2026-05-31",
+      "id": "r_hi2yuodosg7nlmabr3eb",
+      "kind": "coverage",
+      "key": "coverage|http://terminology.hl7.org/CodeSystem/v3-ActCode|HIP|2025-07-01",
+      "date": "2025-07-01",
       "code": {
-        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-        "code": "institutional",
-        "display": "Institutional"
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "HIP",
+        "display": "health insurance plan policy"
       },
-      "display": "Room and board · Example Health Medical Center",
+      "display": "Example Care Plan HMO",
       "status": "active",
       "fields": {
-        "when": "2026-05-31",
-        "provider": "Example Health Medical Center",
-        "insurer": "Example Health Plan",
+        "when": "2025-07-01",
+        "payer": "Example Care Plan",
+        "period": {
+          "start": "2025-07-01"
+        },
+        "relationship": "self",
+        "plan": "HMO Family",
+        "group": "GRP-111111"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Coverage",
+            "id": "coverage-f187087d",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/Coverage/coverage-f187087d.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_w4ghnwkkh2lze5w2s6ab",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-05-20",
+      "date": "2026-05-20",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Office visit and X-ray of the ankle · Example Health",
+      "status": "active",
+      "fields": {
+        "when": "2026-05-20",
+        "provider": "Example Health",
+        "insurer": "Example Care Plan",
         "outcome": "complete",
         "billable_period": {
-          "start": "2026-05-31",
-          "end": "2026-06-02"
+          "start": "2026-05-20",
+          "end": "2026-05-20"
         },
         "total": [
           {
             "category": "Submitted Amount",
             "amount": {
-              "amount": "18500.00",
+              "amount": "405.00",
               "currency": "USD"
             }
           },
           {
             "category": "Eligible Amount",
             "amount": {
-              "amount": "8200.00",
+              "amount": "250.00",
               "currency": "USD"
             }
           },
           {
             "category": "Benefit Amount",
             "amount": {
-              "amount": "7400.00",
+              "amount": "193.60",
               "currency": "USD"
             }
           },
           {
             "category": "Deductible",
             "amount": {
-              "amount": "800.00",
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "40.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "16.40",
               "currency": "USD"
             }
           },
           {
             "category": "Member liability",
             "amount": {
-              "amount": "800.00",
+              "amount": "56.40",
               "currency": "USD"
             }
           }
         ],
         "payment": {
-          "amount": "7400.00",
+          "amount": "193.60",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "99214",
+              "display": "Office visit"
+            },
+            "serviced": "2026-05-20",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "260.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "260.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "168.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "128.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "40.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "40.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "visit",
+            "amounts": {
+              "billed": {
+                "amount": "260.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "168.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "128.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "40.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "40.00",
+                "currency": "USD"
+              }
+            },
+            "records": [
+              "r_7vbpun34uoqnf4r4gwe3"
+            ]
+          },
+          {
+            "sequence": 2,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "73610",
+              "display": "X-ray of the ankle"
+            },
+            "serviced": "2026-05-20",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "145.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "145.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "82.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "65.60",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "16.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "16.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "imaging",
+            "amounts": {
+              "billed": {
+                "amount": "145.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "82.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "65.60",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "16.40",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "16.40",
+                "currency": "USD"
+              }
+            },
+            "records": []
+          }
+        ],
+        "benefit_period": {
+          "start": "2025-07-01",
+          "end": "2026-06-30"
+        },
+        "category": "mixed",
+        "amounts": {
+          "billed": {
+            "amount": "405.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "250.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "193.60",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "40.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "16.40",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "56.40",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "S93.401A",
+              "display": "Sprain of unspecified ligament of right ankle, initial encounter"
+            }
+          }
+        ],
+        "visit": "r_7vbpun34uoqnf4r4gwe3",
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-57e70aaa",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-57e70aaa.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_zekejrg25efjeo5qnm23",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-07-09",
+      "date": "2026-07-09",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Thyroid test (TSH) and Blood draw · Example Lab",
+      "status": "active",
+      "fields": {
+        "when": "2026-07-09",
+        "provider": "Example Lab",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-07-09",
+          "end": "2026-07-09"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "120.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "50.70",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "50.70",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "0.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "84443",
+              "display": "Thyroid test (TSH)"
+            },
+            "serviced": "2026-07-09",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "95.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "95.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "41.20",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "41.20",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "lab",
+            "amounts": {
+              "billed": {
+                "amount": "95.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "41.20",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "41.20",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "records": [
+              "r_wdcfeoqm64y7te3j2rz4",
+              "r_t7o3hd7qkaukzypu32u5",
+              "r_loks2bzuyhkgmdsbxiim",
+              "r_cxktbdqss5olab7jvwhi",
+              "r_37m7inb7v4ayxigadjmo"
+            ]
+          },
+          {
+            "sequence": 2,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "36415",
+              "display": "Blood draw"
+            },
+            "serviced": "2026-07-09",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "25.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "25.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "9.50",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "9.50",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "lab",
+            "amounts": {
+              "billed": {
+                "amount": "25.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "9.50",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "9.50",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "records": [
+              "r_wdcfeoqm64y7te3j2rz4",
+              "r_t7o3hd7qkaukzypu32u5",
+              "r_loks2bzuyhkgmdsbxiim",
+              "r_cxktbdqss5olab7jvwhi",
+              "r_37m7inb7v4ayxigadjmo"
+            ]
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "lab",
+        "amounts": {
+          "billed": {
+            "amount": "120.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "50.70",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "50.70",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "Z13.29",
+              "display": "Encounter for screening for other suspected endocrine disorder"
+            }
+          }
+        ],
+        "results": [
+          "r_wdcfeoqm64y7te3j2rz4",
+          "r_t7o3hd7qkaukzypu32u5",
+          "r_loks2bzuyhkgmdsbxiim",
+          "r_cxktbdqss5olab7jvwhi",
+          "r_37m7inb7v4ayxigadjmo"
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-df0892ad",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-df0892ad.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_6xu2xucsavpsl2uwzgdn",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-10-12",
+      "date": "2026-10-12",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Blood cell test and Vitamin D test · Example Lab",
+      "status": "active",
+      "fields": {
+        "when": "2026-10-12",
+        "provider": "Example Lab",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-10-12",
+          "end": "2026-10-12"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "248.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "70.30",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "70.30",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "70.30",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "0.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "85025",
+              "display": "Blood cell test"
+            },
+            "serviced": "2026-10-12",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "98.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "98.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "31.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "31.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "31.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "lab",
+            "amounts": {
+              "billed": {
+                "amount": "98.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "31.40",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "31.40",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "31.40",
+                "currency": "USD"
+              }
+            },
+            "records": [
+              "r_pmyt7qaxanldszgnxut3",
+              "r_ed2vxgyu5x4epii2gais",
+              "r_rjhnkgt2kousvani33kp",
+              "r_gxlxebjiq6wviq4fvrpm"
+            ]
+          },
+          {
+            "sequence": 2,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "82306",
+              "display": "Vitamin D test"
+            },
+            "serviced": "2026-10-12",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "150.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "150.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "38.90",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "38.90",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "38.90",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "lab",
+            "amounts": {
+              "billed": {
+                "amount": "150.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "38.90",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "38.90",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "38.90",
+                "currency": "USD"
+              }
+            },
+            "records": [
+              "r_pmyt7qaxanldszgnxut3",
+              "r_ed2vxgyu5x4epii2gais",
+              "r_rjhnkgt2kousvani33kp",
+              "r_gxlxebjiq6wviq4fvrpm"
+            ]
+          }
+        ],
+        "benefit_balance": [
+          {
+            "category": "1",
+            "network": "in",
+            "unit": "individual",
+            "term": "annual",
+            "financial": [
+              {
+                "type": "Deductible",
+                "allowed": {
+                  "amount": "750.00",
+                  "currency": "USD"
+                },
+                "used": {
+                  "amount": "233.50",
+                  "currency": "USD"
+                }
+              },
+              {
+                "type": "Out-of-pocket limit",
+                "allowed": {
+                  "amount": "3000.00",
+                  "currency": "USD"
+                },
+                "used": {
+                  "amount": "408.50",
+                  "currency": "USD"
+                }
+              }
+            ]
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "lab",
+        "amounts": {
+          "billed": {
+            "amount": "248.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "70.30",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "70.30",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "70.30",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "E55.9",
+              "display": "Vitamin D deficiency, unspecified"
+            }
+          }
+        ],
+        "results": [
+          "r_pmyt7qaxanldszgnxut3",
+          "r_ed2vxgyu5x4epii2gais",
+          "r_rjhnkgt2kousvani33kp",
+          "r_gxlxebjiq6wviq4fvrpm"
+        ]
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-b46920a7",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-b46920a7.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_se4qctpgoqorqqvlkebf",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|institutional|2026-08-26",
+      "date": "2026-08-26",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "institutional",
+        "display": "Institutional"
+      },
+      "display": "Knee scope, one side and Antibiotic during surgery · Example Surgery Center",
+      "status": "active",
+      "fields": {
+        "when": "2026-08-26",
+        "provider": "Example Surgery Center",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-08-26",
+          "end": "2026-08-26"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "4048.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "1262.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "1087.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "175.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "175.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "1087.00",
+          "currency": "USD"
+        },
+        "type": "Institutional",
+        "use": "claim",
+        "items": [
+          {
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "29880",
+              "display": "Knee scope, both sides"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "5120.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "5120.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Not covered",
+                "amount": {
+                  "amount": "5120.00",
+                  "currency": "USD"
+                },
+                "reason": {
+                  "text": "Replaced under the plan’s coding policy"
+                }
+              }
+            ],
+            "category": "procedure",
+            "amounts": {
+              "billed": {
+                "amount": "5120.00",
+                "currency": "USD"
+              },
+              "not_covered": {
+                "amount": "5120.00",
+                "currency": "USD"
+              }
+            },
+            "records": [],
+            "counted": false,
+            "payer_notes": [
+              "C7 -- This service was paid under a different code than the one billed."
+            ],
+            "sequence": 1
+          },
+          {
+            "sequence": 2,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "29881",
+              "display": "Knee scope, one side"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "3960.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "3960.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "1240.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "1065.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "175.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "175.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "procedure",
+            "amounts": {
+              "billed": {
+                "amount": "3960.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "1240.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "1065.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "175.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "175.00",
+                "currency": "USD"
+              }
+            },
+            "records": [],
+            "revenue": {
+              "system": "https://www.nubc.org/CodeSystem/RevenueCodes",
+              "code": "0360",
+              "display": "Operating room"
+            }
+          },
+          {
+            "sequence": 3,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "J0690",
+              "display": "Antibiotic during surgery"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "88.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "88.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "22.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "22.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "drug",
+            "amounts": {
+              "billed": {
+                "amount": "88.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "22.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "22.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "records": [],
+            "revenue": {
+              "system": "https://www.nubc.org/CodeSystem/RevenueCodes",
+              "code": "0636",
+              "display": "Medicine given"
+            }
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "mixed",
+        "amounts": {
+          "billed": {
+            "amount": "4048.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "1262.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "1087.00",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "175.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "175.00",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "S83.241A",
+              "display": "Other tear of medial meniscus, current injury, right knee, initial encounter"
+            }
+          }
+        ],
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-782cd3c7",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-782cd3c7.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_nnd6s3bmzjztavm4wea5",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-08-26",
+      "date": "2026-08-26",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Knee scope, one side · Example Orthopedic Surgeons",
+      "status": "active",
+      "fields": {
+        "when": "2026-08-26",
+        "provider": "Example Orthopedic Surgeons",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-08-26",
+          "end": "2026-08-26"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "1450.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "610.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "497.50",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "112.50",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "112.50",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "497.50",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "29881",
+              "display": "Knee scope, one side"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "1450.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "1450.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "610.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "497.50",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "112.50",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "112.50",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "procedure",
+            "amounts": {
+              "billed": {
+                "amount": "1450.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "610.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "497.50",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "112.50",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "112.50",
+                "currency": "USD"
+              }
+            },
+            "records": []
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "procedure",
+        "amounts": {
+          "billed": {
+            "amount": "1450.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "610.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "497.50",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "112.50",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "112.50",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "S83.241A",
+              "display": "Other tear of medial meniscus, current injury, right knee, initial encounter"
+            }
+          }
+        ],
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-62cd8124",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-62cd8124.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_fbhlexithgaohaghqvwc",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-08-26",
+      "date": "2026-08-26",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "X-ray of the knee · Example Imaging Partners",
+      "status": "active",
+      "fields": {
+        "when": "2026-08-26",
+        "provider": "Example Imaging Partners",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-08-26",
+          "end": "2026-08-26"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "118.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "44.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "44.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "44.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "73560",
+              "display": "X-ray of the knee"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "118.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "118.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "44.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "44.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "imaging",
+            "amounts": {
+              "billed": {
+                "amount": "118.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "44.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "44.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "records": []
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "imaging",
+        "amounts": {
+          "billed": {
+            "amount": "118.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "44.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "44.00",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "S83.241A",
+              "display": "Other tear of medial meniscus, current injury, right knee, initial encounter"
+            }
+          }
+        ],
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-36fd2fbe",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-36fd2fbe.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_vghqmkdiawjewfytl46h",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-08-26",
+      "date": "2026-08-26",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Crutches · Example Medical Supply",
+      "status": "active",
+      "fields": {
+        "when": "2026-08-26",
+        "provider": "Example Medical Supply",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-08-26",
+          "end": "2026-08-26"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "62.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "28.40",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "28.40",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "28.40",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "E0114",
+              "display": "Crutches"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "62.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "62.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "28.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "28.40",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "supply",
+            "amounts": {
+              "billed": {
+                "amount": "62.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "28.40",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "28.40",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "records": []
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "supply",
+        "amounts": {
+          "billed": {
+            "amount": "62.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "28.40",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "28.40",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "S83.241A",
+              "display": "Other tear of medial meniscus, current injury, right knee, initial encounter"
+            }
+          }
+        ],
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-e311f636",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-e311f636.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_of53xumfha5kozo67hn6",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-08-26",
+      "date": "2026-08-26",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Knee brace · Example Medical Supply",
+      "status": "active",
+      "fields": {
+        "when": "2026-08-26",
+        "provider": "Example Medical Supply",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-08-26",
+          "end": "2026-08-26"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "140.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "71.30",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "71.30",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "71.30",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "L1820",
+              "display": "Knee brace"
+            },
+            "serviced": "2026-08-26",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "140.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "140.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "71.30",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "71.30",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "supply",
+            "amounts": {
+              "billed": {
+                "amount": "140.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "71.30",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "71.30",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "0.00",
+                "currency": "USD"
+              }
+            },
+            "records": []
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "supply",
+        "amounts": {
+          "billed": {
+            "amount": "140.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "71.30",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "71.30",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "0.00",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "S83.241A",
+              "display": "Other tear of medial meniscus, current injury, right knee, initial encounter"
+            }
+          }
+        ],
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-b23f94b8",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-b23f94b8.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_l2hawbmbuvibfaovzyjw",
+      "kind": "encounter",
+      "key": "encounter|counseling session|2026-10-27",
+      "date": "2026-10-27",
+      "display": "Counseling session",
+      "status": "finished",
+      "fields": {
+        "when": "2026-10-27",
+        "class": "virtual",
+        "practitioner": "Dr. Morgan Placeholder",
+        "location": "Example Counseling",
+        "reason": "Anxiety"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-e9275cb5",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/Encounter/encounter-e9275cb5.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_x7kgkq2xdb3nnofipq3r",
+      "kind": "medication",
+      "key": "medication|loratadine 10 mg tablet|2026-10-25",
+      "date": "2026-10-25",
+      "display": "Loratadine 10 mg tablet",
+      "status": "completed",
+      "fields": {
+        "when": "2026-10-25",
+        "dosage": "Take 1 tablet by mouth once a day",
+        "quantity": "30 tablet",
+        "days_supply": 30,
+        "pharmacy": "Example Pharmacy",
+        "prescriber": "Dr. Casey Placeholder",
+        "source": "dispense"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationDispense",
+            "id": "medicationdispense-6ca33ae4",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/MedicationDispense/medicationdispense-6ca33ae4.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_lb4q27vbooxofbabuls4",
+      "kind": "medication",
+      "key": "medication|nicotine 14 mg/24 hour patch|2026-10-30",
+      "date": "2026-10-30",
+      "display": "Nicotine 14 mg/24 hour patch",
+      "status": "active",
+      "fields": {
+        "when": "2026-10-30",
+        "dosage": "Put on 1 patch once a day",
+        "prescriber": "Dr. Casey Placeholder",
+        "source": "request"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationRequest",
+            "id": "medicationrequest-a3ce81f0",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/MedicationRequest/medicationrequest-a3ce81f0.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_4dy25xkew72toq7h45n5",
+      "kind": "medication",
+      "key": "medication|nicotine 14 mg/24 hour patch|2026-10-31",
+      "date": "2026-10-31",
+      "display": "Nicotine 14 mg/24 hour patch",
+      "status": "completed",
+      "fields": {
+        "when": "2026-10-31",
+        "dosage": "Put on 1 patch once a day",
+        "quantity": "28 patch",
+        "days_supply": 28,
+        "pharmacy": "Example Pharmacy",
+        "prescriber": "Dr. Casey Placeholder",
+        "source": "dispense"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationDispense",
+            "id": "medicationdispense-2bfc59e2",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/MedicationDispense/medicationdispense-2bfc59e2.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_ykqgd5ubp23vha2jfssl",
+      "kind": "claim",
+      "key": "claim|http://terminology.hl7.org/CodeSystem/claim-type|professional|2026-10-27",
+      "date": "2026-10-27",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "professional",
+        "display": "Professional"
+      },
+      "display": "Talk therapy session · Example Counseling",
+      "status": "active",
+      "fields": {
+        "when": "2026-10-27",
+        "provider": "Example Counseling",
+        "insurer": "Example Care Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-10-27",
+          "end": "2026-10-27"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "180.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "110.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "80.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Copay",
+            "amount": {
+              "amount": "30.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Coinsurance",
+            "amount": {
+              "amount": "0.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "30.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "80.00",
+          "currency": "USD"
+        },
+        "type": "Professional",
+        "use": "claim",
+        "items": [
+          {
+            "sequence": 1,
+            "service": {
+              "system": "http://www.ama-assn.org/go/cpt",
+              "code": "90834",
+              "display": "Talk therapy session"
+            },
+            "serviced": "2026-10-27",
+            "quantity": {
+              "value": 1,
+              "unit": null
+            },
+            "net": {
+              "amount": "180.00",
+              "currency": "USD"
+            },
+            "adjudication": [
+              {
+                "category": "Submitted Amount",
+                "amount": {
+                  "amount": "180.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Eligible Amount",
+                "amount": {
+                  "amount": "110.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Benefit Amount",
+                "amount": {
+                  "amount": "80.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Deductible",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Copay",
+                "amount": {
+                  "amount": "30.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Coinsurance",
+                "amount": {
+                  "amount": "0.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              },
+              {
+                "category": "Member liability",
+                "amount": {
+                  "amount": "30.00",
+                  "currency": "USD"
+                },
+                "reason": null
+              }
+            ],
+            "category": "visit",
+            "amounts": {
+              "billed": {
+                "amount": "180.00",
+                "currency": "USD"
+              },
+              "allowed": {
+                "amount": "110.00",
+                "currency": "USD"
+              },
+              "plan_paid": {
+                "amount": "80.00",
+                "currency": "USD"
+              },
+              "deductible": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "copay": {
+                "amount": "30.00",
+                "currency": "USD"
+              },
+              "coinsurance": {
+                "amount": "0.00",
+                "currency": "USD"
+              },
+              "you_owe": {
+                "amount": "30.00",
+                "currency": "USD"
+              }
+            },
+            "records": [
+              "r_l2hawbmbuvibfaovzyjw"
+            ]
+          }
+        ],
+        "benefit_balance": [
+          {
+            "category": "1",
+            "network": "in",
+            "unit": "individual",
+            "term": "annual",
+            "financial": [
+              {
+                "type": "Deductible",
+                "allowed": {
+                  "amount": "750.00",
+                  "currency": "USD"
+                },
+                "used": {
+                  "amount": "233.50",
+                  "currency": "USD"
+                }
+              },
+              {
+                "type": "Out-of-pocket limit",
+                "allowed": {
+                  "amount": "3000.00",
+                  "currency": "USD"
+                },
+                "used": {
+                  "amount": "438.50",
+                  "currency": "USD"
+                }
+              }
+            ]
+          }
+        ],
+        "benefit_period": {
+          "start": "2026-07-01",
+          "end": "2027-06-30"
+        },
+        "category": "visit",
+        "amounts": {
+          "billed": {
+            "amount": "180.00",
+            "currency": "USD"
+          },
+          "allowed": {
+            "amount": "110.00",
+            "currency": "USD"
+          },
+          "plan_paid": {
+            "amount": "80.00",
+            "currency": "USD"
+          },
+          "deductible": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "copay": {
+            "amount": "30.00",
+            "currency": "USD"
+          },
+          "coinsurance": {
+            "amount": "0.00",
+            "currency": "USD"
+          },
+          "you_owe": {
+            "amount": "30.00",
+            "currency": "USD"
+          }
+        },
+        "diagnoses": [
+          {
+            "sequence": 1,
+            "code": {
+              "system": "http://hl7.org/fhir/sid/icd-10-cm",
+              "code": "F41.1",
+              "display": "Generalized anxiety disorder"
+            }
+          }
+        ],
+        "visit": "r_l2hawbmbuvibfaovzyjw",
+        "results": []
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "kp",
+            "cli_version": "0.7.1",
+            "organization_id": "example-care-plan",
+            "fhir_base": "https://fhir.example.com/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "ExplanationOfBenefit",
+            "id": "explanationofbenefit-f74e903d",
+            "last_updated": "2026-11-21T08:00:00Z"
+          },
+          "fetched_at": "2026-11-21T13:59:00Z",
+          "filed_at": "2026-11-21T13:59:00Z",
+          "raw_path": "Sam Example/Records/kp-example-care-plan/ExplanationOfBenefit/explanationofbenefit-f74e903d.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_36yc5pgtgmcjyhuswl7p",
+      "kind": "medication",
+      "key": "medication|loratadine 10 mg tablet|2026-04-21",
+      "date": "2026-04-21",
+      "display": "Loratadine 10 mg tablet",
+      "status": "active",
+      "fields": {
+        "when": "2026-04-21",
+        "dosage": "Take 1 tablet by mouth once a day",
+        "prescriber": "Dr. Casey Placeholder",
+        "source": "request"
+      },
+      "documents": [],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "mychart",
+            "cli_version": "0.7.1",
+            "organization_id": "example-health",
+            "fhir_base": "https://fhir.example.org/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "MedicationRequest",
+            "id": "medicationrequest-1797ee6b",
+            "last_updated": "2026-11-22T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T14:59:00Z",
+          "filed_at": "2026-11-22T14:59:00Z",
+          "raw_path": "Sam Example/Records/mychart-example-health/MedicationRequest/medicationrequest-1797ee6b.json",
+          "filed_by": "medrec 0.2.11"
+        }
+      ]
+    },
+    {
+      "id": "r_samstayhospitalaaaaa",
+      "kind": "claim",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-ad1401d0|2026-07-27",
+      "date": "2026-07-27",
+      "code": {
+        "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+        "code": "institutional",
+        "display": "Institutional"
+      },
+      "display": "Room and board · Example Lakeside Hospital",
+      "status": "active",
+      "fields": {
+        "when": "2026-07-27",
+        "provider": "Example Lakeside Hospital",
+        "insurer": "Example Health Plan",
+        "outcome": "complete",
+        "billable_period": {
+          "start": "2026-07-27",
+          "end": "2026-07-30"
+        },
+        "total": [
+          {
+            "category": "Submitted Amount",
+            "amount": {
+              "amount": "14800.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Eligible Amount",
+            "amount": {
+              "amount": "6560.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Benefit Amount",
+            "amount": {
+              "amount": "5920.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Deductible",
+            "amount": {
+              "amount": "640.00",
+              "currency": "USD"
+            }
+          },
+          {
+            "category": "Member liability",
+            "amount": {
+              "amount": "640.00",
+              "currency": "USD"
+            }
+          }
+        ],
+        "payment": {
+          "amount": "5920.00",
           "currency": "USD"
         },
         "type": "Institutional",
         "use": "claim",
         "amounts": {
           "billed": {
-            "amount": "18500.00",
+            "amount": "14800.00",
             "currency": "USD"
           },
           "allowed": {
-            "amount": "8200.00",
+            "amount": "6560.00",
             "currency": "USD"
           },
           "plan_paid": {
-            "amount": "7400.00",
+            "amount": "5920.00",
             "currency": "USD"
           },
           "deductible": {
-            "amount": "800.00",
+            "amount": "640.00",
             "currency": "USD"
           },
           "you_owe": {
-            "amount": "800.00",
+            "amount": "640.00",
             "currency": "USD"
           }
         },
@@ -868,19 +4051,19 @@
             },
             "amounts": {
               "billed": {
-                "amount": "18500.00",
+                "amount": "14800.00",
                 "currency": "USD"
               },
               "allowed": {
-                "amount": "8200.00",
+                "amount": "6560.00",
                 "currency": "USD"
               },
               "plan_paid": {
-                "amount": "7400.00",
+                "amount": "5920.00",
                 "currency": "USD"
               },
               "you_owe": {
-                "amount": "800.00",
+                "amount": "640.00",
                 "currency": "USD"
               }
             },
@@ -915,45 +4098,45 @@
       ]
     },
     {
-      "id": "r_samobaaaaaaaaaaaaaaa",
+      "id": "r_samstaydoctoraaaaaaa",
       "kind": "claim",
-      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-75a1ed78|2026-06-02",
-      "date": "2026-06-02",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-75a1ed78|2026-07-30",
+      "date": "2026-07-30",
       "code": {
         "system": "http://terminology.hl7.org/CodeSystem/claim-type",
         "code": "professional",
         "display": "Professional"
       },
-      "display": "Day of discharge · Sample Rheumatology Group",
+      "display": "Day of discharge · Sample Hospitalist Group",
       "status": "active",
       "fields": {
-        "when": "2026-06-02",
-        "provider": "Sample Rheumatology Group",
+        "when": "2026-07-30",
+        "provider": "Sample Hospitalist Group",
         "insurer": "Example Health Plan",
         "outcome": "complete",
         "billable_period": {
-          "start": "2026-06-02",
-          "end": "2026-06-02"
+          "start": "2026-07-30",
+          "end": "2026-07-30"
         },
         "total": [
           {
             "category": "Submitted Amount",
             "amount": {
-              "amount": "420.00",
+              "amount": "504.00",
               "currency": "USD"
             }
           },
           {
             "category": "Eligible Amount",
             "amount": {
-              "amount": "160.00",
+              "amount": "192.00",
               "currency": "USD"
             }
           },
           {
             "category": "Benefit Amount",
             "amount": {
-              "amount": "160.00",
+              "amount": "192.00",
               "currency": "USD"
             }
           },
@@ -966,22 +4149,22 @@
           }
         ],
         "payment": {
-          "amount": "160.00",
+          "amount": "192.00",
           "currency": "USD"
         },
         "type": "Professional",
         "use": "claim",
         "amounts": {
           "billed": {
-            "amount": "420.00",
+            "amount": "504.00",
             "currency": "USD"
           },
           "allowed": {
-            "amount": "160.00",
+            "amount": "192.00",
             "currency": "USD"
           },
           "plan_paid": {
-            "amount": "160.00",
+            "amount": "192.00",
             "currency": "USD"
           },
           "you_owe": {
@@ -1000,15 +4183,15 @@
             },
             "amounts": {
               "billed": {
-                "amount": "420.00",
+                "amount": "504.00",
                 "currency": "USD"
               },
               "allowed": {
-                "amount": "160.00",
+                "amount": "192.00",
                 "currency": "USD"
               },
               "plan_paid": {
-                "amount": "160.00",
+                "amount": "192.00",
                 "currency": "USD"
               },
               "you_owe": {
@@ -1043,45 +4226,45 @@
       ]
     },
     {
-      "id": "r_samanesaaaaaaaaaaaaa",
+      "id": "r_samstayanesthesiaaaa",
       "kind": "claim",
-      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-0d7a1e17|2026-06-01",
-      "date": "2026-06-01",
+      "key": "claim|id||uhc|example-health-plan|explanationofbenefit-0d7a1e17|2026-07-28",
+      "date": "2026-07-28",
       "code": {
         "system": "http://terminology.hl7.org/CodeSystem/claim-type",
         "code": "professional",
         "display": "Professional"
       },
-      "display": "Anesthesia for labor · Example Anesthesia Partners",
+      "display": "Anesthesia for labor · Sample Anesthesia Services",
       "status": "active",
       "fields": {
-        "when": "2026-06-01",
-        "provider": "Example Anesthesia Partners",
+        "when": "2026-07-28",
+        "provider": "Sample Anesthesia Services",
         "insurer": "Example Health Plan",
         "outcome": "complete",
         "billable_period": {
-          "start": "2026-06-01",
-          "end": "2026-06-01"
+          "start": "2026-07-28",
+          "end": "2026-07-28"
         },
         "total": [
           {
             "category": "Submitted Amount",
             "amount": {
-              "amount": "2400.00",
+              "amount": "1800.00",
               "currency": "USD"
             }
           },
           {
             "category": "Eligible Amount",
             "amount": {
-              "amount": "690.00",
+              "amount": "517.50",
               "currency": "USD"
             }
           },
           {
             "category": "Benefit Amount",
             "amount": {
-              "amount": "690.00",
+              "amount": "517.50",
               "currency": "USD"
             }
           },
@@ -1094,22 +4277,22 @@
           }
         ],
         "payment": {
-          "amount": "690.00",
+          "amount": "517.50",
           "currency": "USD"
         },
         "type": "Professional",
         "use": "claim",
         "amounts": {
           "billed": {
-            "amount": "2400.00",
+            "amount": "1800.00",
             "currency": "USD"
           },
           "allowed": {
-            "amount": "690.00",
+            "amount": "517.50",
             "currency": "USD"
           },
           "plan_paid": {
-            "amount": "690.00",
+            "amount": "517.50",
             "currency": "USD"
           },
           "you_owe": {
@@ -1128,15 +4311,15 @@
             },
             "amounts": {
               "billed": {
-                "amount": "2400.00",
+                "amount": "1800.00",
                 "currency": "USD"
               },
               "allowed": {
-                "amount": "690.00",
+                "amount": "517.50",
                 "currency": "USD"
               },
               "plan_paid": {
-                "amount": "690.00",
+                "amount": "517.50",
                 "currency": "USD"
               },
               "you_owe": {
@@ -1272,6 +4455,29 @@
       "records_unchanged": 0,
       "records_older": 0,
       "resources_written": 1,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    },
+    {
+      "id": "i_svk5mgyh6ukqqgy3fyxi",
+      "source_dir": "Sam Example/Records/kp-example-care-plan",
+      "stream_sha256": "706c0f8af5e9025ada0e7261e7a9c861827d8202eb2de9cc129488f2f6c99530",
+      "stream_bytes": 392149,
+      "cli": "kp",
+      "cli_version": "0.4.0",
+      "organization": "example-care-plan",
+      "patient_id": "pat-3c733a",
+      "pulled_at": "2026-11-21T14:00:00Z",
+      "imported_at": "2026-11-21T14:00:00Z",
+      "counts": {
+        "Patient": 1,
+        "Observation": 9
+      },
+      "records_added": 9,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 9,
       "resources_unchanged": 0,
       "documents_added": 0
     }

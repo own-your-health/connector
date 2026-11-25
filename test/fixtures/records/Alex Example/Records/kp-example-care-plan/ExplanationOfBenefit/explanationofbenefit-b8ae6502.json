@@ -1,0 +1,78 @@
+{
+  "resourceType": "ExplanationOfBenefit",
+  "id": "explanationofbenefit-b8ae6502",
+  "meta": {
+    "lastUpdated": "2026-11-21T08:00:00Z"
+  },
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "code": "professional"
+      }
+    ]
+  },
+  "use": "claim",
+  "billablePeriod": {
+    "start": "2026-11-20",
+    "end": "2026-11-20"
+  },
+  "benefitPeriod": {
+    "start": "2026-07-01",
+    "end": "2027-06-30"
+  },
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "99213",
+            "display": "Office visit"
+          }
+        ]
+      },
+      "servicedDate": "2026-11-20",
+      "net": {
+        "value": 165,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 2,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "87651",
+            "display": "Strep test, DNA method"
+          }
+        ]
+      },
+      "servicedDate": "2026-11-20",
+      "net": {
+        "value": 132,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 3,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "87880",
+            "display": "Strep test"
+          }
+        ]
+      },
+      "servicedDate": "2026-11-20",
+      "net": {
+        "value": 48,
+        "currency": "USD"
+      }
+    }
+  ]
+}

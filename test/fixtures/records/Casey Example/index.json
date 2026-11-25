@@ -7,19 +7,19 @@
   "imports": [],
   "records": [
     {
-      "id": "r_caseypressureaaaaaaa",
+      "id": "r_caseyconditionaaaaaa",
       "kind": "condition",
-      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|I10|2026-02-02",
-      "date": "2026-02-02",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|J30.2|2026-04-28",
+      "date": "2026-04-28",
       "code": {
         "system": "http://hl7.org/fhir/sid/icd-10-cm",
-        "code": "I10",
-        "display": "Essential (primary) hypertension"
+        "code": "J30.2",
+        "display": "Other seasonal allergic rhinitis"
       },
-      "display": "High blood pressure",
+      "display": "Seasonal allergies",
       "status": "active",
       "fields": {
-        "when": "2026-02-02",
+        "when": "2026-04-28",
         "verification_status": "confirmed",
         "category": "Problem list item"
       },
@@ -37,7 +37,7 @@
           "source_resource": {
             "type": "Condition",
             "id": "condition-a1f00007",
-            "last_updated": "2026-02-02T08:00:00Z"
+            "last_updated": "2026-04-28T08:00:00Z"
           },
           "fetched_at": "2026-11-22T18:30:00Z",
           "filed_at": "2026-11-22T18:30:00Z",
@@ -46,27 +46,27 @@
       ]
     },
     {
-      "id": "r_caseyglucoseaaaaaaaa",
+      "id": "r_caseyresultaaaaaaaaa",
       "kind": "result",
-      "key": "result|http://loinc.org|1558-6|2026-02-02",
-      "date": "2026-02-02",
+      "key": "result|http://loinc.org|2276-4|2026-04-28",
+      "date": "2026-04-28",
       "code": {
         "system": "http://loinc.org",
-        "code": "1558-6",
-        "display": "Fasting glucose [Mass/volume] in Serum or Plasma"
+        "code": "2276-4",
+        "display": "Ferritin"
       },
-      "display": "Glucose, fasting",
+      "display": "Ferritin",
       "status": "final",
       "fields": {
-        "when": "2026-02-02",
+        "when": "2026-04-28",
         "value": {
-          "value": 94,
-          "unit": "mg/dL",
+          "value": 61,
+          "unit": "ng/mL",
           "system": "http://unitsofmeasure.org"
         },
-        "reference_range": "70-99 mg/dL",
+        "reference_range": "24-336 ng/mL",
         "category": "Laboratory",
-        "issued": "2026-02-02T15:00:00Z"
+        "issued": "2026-04-28T15:00:00Z"
       },
       "documents": [],
       "provenance": [
@@ -82,7 +82,7 @@
           "source_resource": {
             "type": "Observation",
             "id": "observation-a1f00008",
-            "last_updated": "2026-02-02T08:00:00Z"
+            "last_updated": "2026-04-28T08:00:00Z"
           },
           "fetched_at": "2026-11-22T18:30:00Z",
           "filed_at": "2026-11-22T18:30:00Z",

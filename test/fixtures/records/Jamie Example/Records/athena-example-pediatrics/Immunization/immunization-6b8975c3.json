@@ -2,7 +2,7 @@
   "resourceType": "Immunization",
   "id": "immunization-6b8975c3",
   "meta": {
-    "lastUpdated": "2026-06-15T08:00:00Z"
+    "lastUpdated": "2026-11-22T08:00:00Z"
   },
   "status": "completed",
   "vaccineCode": {
@@ -14,5 +14,5 @@
     ],
     "text": "Hep B, adolescent or pediatric"
   },
-  "occurrenceDateTime": "2026-06-01"
+  "occurrenceDateTime": "2026-07-28"
 }

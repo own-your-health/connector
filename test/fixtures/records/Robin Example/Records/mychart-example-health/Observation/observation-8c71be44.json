@@ -26,21 +26,23 @@
     ],
     "text": "Sodium"
   },
-  "valueQuantity": {
-    "value": 139,
-    "unit": "mmol/L",
-    "system": "http://unitsofmeasure.org",
-    "code": "mmol/L"
-  },
   "referenceRange": [
     {
-      "text": "136-145 mmol/L"
+      "low": {
+        "value": 136,
+        "unit": "mmol/L",
+        "system": "http://unitsofmeasure.org",
+        "code": "mmol/L"
+      },
+      "high": {
+        "value": 145,
+        "unit": "mmol/L",
+        "system": "http://unitsofmeasure.org",
+        "code": "mmol/L"
+      },
+      "text": "136 - 145 mmol/L"
     }
   ],
-  "interpretation": [
-    {
-      "text": "Normal"
-    }
-  ],
-  "effectiveDateTime": "2025-09-15"
+  "effectiveDateTime": "2025-09-15",
+  "valueString": "139"
 }

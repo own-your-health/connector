@@ -17,5 +17,41 @@
     "start": "2025-03-10",
     "end": "2025-03-10"
   },
-  "outcome": "complete"
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "99214",
+            "display": "Office visit"
+          }
+        ]
+      },
+      "servicedDate": "2025-03-10",
+      "net": {
+        "value": 290,
+        "currency": "USD"
+      }
+    },
+    {
+      "sequence": 2,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "85025",
+            "display": "Blood cell test"
+          }
+        ]
+      },
+      "servicedDate": "2025-03-10",
+      "net": {
+        "value": 108,
+        "currency": "USD"
+      }
+    }
+  ]
 }

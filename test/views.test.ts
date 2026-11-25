@@ -648,7 +648,7 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
     expect(await sources(root, timeline)).toEqual(before[0]);
     expect((await ask(root, 'medrec_summary', { person: 'Alex' })).r.structuredContent).toEqual(before[1]);
     const records = before[0].filter(([id]) => id.startsWith('r_')).map(([, s]) => s);
-    expect([...new Set(records)].sort()).toEqual(['Example Family Medicine', 'Example Pediatrics']);
+    expect([...new Set(records)].sort()).toEqual(['Example Care Plan', 'Example Family Medicine', 'Example Pediatrics']);
   });
 });
 
@@ -672,11 +672,11 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     }
     writeFileSync(at, JSON.stringify(index));
   }
-  const privateOf = (root: string, name: string, kinds: Partial<Record<'records' | 'documents' | 'events', Record<string, string>>>, extra: Record<string, unknown> = {}) =>
+  const privateOf = (root: string, name: string, kinds: Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, string>>>, extra: Record<string, unknown> = {}) =>
     setView(root, name, 'private.json', {
       schema: 'medrec-private/v1',
       person: personId(root, name),
-      ...Object.fromEntries((['records', 'documents', 'events'] as const).map((k) => [k, Object.fromEntries(Object.entries(kinds[k] ?? {}).map(([id, area]) => [id, { area, from: 'household' }]))])),
+      ...Object.fromEntries((['records', 'documents', 'events', 'studies'] as const).map((k) => [k, Object.fromEntries(Object.entries(kinds[k] ?? {}).map(([id, area]) => [id, { area, from: 'household' }]))])),
       ...extra,
     });
 
@@ -691,10 +691,10 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
   const CETIRIZINE = 'r_ctwssd77qny2ietw76dy';
 
   it('names an item only by a word of its own', () => {
-    expect(names('Sertraline 50 mg tablet', 'sertraline')).toBe(true);
+    expect(names('Escitalopram 10 mg tablet', 'escitalopram')).toBe(true);
     expect(names('Sertraline 50 mg tablet', 'sert')).toBe(true);
     expect(names('Sertraline 50 mg tablet', 'Sertraline tablets')).toBe(false);
-    expect(names('Sertraline 50 mg tablet', 'sertraline tablet')).toBe(true);
+    expect(names('Escitalopram 10 mg tablet', 'escitalopram tablet')).toBe(true);
     expect(names('Sertraline 50 mg tablet', 'tablet')).toBe(false);
     expect(names('Sertraline 50 mg tablet', 'se')).toBe(false);
     expect(names('Sertraline 50 mg tablet', '50 mg')).toBe(false);
@@ -727,27 +727,27 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
 
   it("counts each page's left-out items so that the pages add up to one page's count", async () => {
     const root = plain('private-pages');
-    const all = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 200 })).r);
+    const pages = async (limit: number) => {
+      const items: Page['items'] = [];
+      let total = 0;
+      let cursor: string | undefined;
+      do {
+        const p = page((await ask(root, 'medrec_records', { kind: 'timeline', limit, ...(cursor ? { cursor } : {}) })).r);
+        total += left(p);
+        items.push(...p.items);
+        cursor = p.next_cursor;
+      } while (cursor);
+      return { items, total };
+    };
+    const all = await pages(200);
     const robin = all.items.filter((x) => x.person === 'Robin Example' && /^[rd]_/.test(x.id));
     const chosen = [robin[1]!, robin[4]!, robin[5]!, robin[robin.length - 1]!];
     privateOf(root, 'Robin Example', {
       records: Object.fromEntries(chosen.filter((x) => x.id.startsWith('r_')).map((x) => [x.id, 'reproductive'])),
       documents: Object.fromEntries(chosen.filter((x) => x.id.startsWith('d_')).map((x) => [x.id, 'household'])),
     });
-    const one = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 200 })).r);
-    expect(left(one)).toBe(chosen.length);
-    expect(one.items).toEqual(all.items.filter((x) => !chosen.some((c) => c.id === x.id)));
-    let cursor: string | undefined;
-    let total = 0;
-    const seen: Page['items'] = [];
-    do {
-      const p = page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2, ...(cursor ? { cursor } : {}) })).r);
-      total += left(p);
-      seen.push(...p.items);
-      cursor = p.next_cursor;
-    } while (cursor);
-    expect(total).toBe(chosen.length);
-    expect(seen).toEqual(one.items);
+    const open = all.items.filter((x) => !chosen.some((c) => c.id === x.id));
+    for (const limit of [200, 2]) expect(await pages(limit), `${limit} a page`).toEqual({ items: open, total: chosen.length });
   });
 
   it("holds back all of a person's records, documents and events when their marks.json does not read", async () => {
@@ -755,12 +755,12 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     privateOf(root, 'Sam Example', {}, { marks_unreadable: true });
     const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
     expect(everyone.items.some((x) => x.person === 'Sam Example')).toBe(false);
-    expect(left(everyone)).toBe(2);
+    expect(left(everyone)).toBe(6);
     expect(everyone.warnings?.map((w) => w.code)).toEqual(['private-left-out', 'private-marks-unreadable']);
     expect(everyone.warnings?.[1]?.message).toMatch(/^Sam Example's marks\.json does not read/);
     // About Sam alone, nothing is left out, and nothing is marked.
     const sam = page((await ask(root, 'medrec_records', { kind: 'medications', person: 'Sam' })).r);
-    expect(sam.items).toHaveLength(2);
+    expect(sam.items).toHaveLength(6);
     expect(sam.items.every((x) => x.private === undefined)).toBe(true);
     expect(sam.warnings?.map((w) => w.code)).toEqual(['private-marks-unreadable']);
   });
@@ -773,13 +773,15 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     const doc = 'd_pv57tjsi5ot4237rjcdf';
     const events = page((await ask(root, 'medrec_records', { kind: 'events', person: 'Robin' })).r);
     const event = events.items[0]!.id;
+    privateOf(root, 'Robin Example', {});
+    const others = left(page((await ask(root, 'medrec_records', { kind: 'events' })).r));
     privateOf(root, 'Robin Example', { records: { [line.id!]: 'mental_health' }, documents: { [doc]: 'household' }, events: { [event]: 'sexual_health' } });
     const after = (await ask(root, 'medrec_summary', { person: 'Robin' })).r.structuredContent as Summary;
     expect(after.summary.sections.find((x) => x.section === 'medications')!.items[0]).toEqual({ ...line, private: 'mental_health' });
     expect(((await ask(root, 'medrec_document', { id: doc })).r.structuredContent as { private?: string }).private).toBe('household');
     const everyone = page((await ask(root, 'medrec_records', { kind: 'events' })).r);
     expect(everyone.items.some((x) => x.id === event)).toBe(false);
-    expect(left(everyone)).toBe(1);
+    expect(left(everyone)).toBe(others + 1);
     const byId = page((await ask(root, 'medrec_records', { kind: 'events', id: event })).r);
     expect(byId.items.map((x) => [x.id, x.private])).toEqual([[event, 'sexual_health']]);
   });
@@ -832,6 +834,107 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     }
   });
 
+  describe('imaging studies and linked documents (medrec 0.9.5)', () => {
+    const study = 'm_5jqhmt3omkqdefbiui5y';
+    const days = { since: '2026-05-15', until: '2026-05-25' };
+    type Row = { id: string; kind: string; private?: string };
+    const items = (r: { structuredContent?: Record<string, unknown> }) => (r.structuredContent as { items: Row[] }).items;
+    const codes = (r: { structuredContent?: Record<string, unknown> }) => ((r.structuredContent as { warnings?: { code: string }[] }).warnings ?? []).map((w) => w.code);
+    const has = (r: { structuredContent?: Record<string, unknown> }, id: string) => items(r).some((i) => i.id === id);
+
+    it('holds back a study no report judges from an answer about everyone, and counts it', async () => {
+      const { r } = await ask(demo, 'medrec_records', { kind: 'timeline', ...days });
+      expect(has(r, study)).toBe(false);
+      expect(left(page(r))).toBe(1);
+      const own = (await ask(demo, 'medrec_records', { kind: 'timeline', person: 'Sam', ...days })).r;
+      expect(items(own).find((i) => i.id === study)!.private).toBeUndefined();
+      expect(has((await ask(demo, 'medrec_search', { query: 'XR ankle' })).r, study)).toBe(true);
+    });
+
+    it('marks a study its report makes private, and holds it back, unless the question names it', async () => {
+      const root = copy(demo, 'study-reported');
+      privateOf(root, 'Sam Example', { studies: { [study]: 'sexual_health' } });
+      const everyone = (await ask(root, 'medrec_records', { kind: 'timeline', ...days })).r;
+      expect(has(everyone, study)).toBe(false);
+      expect(left(page(everyone))).toBe(1);
+      expect(items((await ask(root, 'medrec_records', { kind: 'timeline', person: 'Sam', ...days })).r).find((i) => i.id === study)!.private).toBe('sexual_health');
+      const named = (await ask(root, 'medrec_records', { kind: 'timeline', ...days, name: 'ankle' })).r;
+      expect(items(named).find((i) => i.id === study)!.private).toBe('sexual_health');
+      expect(has((await ask(root, 'medrec_search', { query: 'imaging' })).r, study)).toBe(false);
+    });
+
+    it('shows a study its report does not make private', async () => {
+      const root = copy(demo, 'study-open');
+      privateOf(root, 'Sam Example', {});
+      const { r } = await ask(root, 'medrec_records', { kind: 'timeline', ...days });
+      expect(items(r).find((i) => i.id === study)).toBeDefined();
+      expect(items(r).find((i) => i.id === study)!.private).toBeUndefined();
+      expect(left(page(r))).toBe(0);
+    });
+
+    it('holds back every study of a person whose marks do not read', async () => {
+      const root = copy(demo, 'study-marks');
+      privateOf(root, 'Sam Example', {}, { marks_unreadable: true });
+      const { r } = await ask(root, 'medrec_records', { kind: 'timeline', ...days });
+      expect(items(r)).toEqual([]);
+      expect(codes(r)).toContain('private-marks-unreadable');
+    });
+
+    it('counts a private.json from before medrec 0.9.5, or one with a list it cannot read, as not prepared', async () => {
+      for (const [name, change] of [
+        ['older', { studies: undefined }],
+        ['odd', { unreported_studies: 'm_x' }],
+        ['mixed', { unreported_studies: [study, 5] }],
+      ] as [string, Record<string, unknown>][]) {
+        const root = copy(demo, `study-${name}`);
+        setView(root, 'Sam Example', 'private.json', {
+          schema: 'medrec-private/v1',
+          person: personId(root, 'Sam Example'),
+          records: {},
+          documents: {},
+          events: {},
+          studies: {},
+          ...change,
+        });
+        const everyone = (await ask(root, 'medrec_records', { kind: 'timeline', ...days })).r;
+        expect(items(everyone), name).toEqual([]);
+        expect(codes(everyone), name).toContain('private-not-prepared');
+        const message = (everyone.structuredContent as { warnings: { code: string; message: string }[] }).warnings.find((w) => w.code === 'private-not-prepared')!.message;
+        expect(message).toMatch(/Sam Example/);
+        expect(message).toMatch(/medrec 0\.9\.5 or later/);
+        const own = (await ask(root, 'medrec_records', { kind: 'timeline', person: 'Sam', ...days })).r;
+        expect(has(own, study), name).toBe(true);
+        expect(codes(own), name).toEqual(['private-not-prepared']);
+        // A document only a private record links could not be told: held back with the rest.
+        expect(items((await ask(root, 'medrec_records', { kind: 'documents' })).r).some((i) => (i as { person?: string }).person === 'Sam Example'), name).toBe(false);
+        const bound = Buffer.from(page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2 })).r).next_cursor!, 'hex').toString();
+        expect(bound, name).toContain(':L');
+      }
+    });
+
+    it('says the marks do not read, whichever medrec wrote the private.json', async () => {
+      const root = copy(demo, 'study-older-unreadable');
+      privateOf(root, 'Sam Example', {}, { marks_unreadable: true, studies: undefined });
+      const { r } = await ask(root, 'medrec_records', { kind: 'timeline', ...days });
+      expect(items(r)).toEqual([]);
+      const sam = (r.structuredContent as { warnings: { code: string; message: string }[] }).warnings.filter((w) => w.message.startsWith('Sam Example') || /Sam Example's private/.test(w.message));
+      expect(sam.map((w) => w.code)).toEqual(['private-marks-unreadable']);
+    });
+
+    it('marks what a private.json from before medrec 0.9.5 does say, in an answer about the person', async () => {
+      const root = copy(demo, 'study-older-marks');
+      const robin = JSON.parse(readFileSync(stored(root, `views/${personId(root, 'Robin Example')}/private.json`), 'utf8')) as Record<string, unknown>;
+      setView(root, 'Robin Example', 'private.json', { ...robin, studies: undefined });
+      const r = (await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r;
+      expect(items(r).find((i) => i.id === 'r_anxietydisorderaaaaa')!.private).toBe('mental_health');
+    });
+
+    it('reads no private.json for a person whose medrec wrote an empty one', async () => {
+      const { read } = await ask(demo, 'medrec_records', { kind: 'timeline', person: 'Jamie' });
+      expect(read.some((f) => f.includes('private'))).toBe(false);
+    });
+  });
+
   describe('plain names of conditions, from code-names.json (medrec 0.9.4)', () => {
     type Row = { id: string; title: string; plain_name?: string; private?: string; person: string };
     const rows = (r: { structuredContent?: Record<string, unknown> }) => (r.structuredContent as { items: Row[] }).items;
@@ -845,7 +948,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     it('labels a person\'s conditions, private ones included, beside the source\'s own words', async () => {
       const r = rows((await ask(demo, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r);
       expect(pick(r, pressure)).toMatchObject({ title: 'High blood pressure', plain_name: 'Sample pressure' });
-      expect(pick(r, anxiety)).toMatchObject({ title: 'Generalized anxiety disorder', plain_name: 'Sample worry', private: 'mental_health' });
+      expect(pick(r, anxiety)).toMatchObject({ title: 'Social anxiety disorder', plain_name: 'Sample worry', private: 'mental_health' });
       const s = summaryRows((await ask(demo, 'medrec_summary', { person: 'Robin' })).r);
       expect(s.find((x) => x.id === pressure)).toMatchObject({ name: 'High blood pressure', plain_name: 'Sample pressure' });
       expect(s.find((x) => x.id === anxiety)).toMatchObject({ plain_name: 'Sample worry' });
@@ -857,13 +960,13 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
         schema: 'medrec-code-names/v1',
         person: personId(root, 'Robin Example'),
         table: { id: 'icd10cm', version: 'invented', date: '2000-01-01' },
-        codes: { 'icd10cm|I10': { name: 'Sample pressure' }, 'icd10cm|F41.1': { name: 'Sample shared worry' } },
+        codes: { 'icd10cm|I10': { name: 'Sample pressure' }, 'icd10cm|F40.10': { name: 'Sample shared worry' } },
         private_codes: {},
       });
       const r = rows((await ask(root, 'medrec_records', { kind: 'conditions' })).r);
       expect(pick(r, pressure)).toMatchObject({ plain_name: 'Sample pressure' });
       expect(pick(r, anxiety)).toBeUndefined();
-      const asked = rows((await ask(root, 'medrec_records', { kind: 'conditions', name: 'generalized anxiety' })).r);
+      const asked = rows((await ask(root, 'medrec_records', { kind: 'conditions', name: 'social anxiety' })).r);
       expect(pick(asked, anxiety)).toMatchObject({ private: 'mental_health' });
       expect(pick(asked, anxiety).plain_name).toBeUndefined();
       const own = rows((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r);
@@ -1055,7 +1158,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
 
   it('finds private results among a large person\'s series, results of one date and name included', async () => {
     const root = copy(large, 'large-private-series');
-    const all = seriesOf(root, 'Sam Example');
+    const all = seriesOf(root, 'Robin Example');
     // Of every series, an old result; and the second of two results that share a date and a name.
     const chosen = new Map<string, string>();
     all.forEach((x, i) => {
@@ -1063,15 +1166,15 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     });
     const twin = all.flat().find((r, i, rs) => rs.some((o, j) => j !== i && seriesKey(o) === seriesKey(r) && o.date === r.date && o.display === r.display && j < i))!;
     chosen.set(twin.id, 'household');
-    privateOf(root, 'Sam Example', { records: Object.fromEntries(chosen) });
-    for (const args of [{}, { person: 'Sam' }, { person: 'Sam', since: '2020-01-01' }, { name: all[0]![0]!.display }]) {
+    privateOf(root, 'Robin Example', { records: Object.fromEntries(chosen) });
+    for (const args of [{}, { person: 'Robin' }, { person: 'Robin', since: '2020-01-01' }, { name: all[0]![0]!.display }]) {
       const views = page((await ask(root, 'medrec_records', { kind: 'tests', ...args })).r);
       expect(page(await raw(root, 'medrec_records', { kind: 'tests', ...args })), JSON.stringify(args)).toEqual(views);
     }
-    const sam = page((await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' })).r);
+    const robin = page((await ask(root, 'medrec_records', { kind: 'tests', person: 'Robin' })).r);
     const twinSeries = all.find((x) => x.some((r) => r.id === twin.id))!;
-    expect(sam.items.find((x) => x.id === twinSeries[0]!.id)?.private).toBeDefined();
-    expect(sam.items.filter((x) => x.private !== undefined).length).toBe(all.filter((x, i) => i % 2 === 0 || x === twinSeries).length);
+    expect(robin.items.find((x) => x.id === twinSeries[0]!.id)?.private).toBeDefined();
+    expect(robin.items.filter((x) => x.private !== undefined).length).toBe(all.filter((x, i) => i % 2 === 0 || x === twinSeries).length);
   });
 
   /** Rewrites one of a person's view files with `change` made to its bytes, as Latin-1. */
@@ -1111,18 +1214,18 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
 
   it('reads no shard to place private results the question leaves out', async () => {
     const root = copy(large, 'large-private-narrow');
-    const all = seriesOf(root, 'Sam Example').flat();
+    const all = seriesOf(root, 'Robin Example').flat();
     const twins = all.filter((r) => all.some((o) => o !== r && o.date === r.date && o.display === r.display));
     expect(twins.length).toBeGreaterThan(20);
-    privateOf(root, 'Sam Example', { records: Object.fromEntries(twins.map((r) => [r.id, 'mental_health'])) });
+    privateOf(root, 'Robin Example', { records: Object.fromEntries(twins.map((r) => [r.id, 'mental_health'])) });
     const shards = (read: string[]) => read.filter((p) => /\/records-result-/.test(p)).length;
-    const wide = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam' });
+    const wide = await ask(root, 'medrec_records', { kind: 'tests', person: 'Robin' });
     const newest = all.map((r) => r.date!.slice(0, 10)).sort().at(-1)!;
-    const narrow = await ask(root, 'medrec_records', { kind: 'tests', person: 'Sam', since: newest });
+    const narrow = await ask(root, 'medrec_records', { kind: 'tests', person: 'Robin', since: newest });
     expect(shards(wide.read)).toBeGreaterThan(5);
     expect(shards(narrow.read)).toBe(1);
     for (const args of [{}, { since: newest }, { since: '2015-01-01', until: '2015-12-31' }, { name: twins[0]!.display }]) {
-      const a = { kind: 'tests', person: 'Sam', ...args };
+      const a = { kind: 'tests', person: 'Robin', ...args };
       expect(page(await raw(root, 'medrec_records', a)), JSON.stringify(args)).toEqual(page((await ask(root, 'medrec_records', a)).r));
     }
   });

@@ -1,0 +1,20 @@
+{
+  "resourceType": "MedicationDispense",
+  "id": "medicationdispense-6ca33ae4",
+  "meta": {
+    "lastUpdated": "2026-11-22T08:00:00Z"
+  },
+  "status": "completed",
+  "medicationCodeableConcept": {
+    "text": "Loratadine 10 mg tablet"
+  },
+  "whenHandedOver": "2026-10-25",
+  "quantity": {
+    "value": 30,
+    "unit": "tablet"
+  },
+  "daysSupply": {
+    "value": 30,
+    "unit": "days"
+  }
+}

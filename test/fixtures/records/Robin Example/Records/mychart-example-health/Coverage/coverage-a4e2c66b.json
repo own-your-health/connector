@@ -1,0 +1,29 @@
+{
+  "resourceType": "Coverage",
+  "id": "coverage-a4e2c66b",
+  "meta": {
+    "lastUpdated": "2026-11-14T08:00:00Z"
+  },
+  "status": "active",
+  "payor": [
+    {
+      "display": "EXAMPLE HEALTH PLAN, INC."
+    }
+  ],
+  "period": {
+    "start": "2023-06-01",
+    "end": "2026-02-28"
+  },
+  "class": [
+    {
+      "type": {
+        "coding": [
+          {
+            "code": "plan"
+          }
+        ]
+      },
+      "name": "HMO Basic"
+    }
+  ]
+}

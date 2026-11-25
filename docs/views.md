@@ -16,7 +16,7 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder
 and the large synthetic folder, with the `events.json` medrec wrote for them
 (`test/fixtures/events`; the reference writer does not write it), answers all
-243 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
+261 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
 the views"). Another writer (medrec's) is right when its views pass the same
 calls:
 
@@ -351,10 +351,15 @@ Two more views only medrec makes, in its layouts `medrec-bills/v1` and
   what is left, from receipts and the household's payments. A reader shows
   a `settled` bill as paid and never past due, leaves it out of the
   summary, and shows `left` when it differs from what the statement asked.
-- **`private.json`**, by id within `records`, `documents` and `events`: the
-  person's private items, each with its `area` and why (`from`).
-  `marks_unreadable` says medrec could not read the household's marks, so
-  any of the person's records, documents and events may be private.
+- **`private.json`**, by id within `records`, `documents`, `events` and, from
+  medrec 0.9.5, `studies`: the person's private items, each with its `area`
+  and why (`from`). `marks_unreadable` says medrec could not read the
+  household's marks, so any of the person's records, documents, events and
+  studies may be private. From medrec 0.9.5, `unreported_studies` lists the
+  imaging studies with no report to judge them by (absent when there are
+  none). A reader holds those back from an answer about the whole household
+  as it does private items, counts them in the same `private-left-out`
+  count, and shows them in an answer about their person with no area.
 
 Both are made from the person's views, their `overrides.json`, the
 `linked` people's records, and their `marks.json` (the household's payments
@@ -401,10 +406,17 @@ the people with a coded condition on it.
 ## Without a current `private.json` or `bills.json`
 
 A reader without a current `private.json` for a person (none yet, stale, or
-in a layout it does not read) holds back all their records, documents and
-events from answers about the whole household, with a
+in a layout it does not read) holds back all their records, documents, events
+and studies from answers about the whole household, with a
 `private-not-prepared` warning naming them, and includes them unmarked, with
-the same warning, in answers about that person. Without a current
+the same warning, in answers about that person. A `private.json` without
+`studies` (medrec 0.9.4 and earlier; the layout's name did not change, so
+this is the sign) is handled the same way, as it names no private study and no
+document for being linked by a private record. What it does mark stays marked
+in answers about the person. An `unreported_studies` that is not a list of ids
+counts as missing too. `marks_unreadable` comes before either: the person's
+items are held back with the `private-marks-unreadable` warning, whichever
+medrec wrote the file. Without a current
 `bills.json`, bills are shown by their statements with a
 `bills-not-prepared` warning. medrec's own reader judges from the files, so
 it gives neither warning.

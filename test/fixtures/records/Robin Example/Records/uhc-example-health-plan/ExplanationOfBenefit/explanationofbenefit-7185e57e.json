@@ -17,5 +17,24 @@
     "start": "2025-09-15",
     "end": "2025-09-15"
   },
-  "outcome": "complete"
+  "outcome": "complete",
+  "item": [
+    {
+      "sequence": 1,
+      "productOrService": {
+        "coding": [
+          {
+            "system": "http://www.ama-assn.org/go/cpt",
+            "code": "99213",
+            "display": "Office visit"
+          }
+        ]
+      },
+      "servicedDate": "2025-09-15",
+      "net": {
+        "value": 189,
+        "currency": "USD"
+      }
+    }
+  ]
 }
