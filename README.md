@@ -48,7 +48,8 @@ about the whole household, or a document's text, gives none to a private item,
 even one it names, and no reason that names one. Labels that are missing or
 older than the records are left out, with no warning. An item's labels that do
 not fit a page beside it are left out with a `provider-labels-left-out`
-warning.
+warning, and those of a person whose file one answer has no room to read with a
+`provider-labels-not-read` warning.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -206,10 +207,11 @@ At the limits:
 - **Provider labels.** Each person with a printed provider on the page (a
   claim, document, bill or event, and any record with
   `response_format: "detailed"`) costs one more request to Google, and so does
-  a document's text. An answer reads at most 256,000 bytes of `providers.json`,
-  people in the household's order. When that request fails or would pass the
-  limit, or someone's file has no room left, the answer comes without their
-  labels.
+  a document's text. When that request fails or would pass the limit, the
+  answer comes without their labels. An answer reads at most 256,000 bytes of
+  `providers.json`, people in the household's order. Someone whose file has no
+  room left comes without theirs, and a list says so; a question about that
+  person alone reads up to 256,000 bytes of theirs.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

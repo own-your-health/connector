@@ -9,7 +9,7 @@ import { VIEWS_INDEX, personDir, storedName, type SlimSource, type ViewsIndex } 
 import type { Household, Person } from '../src/records/model';
 import type { Privacy } from '../src/records/private';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
-import { NO_LABELS, providerLabelsOf, type ProviderLabels, type ProvidersView } from '../src/records/provider-labels';
+import { providerLabelsOf, type LabelsFile, type ProvidersView } from '../src/records/provider-labels';
 import { RawStore, type Standing } from '../src/records/store';
 import { privacyOf, standingOf, type BillsView, type PrivateView } from '../src/views/store';
 
@@ -220,9 +220,9 @@ export class RawWithDerived extends RawStore {
     return v ? codeNamesOf(v, p.id) : NO_NAMES;
   }
 
-  override async providerLabels(_h: Household, p: Person): Promise<ProviderLabels> {
+  override async providerLabels(_h: Household, p: Person): Promise<LabelsFile | null> {
     const v = this.fixture<ProvidersView>('providers', p);
-    return v ? providerLabelsOf(v, p.id) : NO_LABELS;
+    return v ? { size: JSON.stringify(v).length, read: async () => providerLabelsOf(v, p.id) } : null;
   }
 }
 

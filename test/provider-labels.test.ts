@@ -13,7 +13,7 @@ import { ToolError } from '../src/mcp/errors';
 import { ENVELOPE_RESERVE, SIZE_BUDGET, chars } from '../src/mcp/shape';
 import { Folder, ParsedCache } from '../src/records/folder';
 import type { JsonObject } from '../src/records/model';
-import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, providerLabelsOf, type Printed } from '../src/records/provider-labels';
+import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, providerLabelsOf, type LabelsFile, type Printed } from '../src/records/provider-labels';
 import { RawStore } from '../src/records/store';
 import { LABELS_LIMIT, callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
@@ -446,22 +446,24 @@ describe("over medrec's own folder", () => {
   });
 
   it('a read of them that fails is never worth the answer', async () => {
-    const failing = (e: Error) => (s: ViewsStore) => Object.assign(Object.create(s), { providerLabels: () => Promise.reject(e) }) as ViewsStore;
+    const instead = (providerLabels: () => Promise<LabelsFile>) => (s: ViewsStore) => Object.assign(Object.create(s), { providerLabels }) as ViewsStore;
+    const unfound = (e: Error) => instead(() => Promise.reject(e));
+    const unread = (e: Error) => instead(async () => ({ size: 1, read: () => Promise.reject(e) }));
     const whole = (await ask(root, 'medrec_records', { kind: 'claims', limit: 100 })).out;
     const bare = { ...whole, items: whole.items.map(({ provider_labels: _, ...i }) => i) };
     const errors: unknown[] = [];
     const log = console.error;
     console.error = (x) => void errors.push(x);
     try {
-      expect((await ask(root, 'medrec_records', { kind: 'claims', limit: 100 }, failing(ToolError.upstream('Drive is away')))).out).toEqual(bare);
+      for (const failing of [unfound, unread]) expect((await ask(root, 'medrec_records', { kind: 'claims', limit: 100 }, failing(ToolError.upstream('Drive is away')))).out).toEqual(bare);
       expect(errors).toEqual([]);
-      expect((await ask(root, 'medrec_records', { kind: 'claims', limit: 100 }, failing(new TypeError('a record')))).out).toEqual(bare);
-      expect(((await ask(root, 'medrec_document', { id: BILL }, failing(new TypeError('a record')))).out as unknown as Item).provider_labels).toBeUndefined();
+      for (const failing of [unfound, unread]) expect((await ask(root, 'medrec_records', { kind: 'claims', limit: 100 }, failing(new TypeError('a record')))).out).toEqual(bare);
+      expect(((await ask(root, 'medrec_document', { id: BILL }, unread(new TypeError('a record')))).out as unknown as Item).provider_labels).toBeUndefined();
     } finally {
       console.error = log;
     }
     // The class alone: a message could quote a record.
-    expect(errors).toEqual(['provider labels failed: TypeError', 'provider labels failed: TypeError']);
+    expect(errors).toEqual(Array.from({ length: 3 }, () => 'provider labels failed: TypeError'));
   });
 
   it('a providers.json that could cost the answer is not read', async () => {
@@ -473,7 +475,10 @@ describe("over medrec's own folder", () => {
       sized(at, size);
       const { out, read } = await ask(at, 'medrec_records', { kind: 'claims', limit: 100 });
       expect([of(out, SAMPLE)?.length, read.some((x) => x.includes('providers'))]).toEqual([labels, labels !== undefined]);
-      expect(out.warnings ?? []).toEqual((await list(root, { kind: 'claims' })).warnings ?? []);
+      const not = labels ? [] : [{ code: 'provider-labels-not-read', message: "Robin Example's provider_labels are left out of this page: they are more than one answer reads" }];
+      expect(out.warnings ?? []).toEqual([...((await list(root, { kind: 'claims' })).warnings ?? []), ...not]);
+      // A page with nothing of theirs to say does not say so.
+      expect((await list(at, { kind: 'conditions' })).warnings ?? []).toEqual((await list(root, { kind: 'conditions' })).warnings ?? []);
     }
   });
 
@@ -496,9 +501,30 @@ describe("over medrec's own folder", () => {
       expect(owners((await list(several, { kind: 'events', limit: 200 })).items).size).toBeGreaterThan(owners(out.items).size);
     });
 
+    it('nor does the one whose item fills it', async () => {
+      const store = new ViewsStore(new Folder(new LocalSource(several), new ParsedCache(), several));
+      const unlabelled = Object.assign(Object.create(store), { providerLabels: async () => null }) as ViewsStore;
+      const get = async (s: ViewsStore, args: object) => (await callTool('medrec_records', { kind: 'events', limit: 200, ...args }, { store: s, today: '2026-11-25' }))!;
+      const all = (r: Awaited<ReturnType<typeof get>>) => r.structuredContent as unknown as Page & { items: { date: string }[] };
+      // Until the item after a page is someone's who has none on it, and has labels.
+      for (const { date: until } of all(await get(store, {})).items) {
+        const whole = await get(unlabelled, { until, response_format: 'detailed' });
+        // An event that alone is larger than a page is refused.
+        if (whole.isError || !all(whole).truncated) continue;
+        const page = owners(all(whole).items);
+        const listed = all(await get(store, { until })).items;
+        expect(all(whole).items.map((e) => e.id)).toEqual(listed.slice(0, all(whole).items.length).map((e) => e.id));
+        const next = listed[all(whole).items.length]!;
+        if (next.provider_labels === undefined || page.has([...owners([next])][0]!)) continue;
+        const { read } = await ask(several, 'medrec_records', { kind: 'events', limit: 200, until, response_format: 'detailed' });
+        expect(readOf(read).filter((p) => !page.has(p))).toEqual([]);
+        return;
+      }
+      throw new Error('no page is followed by such an item');
+    });
+
     it('as many as have room together are read, in the order of the household', async () => {
-      const warnings = (p: Page) => (p.warnings ?? []).map((w) => w.code);
-      const before = warnings(await list(several, { kind: 'claims', limit: 200 }));
+      const codes = ((await list(several, { kind: 'claims', limit: 200 })).warnings ?? []).map((w) => w.code);
       const [robin, sam, alex] = ['Robin Example', 'Sam Example', 'Alex Example'].map(id) as [string, string, string];
       for (const [sizes, read] of [
         [[LABELS_LIMIT - 60_000, 30_000, 30_000], [robin, sam, alex]],
@@ -510,7 +536,13 @@ describe("over medrec's own folder", () => {
         const { out, read: files } = await ask(several, 'medrec_records', { kind: 'claims', limit: 200 });
         expect(owners(out.items)).toEqual(new Set([robin, sam, alex]));
         expect([readOf(files).sort(), owners(out.items.filter((i) => i.provider_labels))]).toEqual([[...read].sort(), new Set(read)]);
-        expect(warnings(out)).toEqual(before);
+        const not = [robin, sam, alex].flatMap((p, i) => {
+          const { name } = people.find((q) => q.id === p)!;
+          const why = sizes[i]! > LABELS_LIMIT ? 'they are more than one answer reads' : `those of the others on it are as many as one answer reads. Ask about ${name} alone for them`;
+          return (read as readonly string[]).includes(p) ? [] : [{ code: 'provider-labels-not-read', message: `${name}'s provider_labels are left out of this page: ${why}` }];
+        });
+        expect(out.warnings!.slice(0, codes.length).map((w) => w.code)).toEqual(codes);
+        expect(out.warnings!.slice(codes.length)).toEqual(not);
       }
     });
   });
@@ -555,16 +587,21 @@ describe("over medrec's own folder", () => {
       const counting = (s: ViewsStore) =>
         Object.assign(Object.create(s), {
           providerLabels: async (...a: Parameters<ViewsStore['providerLabels']>) => {
-            const labels = await s.providerLabels(...a);
-            const { shown } = labels;
-            labels.shown = (...b) => (looked++, shown.apply(labels, b));
-            return labels;
+            const { size, read } = (await s.providerLabels(...a))!;
+            return {
+              size,
+              read: async () => {
+                const labels = await read();
+                const { shown } = labels;
+                labels.shown = (...b) => (looked++, shown.apply(labels, b));
+                return labels;
+              },
+            };
           },
         }) as ViewsStore;
       const { out } = await ask(at, 'medrec_records', { kind: 'claims', person: 'Robin', limit: 200 }, counting);
       expect(out.truncated).toBe(true);
-      // Claims with no label are looked up too, and take no room a label could fill.
-      expect([looked > out.items.length, looked < 200]).toEqual([true, true]);
+      expect([looked >= out.items.length, looked < 200]).toEqual([true, true]);
       expect((await list(at, { kind: 'claims', person: 'Robin', limit: 200 })).items).toEqual(out.items);
     });
 
