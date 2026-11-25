@@ -241,6 +241,22 @@ describe('using the tools', () => {
     expect(call.res.headers.get('Cache-Control')).toBe('no-store');
   });
 
+  it('gives a number as the records hold it, in both the text and the structured result', async () => {
+    const { access_token } = await connected();
+    const res = await worker.fetch(
+      new Request(`${BASE}/mcp`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 7, method: 'tools/call', params: { name: 'medrec_records', arguments: { kind: 'results', person: 'Robin', name: 'potassium', response_format: 'detailed' } } }),
+      }),
+      env,
+      ctx(),
+    );
+    const body = await res.text();
+    expect(body).toContain('"value":{"value":4.0,"unit":"mmol/L"');
+    expect(body).toContain('\\"value\\":{\\"value\\":4.0,\\"unit\\":\\"mmol/L\\"');
+  });
+
   it("words an unknown tool as medrec does", async () => {
     const { access_token } = await connected();
     const r = await mcp(access_token, 'tools/call', { name: 'medrec_delete', arguments: {} });

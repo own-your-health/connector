@@ -5,6 +5,7 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { Household, PersonIndex, PersonText } from '../records/model';
+import { parseExact } from '../records/numbers';
 import { VIEWS_DIR } from './format';
 import { writeViews, type PersonFiles } from './write';
 
@@ -23,7 +24,7 @@ export function writeViewsAt(root: string, medrec = 'connector'): { files: numbe
   const people: PersonFiles[] = h.people.map((person) => {
     const indexBytes = readOr(join(root, person.folder, 'index.json'));
     const textBytes = readOr(join(root, person.folder, 'text.json'));
-    const index = indexBytes ? (JSON.parse(indexBytes.toString('utf8')) as PersonIndex) : { schema: 'medrec-index/v1' };
+    const index = indexBytes ? (parseExact(indexBytes.toString('utf8')) as PersonIndex) : { schema: 'medrec-index/v1' };
     const text = textBytes ? (JSON.parse(textBytes.toString('utf8')) as PersonText) : { schema: 'medrec-text/v1' };
     return { person, index, texts: text.texts ?? {}, indexBytes, textBytes };
   });

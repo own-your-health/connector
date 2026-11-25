@@ -6,6 +6,7 @@
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { conditionKey } from './code-names';
+import { isExact } from './numbers';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
 
 /** Longest name or detail a summary line carries, in characters. */
@@ -96,16 +97,11 @@ export function selected(h: Household, query: string | undefined): Person[] {
 
 // ---- values --------------------------------------------------------------------------------------
 
-/** A JSON number as serde_json prints it. */
-function numberText(n: number): string {
-  return String(n);
-}
-
 export function valueText(v: Json | undefined): string {
   if (v === undefined || v === null) return '';
   if (typeof v === 'string') return v;
-  if (typeof v === 'number') return numberText(v);
-  if (typeof v === 'boolean') return String(v);
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  if (isExact(v)) return v.rawJSON;
   if (Array.isArray(v)) return v.map(valueText).join('; ');
   // As serde_json's `get(..).or_else(..)`: a key present with null does not fall through.
   const num = valueText('value' in v ? v.value : v.amount);
@@ -116,14 +112,13 @@ export function valueText(v: Json | undefined): string {
 
 /** Every string and number in `v`, each followed by a space, for search. */
 function flatText(v: Json | undefined, out: string[]): void {
-  if (typeof v === 'string') out.push(v, ' ');
-  else if (typeof v === 'number') out.push(numberText(v), ' ');
+  if (typeof v === 'string' || typeof v === 'number' || isExact(v)) out.push(valueText(v), ' ');
   else if (Array.isArray(v)) for (const x of v) flatText(x, out);
   else if (v && typeof v === 'object') for (const x of Object.values(v)) flatText(x, out);
 }
 
 const nonEmpty = (s: string) => (s === '' ? undefined : s);
-const isObject = (v: Json | undefined): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v);
+const isObject = (v: Json | undefined): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v) && !isExact(v);
 
 // ---- money, as medrec's claims.rs adds it ----------------------------------------------------------
 
@@ -436,7 +431,7 @@ export interface ResultRow {
 function reading(r: RecordEntry): [string | undefined, string | undefined] {
   const v = r.fields?.value;
   if (v === undefined) return [undefined, undefined];
-  if (v && typeof v === 'object' && !Array.isArray(v)) {
+  if (isObject(v)) {
     const unit = v.unit;
     return [v.value === undefined ? undefined : nonEmpty(valueText(v.value)), typeof unit === 'string' ? unit : undefined];
   }

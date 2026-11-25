@@ -9,6 +9,7 @@
 
 import { FORMAT, type Household, type Note, type Person, type PersonIndex, type PersonText } from './model';
 import { parseNotes } from './notes';
+import { parseExact } from './numbers';
 import { ToolError } from '../mcp/errors';
 
 /** Where the folder's files come from: Drive in the Worker, a directory in tests. */
@@ -86,6 +87,8 @@ export class ParsedCache {
 
 const HOUSEHOLD = 'household.json';
 const HOUSEHOLD_SCHEMA = 'medrec-household/v1';
+/** The files that hold records' own values: a person's index.json, and the records-<kind>-<n> views. */
+const RECORDS = /\/(index\.json|records-[^/]+)$/;
 
 /** One call's view of the folder. */
 export class Folder {
@@ -155,7 +158,7 @@ export class Folder {
   private json<T>(path: string): Promise<T | null> {
     return this.cached(path, (text) => {
       try {
-        return JSON.parse(text) as T;
+        return (RECORDS.test(path) ? parseExact(text) : JSON.parse(text)) as T;
       } catch {
         // The parser's message can quote the file's text: never pass it on.
         throw ToolError.other(`${path} is not valid JSON`);
