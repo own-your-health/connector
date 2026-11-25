@@ -13,7 +13,7 @@ import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../re
 import type { Folder } from '../records/folder';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
 import { parseExact } from '../records/numbers';
-import { baseOf, sourcesOf, type SourceOf } from '../records/sources';
+import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
@@ -153,16 +153,20 @@ class PersonReader {
   }
 }
 
-/** private.json as a reader needs it (medrec-private/v1). */
-export type PrivateView = { marks_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
+/** The files in a person's folder a view only medrec makes can depend on, by the name views.json gives their MD5. */
+const MADE_FROM = { overrides: 'overrides.json', marks: 'marks.json', provider_state: 'provider-state.json' } as const;
 
-/** The private items private.json gives, each by id with its area; all of the person's held back when their marks did not read. */
+/** private.json as a reader needs it (medrec-private/v1). */
+export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
+
+/** The private items private.json gives, each by id with its area; all of the person's held back when their marks, or what their provider labels make private, did not read. */
 export function privacyOf(view: PrivateView): Privacy {
   const areas = new Map<string, string>();
   for (const kind of ['records', 'documents', 'events', 'studies'] as const) {
     for (const [id, w] of Object.entries(view[kind] ?? {})) if (typeof w?.area === 'string') areas.set(id, w.area);
   }
   // First: every item is held back either way, and a newer medrec would not read the marks.
+  if (view.labels_unreadable === true) return { areas, unknown: { why: 'labels-unreadable' } };
   if (view.marks_unreadable === true) return { areas, unknown: { why: 'marks-unreadable' } };
   const unreported = view.unreported_studies ?? [];
   if (view.studies === undefined || !Array.isArray(unreported) || !unreported.every((x) => typeof x === 'string')) {
@@ -206,10 +210,10 @@ export class ViewsStore implements Store {
         return { index: null, ...skew, fresh: new Set<string>() };
       }
       const files = ['household.json', ...h.people.flatMap((p) => [`${p.folder}/index.json`, `${p.folder}/text.json`])];
-      // One request: these files' MD5s, everyone's notes.md, overrides.json and marks.json (for the views only medrec makes), and every view.
+      // One request: these files' MD5s, everyone's notes.md, what only medrec's own views were made from, and every view.
       await this.folder.survey(
         h.people.map((p) => `${VIEWS_DIR}/${p.id}`),
-        [...files, ...h.people.flatMap((p) => [`${p.folder}/notes.md`, `${p.folder}/overrides.json`, `${p.folder}/marks.json`])],
+        [...files, ...h.people.flatMap((p) => ['notes.md', 'overrides.json', 'marks.json', 'provider-state.json'].map((f) => `${p.folder}/${f}`))],
       );
       const md5 = await this.folder.md5(files);
       const fresh = new Set<string>();
@@ -235,7 +239,7 @@ export class ViewsStore implements Store {
     // medrec writes both beside every events.json; without them, what the events were made from cannot be checked.
     const from = v?.overrides !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
     if (!v?.files || v.files['events.json'] === undefined || !from) throw eventsNotPrepared(p);
-    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, false))) {
+    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, []))) {
       throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared their events for assistants`).withFix(
         "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
       ).personUnavailable(p.id);
@@ -251,25 +255,26 @@ export class ViewsStore implements Store {
 
   /**
    * Whether what else a view only medrec makes was made from is as it was:
-   * the person's overrides.json, with `marks` their marks.json (bills.json
-   * and private.json), and the index.json and text.json of each linked
-   * person (a newborn's guardians, a guardian's newborns). The survey holds
-   * every MD5 this asks for.
+   * the person's overrides.json, the files in `too`, and the index.json and
+   * text.json of each linked person (a newborn's guardians, a guardian's
+   * newborns). The survey holds every MD5 this asks for.
    */
-  private async derivedFresh(h: Household, p: Person, v: PersonViews, marks: boolean): Promise<boolean> {
+  private async derivedFresh(h: Household, p: Person, v: PersonViews, too: readonly (keyof typeof MADE_FROM)[]): Promise<boolean> {
     const linked = Object.entries(v.linked!);
     const people = linked.map(([id]) => h.people.find((q) => q.id === id));
     if (people.some((q) => q === undefined)) return false;
-    const own = [`${p.folder}/overrides.json`, ...(marks ? [`${p.folder}/marks.json`] : [])];
+    const keys = ['overrides', ...too] as const;
+    const own = keys.map((k) => `${p.folder}/${MADE_FROM[k]}`);
     const md5 = await this.folder.md5([...own, ...people.flatMap((q) => [`${q!.folder}/index.json`, `${q!.folder}/text.json`])]);
-    if (md5[0] !== (v.overrides ?? null) || (marks && md5[1] !== (v.marks ?? null))) return false;
+    if (keys.some((k, i) => md5[i] !== (v[k] ?? null))) return false;
     const at = own.length;
     return linked.every(([, l], i) => md5[at + 2 * i] === l.index && md5[at + 1 + 2 * i] === l.text);
   }
 
   /**
    * A view medrec 0.9.1 and later make from the person's views and their
-   * marks.json (bills.json, private.json, code-names.json) when it is current, in `schema`;
+   * marks.json (bills.json), and what provider labels make private too
+   * (private.json, code-names.json), when it is current, in `schema`;
    * otherwise why not.
    */
   private async derived<T>(h: Household, p: Person, name: 'bills.json' | 'private.json' | 'code-names.json', schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
@@ -279,7 +284,7 @@ export class ViewsStore implements Store {
     // medrec writes all three beside every such view; without them, what it was made from cannot be checked.
     const from = v?.overrides !== undefined && v.marks !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
     if (!v?.files || v.files[name] === undefined || !from) return { not: `medrec has written no ${name} for them yet` };
-    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, true))) return { not: `their records changed after medrec last wrote their ${name}` };
+    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, name === 'bills.json' ? ['marks'] : ['marks', 'provider_state']))) return { not: `their records changed after medrec last wrote their ${name}` };
     // The view medrec writes for a person with nothing in it, known by its MD5 without reading it.
     if (empty !== undefined && createHash('md5').update(empty).digest('hex') === v.files[name]) return { view: JSON.parse(empty) as T };
     let view: { schema?: string };
@@ -400,7 +405,7 @@ export class ViewsStore implements Store {
     }
     for (const i of shardsFor(run, filter.range)) {
       if (only && !only.has(i)) continue;
-      const shard = (await r.records(kind, i)) as RecordEntry[];
+      const shard = await r.records(kind, i);
       const pass = shard.filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
       if (detailed) pass.sort(recordOrder(true));
@@ -440,7 +445,7 @@ export class ViewsStore implements Store {
     const out: ResultRow[] = [];
     const from = viewSources(h, p);
     for (const r of rows) {
-      const shard = (await reader.records('result', r.shard)) as RecordEntry[];
+      const shard = await reader.records('result', r.shard);
       const rec = shard[r.pos];
       if (!rec) throw preparing(p);
       out.push({ ...resultRow(rec, from(rec)), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
@@ -754,10 +759,10 @@ interface Items {
  * and later write with each. Without it, what the household's sources say
  * with no patient known, as the views hold no import runs.
  */
-function viewSources(h: Household, p: Person): SourceOf {
+function viewSources(h: Household, p: Person): (r: SlimRecord) => string | undefined {
   const from = sourcesOf(h, p.id);
   return (r) => {
-    const label = (r as SlimRecord).provenance?.[0]?.source.label;
+    const label = r.provenance?.[0]?.source.label;
     if (typeof label === 'string') return label;
     return label === null ? undefined : from(signedIn(h, p, r));
   };
@@ -769,11 +774,10 @@ function viewSources(h: Household, p: Person): SourceOf {
  * The person's only sign-in with its CLI and FHIR base then says it; of
  * several, the record may be any one's, so only its CLI is known.
  */
-function signedIn(h: Household, p: Person, r: RecordEntry): RecordEntry {
+function signedIn(h: Household, p: Person, r: SlimRecord): SlimRecord {
   const s = r.provenance?.[0]?.source;
   if (!s || s.organization_id !== undefined || s.cli === undefined || s.cli === null) return r;
-  const base = s.fhir_base ?? undefined;
-  const at = new Set((h.sources ?? []).filter((x) => x.person === p.id && x.cli === s.cli && typeof x.organization === 'string' && (base === undefined || baseOf(x.fhir_base) === baseOf(base))).map((x) => x.organization!));
+  const at = new Set((h.sources ?? []).filter((x) => x.person === p.id && x.cli === s.cli && typeof x.organization === 'string' && atBase(s.fhir_base, x.fhir_base)).map((x) => x.organization!));
   if (at.size === 0) return r;
   return { ...r, provenance: [{ source: at.size === 1 ? { ...s, organization_id: [...at][0]! } : { cli: s.cli } }] };
 }

@@ -159,15 +159,17 @@ At the limits:
 - **Private items not known.** Only medrec marks private items, in the
   `private.json` medrec 0.9.5 and later write in full. A person whose
   `private.json` is missing, older than their records, `overrides.json`,
-  `marks.json` or a linked person's records, in a layout this connector does
-  not read, or from medrec 0.9.4 or earlier (which says nothing about studies,
-  or of documents a private record links), has all their records, documents,
-  events and studies held back from answers about everyone. Their notes stay.
+  `marks.json`, `provider-state.json` (medrec 0.9.7) or a linked person's
+  records, in a layout this connector does not read, or from medrec 0.9.4 or
+  earlier (which says nothing about studies, or of documents a private record
+  links), has all their records, documents, events and studies held back from
+  answers about everyone. Their notes stay.
   A `private-not-prepared` warning names them and says why. An answer about
   that person includes everything, with the same warning, marked only as far
   as a `private.json` from medrec 0.9.1 to 0.9.4 says. A person
-  whose `marks.json` medrec could not read is held back the same way, with
-  medrec's `private-marks-unreadable` warning. Each person with any private
+  whose `marks.json` or `provider-state.json` medrec could not read is held
+  back the same way, with medrec's `private-marks-unreadable` or
+  `private-labels-unreadable` warning. Each person with any private
   item costs one more request to Google. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds

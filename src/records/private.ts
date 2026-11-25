@@ -17,14 +17,15 @@ import { fold } from './text';
  * private item's area by id. `unjudged` names the imaging studies no report
  * judges, held back without an area. `unknown` says why any of their items may be
  * private beyond those: medrec could not read their marks.json
- * (`marks-unreadable`), or this connector has no current private.json for
+ * (`marks-unreadable`) or their provider-state.json (`labels-unreadable`,
+ * medrec 0.9.7), or this connector has no current private.json for
  * them (`not-prepared`, with why). Either way their items are held back from
  * answers about the whole household.
  */
 export interface Privacy {
   areas: ReadonlyMap<string, string>;
   unjudged?: ReadonlySet<string>;
-  unknown?: { why: 'marks-unreadable' } | { why: 'not-prepared'; detail: string };
+  unknown?: { why: 'marks-unreadable' | 'labels-unreadable' } | { why: 'not-prepared'; detail: string };
 }
 
 export const NO_PRIVATE: Privacy = { areas: new Map() };
@@ -146,8 +147,8 @@ export class Gate {
 
   /**
    * The page's warnings, medrec's first: how many it left out, and for each of
-   * the people whose marks.json does not read, or who have no current
-   * private.json here, that their items are held back.
+   * the people whose marks.json or provider-state.json does not read, or who
+   * have no current private.json here, that their items are held back.
    */
   warnings(people: Person[], leftOut: number): Warning[] {
     const out: Warning[] = [];
@@ -158,11 +159,18 @@ export class Gate {
       });
     }
     for (const p of people) {
-      if (this.people.get(p.id)?.unknown?.why !== 'marks-unreadable') continue;
-      out.push({
-        code: 'private-marks-unreadable',
-        message: `${p.name}'s marks.json does not read, so the household's private marks are not applied: ${p.name}'s items are left out of household-wide answers until it is fixed`,
-      });
+      const why = this.people.get(p.id)?.unknown?.why;
+      if (why === 'marks-unreadable') {
+        out.push({
+          code: 'private-marks-unreadable',
+          message: `${p.name}'s marks.json does not read, so the household's private marks are not applied: ${p.name}'s items are left out of household-wide answers until it is fixed`,
+        });
+      } else if (why === 'labels-unreadable') {
+        out.push({
+          code: 'private-labels-unreadable',
+          message: `${p.name}'s provider-state.json does not read, so which items provider labels make private is not known: ${p.name}'s items are left out of household-wide answers until medrec tables fetch nppes, then medrec views write, run on one machine (a newer medrec's file needs this one updated)`,
+        });
+      }
     }
     for (const p of people) {
       const u = this.people.get(p.id)?.unknown;
@@ -178,7 +186,8 @@ export class Gate {
   /**
    * The people held back for want of a current private.json, for a cursor to
    * bind: a later page asked once they have one would not line up. Those whose
-   * marks.json does not read are medrec's own case, and its cursors do not say.
+   * marks.json or provider-state.json does not read are medrec's own case, and
+   * its cursors do not say.
    */
   notPreparedIds(people: Person[]): string[] {
     return people.filter((p) => this.people.get(p.id)?.unknown?.why === 'not-prepared').map((p) => `private:${p.id}`);

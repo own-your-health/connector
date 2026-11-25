@@ -462,6 +462,21 @@ describe('events from the views (medrec 0.9.0)', () => {
     ]);
   });
 
+  it('makes only the payments and private items stale when marks.json changes, or is gone', async () => {
+    type Page = { items: { id: string }[]; warnings?: { code: string }[] };
+    for (const [name, change] of [
+      ['changed', (at: string) => appendFileSync(at, ' ')],
+      ['gone', (at: string) => rmSync(at)],
+    ] as const) {
+      const root = copy(base, `events-marks-${name}`);
+      change(join(root, 'Robin Example/marks.json'));
+      const ids = async (at: string) => items((await events(at, { person: 'Robin' })).r).map((x) => x.id);
+      expect(await ids(root), name).toEqual(await ids(base));
+      const bills = (await ask(root, 'medrec_records', { kind: 'bills', person: 'Robin' })).r.structuredContent as Page;
+      expect(bills.warnings?.map((w) => w.code).sort(), name).toEqual(['bills-not-prepared', 'private-not-prepared']);
+    }
+  });
+
   it("makes a guardian's events stale when a linked newborn's text changes, and leaves the others", async () => {
     const root = copy(base, 'events-linked');
     appendFileSync(join(root, 'Jamie Example/text.json'), ' ');
@@ -840,6 +855,102 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     expect(sam.items).toHaveLength(6);
     expect(sam.items.every((x) => x.private === undefined)).toBe(true);
     expect(sam.warnings?.map((w) => w.code)).toEqual(['private-marks-unreadable']);
+  });
+
+  describe('what provider labels make private (medrec 0.9.7)', () => {
+    const PROVIDERS = 'Robin Example/provider-state.json';
+    const codes = (r: { structuredContent?: Record<string, unknown> }) => (page(r).warnings ?? []).map((w) => w.code);
+    const named = (r: { structuredContent?: Record<string, unknown> }) => page(r).items.filter((x) => (x as { plain_name?: string }).plain_name !== undefined).length;
+    /** A copy of the demo whose Robin has a provider-state.json, and what views.json says of it. */
+    function withState(name: string, text: string | null, said: string | null | undefined): string {
+      const root = copy(demo, `labels-${name}`);
+      if (text !== null) writeFileSync(join(root, PROVIDERS), text);
+      const at = join(root, VIEWS_INDEX);
+      const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+      if (said !== undefined) index.people[personId(root, 'Robin Example')]!.provider_state = said === null ? null : createHash('md5').update(said).digest('hex');
+      writeFileSync(at, JSON.stringify(index));
+      return root;
+    }
+    const STATE = JSON.stringify({ schema: 'medrec-provider-state/v1', person: 'p_x', by_npi: { '0000000000': { name: 'Jordan Sample, MD' } } });
+
+    it('holds a person back, and gives no plain name, while provider-state.json is not the one private.json was made with', async () => {
+      const bad: [string, string | null, string | null | undefined][] = [
+        ['older medrec', STATE, undefined],
+        ['made with none', STATE, null],
+        ['changed', `${STATE} `, STATE],
+        ['gone', null, STATE],
+      ];
+      for (const [name, text, said] of bad) {
+        const root = withState(name.replaceAll(' ', '-'), text, said);
+        const own = await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' });
+        expect(codes(own.r), name).toEqual(['private-not-prepared']);
+        expect(page(own.r).warnings![0]!.message, name).toMatch(/^medrec has not marked Robin Example's private items for assistants \(their records changed after medrec last wrote their private\.json\)/);
+        expect(page(own.r).items.length, name).toBeGreaterThan(0);
+        expect(named(own.r), name).toBe(0);
+        const everyone = await ask(root, 'medrec_records', { kind: 'conditions' });
+        expect(codes(everyone.r), name).toContain('private-not-prepared');
+        expect(page(everyone.r).items.some((x) => x.person === 'Robin Example'), name).toBe(false);
+        // Nothing else depends on it, for Robin or anyone.
+        for (const args of [{ kind: 'bills', person: 'Robin' }, { kind: 'events', person: 'Robin' }]) {
+          const r = (await ask(root, 'medrec_records', args)).r;
+          expect(r.isError ?? false, name).toBe(false);
+          expect(codes(r), name).toEqual(['private-not-prepared']);
+        }
+        expect(codes((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Sam' })).r), name).toEqual(codes((await ask(demo, 'medrec_records', { kind: 'conditions', person: 'Sam' })).r));
+        // It is medrec's own: compared, never read.
+        for (const read of [own.read, everyone.read]) expect(read.some((f) => f.includes('provider-state')), name).toBe(false);
+      }
+    });
+
+    it('changes nothing while it is the same, or there is none', async () => {
+      for (const [name, text, said] of [['same', STATE, STATE], ['none', null, null]] as const) {
+        const root = withState(name, text, said);
+        for (const args of [{ kind: 'conditions', person: 'Robin' }, { kind: 'conditions' }, { kind: 'timeline' }, { kind: 'events' }, { kind: 'bills' }]) {
+          const { r, read } = await ask(root, 'medrec_records', args);
+          expect(r, `${name} ${args.kind}`).toEqual((await ask(demo, 'medrec_records', args)).r);
+          expect(read.some((f) => f.includes('provider-state'))).toBe(false);
+        }
+      }
+    });
+
+    it("holds back all of a person's items when what their labels make private is not known", async () => {
+      // medrec 0.9.7 writes both; a reader that knows only the marks holds back the same.
+      for (const extra of [{ labels_unreadable: true, marks_unreadable: true }, { labels_unreadable: true }]) {
+        const root = plain('labels-unreadable');
+        privateOf(root, 'Sam Example', {}, extra);
+        const everyone = page((await ask(root, 'medrec_records', { kind: 'medications' })).r);
+        expect(everyone.items.some((x) => x.person === 'Sam Example')).toBe(false);
+        expect(left(everyone)).toBe(6);
+        expect(everyone.warnings?.slice(1)).toEqual([
+          {
+            code: 'private-labels-unreadable',
+            message:
+              "Sam Example's provider-state.json does not read, so which items provider labels make private is not known: Sam Example's items are left out of household-wide answers until medrec tables fetch nppes, then medrec views write, run on one machine (a newer medrec's file needs this one updated)",
+          },
+        ]);
+        const sam = page((await ask(root, 'medrec_records', { kind: 'medications', person: 'Sam' })).r);
+        expect(sam.items).toHaveLength(6);
+        expect(sam.warnings?.map((w) => w.code)).toEqual(['private-labels-unreadable']);
+      }
+    });
+
+    it('warns in the order of the people, and binds no cursor to them', async () => {
+      const root = plain('labels-order');
+      const cursor = async () => page((await ask(root, 'medrec_records', { kind: 'timeline', limit: 2 })).r).next_cursor!;
+      privateOf(root, 'Sam Example', {}, { marks_unreadable: true });
+      const marks = await cursor();
+      privateOf(root, 'Robin Example', {}, { marks_unreadable: true });
+      const both = await cursor();
+      privateOf(root, 'Robin Example', {}, { labels_unreadable: true, marks_unreadable: true });
+      expect(await cursor()).toBe(both);
+      expect(Buffer.from(marks, 'hex').toString()).not.toContain(':L');
+      expect(Buffer.from(both, 'hex').toString()).not.toContain(':L');
+      const warned = page((await ask(root, 'medrec_records', { kind: 'timeline' })).r).warnings!.filter((w) => w.code.endsWith('-unreadable'));
+      expect(warned.map((w) => [w.code, w.message.split("'")[0]])).toEqual([
+        ['private-labels-unreadable', 'Robin Example'],
+        ['private-marks-unreadable', 'Sam Example'],
+      ]);
+    });
   });
 
   it('marks private lines in a summary, a private document read by id, and a private event', async () => {

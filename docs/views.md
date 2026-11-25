@@ -365,7 +365,9 @@ Two more views only medrec makes, in its layouts `medrec-bills/v1` and
   medrec 0.9.5, `studies`: the person's private items, each with its `area`
   and why (`from`). `marks_unreadable` says medrec could not read the
   household's marks, so any of the person's records, documents, events and
-  studies may be private. From medrec 0.9.5, `unreported_studies` lists the
+  studies may be private. `labels_unreadable` (medrec 0.9.7 and later, with
+  `marks_unreadable`) says the same of what the person's provider labels make
+  private. From medrec 0.9.5, `unreported_studies` lists the
   imaging studies with no report to judge them by (absent when there are
   none). A reader holds those back from an answer about the whole household
   as it does private items, counts them in the same `private-left-out`
@@ -381,8 +383,18 @@ and private marks). The person's entry in `views.json` gives that one too:
 
 A reader uses either only when the person's views are current and
 `overrides`, `marks` and `linked` still match; `events.json` does not
-depend on `marks`. medrec writes both for every person, even with nothing
-in them.
+depend on `marks`. `private.json` depends on one more, which makes items
+private by the provider a source's identifier names:
+
+| Field | What |
+|---|---|
+| `provider_state` | the MD5 of `<person folder>/provider-state.json` (medrec 0.9.7 and later); absent when there is none |
+
+A `provider-state.json` that is not the one named, one where none is named,
+and one that is gone each make `private.json` stale. The file is medrec's own:
+a reader compares its MD5, and never reads or serves it.
+
+medrec writes both views for every person, even with nothing in them.
 
 `summary.json` is made without the payments: its bills are cut to 25 before
 a reader leaves the settled ones out. When it holds more than it lists and
@@ -426,7 +438,8 @@ document for being linked by a private record. What it does mark stays marked
 in answers about the person. An `unreported_studies` that is not a list of ids
 counts as missing too. `marks_unreadable` comes before either: the person's
 items are held back with the `private-marks-unreadable` warning, whichever
-medrec wrote the file. Without a current
+medrec wrote the file, or with `labels_unreadable` the
+`private-labels-unreadable` one. Without a current
 `bills.json`, bills are shown by their statements with a
 `bills-not-prepared` warning. medrec's own reader judges from the files, so
 it gives neither warning.

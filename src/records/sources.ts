@@ -14,8 +14,10 @@ import { trim } from './text';
 /** What a record came through: its source's name, else its CLI. */
 export type SourceOf = (r: RecordEntry) => string | undefined;
 
-/** A FHIR base without its trailing slashes; empty when there is none. */
-export const baseOf = (b: string | null | undefined) => (b ?? '').replace(/\/+$/, '');
+const baseOf = (b: string | null | undefined) => (b ?? '').replace(/\/+$/, '');
+
+/** Whether a source is at the FHIR base a record gives, trailing slashes aside; any is, when the record gives none. */
+export const atBase = (record: string | null | undefined, source: string | null | undefined) => record === null || record === undefined || baseOf(source) === baseOf(record);
 
 /** The name all of these have; none where they differ, or one has none. */
 function named(sources: SignIn[]): string | undefined {
@@ -56,9 +58,8 @@ export function sourcesOf(h: Household, pid: string, imports: ImportRun[] = []):
     const [f, d] = [at(filed, pv.filed_at), at(read, pv.fetched_at)];
     const patients = f.size === 0 ? [...d] : f.size === 1 ? [...f] : [...f].filter((x) => d.has(x));
     const patient = patients.length === 1 ? patients[0] : undefined;
-    const base = pv.source.fhir_base ?? undefined;
     const from = own.filter(
-      (s) => s.cli === cli && s.organization === organization && (base === undefined || baseOf(s.fhir_base) === baseOf(base)) && (patient === undefined || s.patient_id === patient),
+      (s) => s.cli === cli && s.organization === organization && atBase(pv.source.fhir_base, s.fhir_base) && (patient === undefined || s.patient_id === patient),
     );
     return named(from) ?? cli;
   };
