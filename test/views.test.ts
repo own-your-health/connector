@@ -462,7 +462,7 @@ describe('events from the views (medrec 0.9.0)', () => {
     ]);
   });
 
-  it('makes only the payments and private items stale when marks.json changes, or is gone', async () => {
+  it('makes only the payments, private items and plain names stale when marks.json changes, or is gone', async () => {
     type Page = { items: { id: string }[]; warnings?: { code: string }[] };
     for (const [name, change] of [
       ['changed', (at: string) => appendFileSync(at, ' ')],
@@ -474,6 +474,8 @@ describe('events from the views (medrec 0.9.0)', () => {
       expect(await ids(root), name).toEqual(await ids(base));
       const bills = (await ask(root, 'medrec_records', { kind: 'bills', person: 'Robin' })).r.structuredContent as Page;
       expect(bills.warnings?.map((w) => w.code).sort(), name).toEqual(['bills-not-prepared', 'private-not-prepared']);
+      const plain = async (at: string) => ((await ask(at, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r.structuredContent as { items: { plain_name?: string }[] }).items.filter((x) => x.plain_name !== undefined).length;
+      expect([(await plain(base)) > 0, await plain(root)], name).toEqual([true, 0]);
     }
   });
 
@@ -873,6 +875,8 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     }
     // Only its MD5 matters: the file is medrec's own, and is never read here.
     const STATE = 'not read here';
+    const message = (why: string, medrec: string, every = '') =>
+      `medrec has not marked Robin Example's private items for assistants (${why}): Robin Example's items are left out of household-wide answers until it does, and may not all be marked in answers about Robin Example. Tell the user medrec ${medrec} or later marks them on its next pass on the household's computer (medrec refresh)${every}`;
 
     it('holds a person back, and gives no plain name, while provider-state.json is not the one private.json was made with', async () => {
       const bad: [string, string | null, string | null | undefined][] = [
@@ -887,7 +891,7 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
         expect(codes(own.r), name).toEqual(['private-not-prepared']);
         const without = said === undefined || said === null;
         expect(page(own.r).warnings![0]!.message, name).toBe(
-          `medrec has not marked Robin Example's private items for assistants (${without ? 'their views were made without the provider-state.json in their folder' : 'their records changed after medrec last wrote their private.json'}): Robin Example's items are left out of household-wide answers until it does, and may not all be marked in answers about Robin Example. Tell the user medrec ${without ? '0.9.7' : '0.9.5'} or later marks them on its next pass on the household's computer (medrec refresh)${without ? ', and every computer that writes the folder needs medrec 0.9.7 or later' : ''}`,
+          message(without ? 'their views were made without the provider-state.json now in their folder' : 'their records changed after medrec last wrote their private.json', '0.9.7', ', and every computer that writes the folder needs medrec 0.9.7 or later'),
         );
         expect(page(own.r).items.length, name).toBeGreaterThan(0);
         expect(named(own.r), name).toBe(0);
@@ -903,6 +907,41 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
         expect(codes((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Sam' })).r), name).toEqual(codes((await ask(demo, 'medrec_records', { kind: 'conditions', person: 'Sam' })).r));
         // It is medrec's own: compared, never read.
         for (const read of [own.read, everyone.read]) expect(read.some((f) => f.includes('provider-state')), name).toBe(false);
+      }
+    });
+
+    it('asks for the medrec that judges by provider labels, whatever else made the views stale, once there is a provider-state.json', async () => {
+      const edit = (root: string, change: (index: ViewsIndex, id: string) => void) => {
+        const at = join(root, VIEWS_INDEX);
+        const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+        change(index, personId(root, 'Robin Example'));
+        writeFileSync(at, JSON.stringify(index));
+      };
+      const NONE = 'medrec has written no private.json for them yet';
+      const CHANGED = 'their records changed after medrec last wrote their private.json';
+      const OLD = 'the views medrec wrote for them do not cover linked documents and imaging studies';
+      const stale: [string, string, (root: string) => void][] = [
+        ['marks', CHANGED, (root) => appendFileSync(join(root, 'Robin Example/marks.json'), ' ')],
+        ['records', CHANGED, (root) => appendFileSync(join(root, 'Robin Example/index.json'), ' ')],
+        ['no private.json', NONE, (root) => edit(root, (index, id) => delete index.people[id]!.files['private.json'])],
+        ['not in views.json', NONE, (root) => edit(root, (index, id) => delete index.people[id])],
+        [
+          'from before 0.9.5',
+          OLD,
+          (root) => setView(root, 'Robin Example', 'private.json', { schema: 'medrec-private/v1', person: personId(root, 'Robin Example'), records: {}, documents: {}, events: {} }),
+        ],
+      ];
+      for (const [name, reason, change] of stale) {
+        for (const [has, text, said] of [['there', STATE, STATE], ['gone', null, STATE], ['none', null, null]] as const) {
+          const root = withState(`stale-${name.replaceAll(' ', '-')}-${has}`, text, said);
+          change(root);
+          const warned = page((await ask(root, 'medrec_records', { kind: 'conditions', person: 'Robin' })).r).warnings!.find((w) => w.code === 'private-not-prepared')!.message;
+          // The file that is gone is said before what is in the view.
+          const why = has === 'gone' && reason === OLD ? CHANGED : reason;
+          // Neither the file nor the views say there was one.
+          const unknown = has === 'none' || (has === 'gone' && name === 'not in views.json');
+          expect(warned, `${name}, ${has}`).toBe(unknown ? message(why, '0.9.5') : message(why, '0.9.7', ', and every computer that writes the folder needs medrec 0.9.7 or later'));
+        }
       }
     });
 

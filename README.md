@@ -171,8 +171,9 @@ At the limits:
   back the same way, with medrec's `private-marks-unreadable` or
   `private-labels-unreadable` warning. Once a computer with medrec 0.9.7 has
   written a `provider-state.json`, every computer that writes the folder needs
-  0.9.7 or later: an earlier one's views are made without it, and the warning
-  says so. Each person with any private
+  0.9.7 or later: an earlier one's views are made without it. The
+  `private-not-prepared` warning then asks for a pass by 0.9.7 or later, which
+  ends it. Each person with any private
   item costs one more request to Google. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds

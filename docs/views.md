@@ -391,7 +391,8 @@ on `marks`, and neither it nor `bills.json` on `provider_state`. A
 one that is gone are each a difference. The file is medrec's own: a reader
 compares its MD5, and never reads or serves it. medrec 0.9.6 and earlier leave
 the file and make the views without it, so every computer that writes the
-folder needs 0.9.7 or later once one has.
+folder needs 0.9.7 or later once one has. A pass by 0.9.7 or later makes any
+of these current again.
 
 medrec writes both views for every person, even with nothing in them.
 

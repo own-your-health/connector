@@ -156,6 +156,13 @@ class PersonReader {
 /** The files in a person's folder a view only medrec makes can depend on, by the name views.json gives their MD5. */
 const MADE_FROM = { overrides: 'overrides.json', marks: 'marks.json', provider_state: 'provider-state.json' } as const;
 
+/** Those each view medrec 0.9.1 and later make was made from, beside overrides.json. */
+const DEPENDS = {
+  'bills.json': ['marks'],
+  'private.json': ['marks', 'provider_state'],
+  'code-names.json': ['marks', 'provider_state'],
+} as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
+
 /** private.json as a reader needs it (medrec-private/v1). */
 export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
 
@@ -277,18 +284,18 @@ export class ViewsStore implements Store {
    * (private.json, code-names.json), when it is current, in `schema`;
    * otherwise why not.
    */
-  private async derived<T>(h: Household, p: Person, name: 'bills.json' | 'private.json' | 'code-names.json', schema: string, empty?: string): Promise<{ view: T } | { not: string; needs?: string }> {
+  private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
     const st = await this.state(h);
     if (st.newer) return { not: `their views are in a newer layout (${st.newer}) than this connector reads` };
     const v = st.index?.people[p.id];
     // medrec writes all three beside every such view; without them, what it was made from cannot be checked.
     const from = v?.overrides !== undefined && v.marks !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
     if (!v?.files || v.files[name] === undefined || !from) return { not: `medrec has written no ${name} for them yet` };
-    // An earlier medrec leaves the file and makes the views without it, every time: a pass of its own would not help.
-    if (name !== 'bills.json' && (v.provider_state ?? null) === null && (await this.folder.md5([`${p.folder}/${MADE_FROM.provider_state}`]))[0] !== null) {
-      return { not: `their views were made without the ${MADE_FROM.provider_state} in their folder`, needs: '0.9.7' };
+    const on: readonly (keyof typeof MADE_FROM)[] = DEPENDS[name];
+    if (on.includes('provider_state') && (v.provider_state ?? null) === null && (await this.hasProviderState(p))) {
+      return { not: `their views were made without the ${MADE_FROM.provider_state} now in their folder` };
     }
-    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, name === 'bills.json' ? ['marks'] : ['marks', 'provider_state']))) return { not: `their records changed after medrec last wrote their ${name}` };
+    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, on))) return { not: `their records changed after medrec last wrote their ${name}` };
     // The view medrec writes for a person with nothing in it, known by its MD5 without reading it.
     if (empty !== undefined && createHash('md5').update(empty).digest('hex') === v.files[name]) return { view: JSON.parse(empty) as T };
     let view: { schema?: string };
@@ -306,7 +313,17 @@ export class ViewsStore implements Store {
     // As medrec 0.9.5 and later write it for a person with nothing private and no study without a report.
     const empty = JSON.stringify({ schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {}, studies: {} });
     const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, empty);
-    return 'not' in got ? { areas: new Map(), unknown: { why: 'not-prepared', detail: got.not, ...(got.needs ? { needs: got.needs } : {}) } } : privacyOf(got.view);
+    const known: Privacy = 'not' in got ? { areas: new Map(), unknown: { why: 'not-prepared', detail: got.not } } : privacyOf(got.view);
+    if (known.unknown?.why !== 'not-prepared') return known;
+    // An earlier medrec's pass names no provider-state.json, so once that file is gone too, it would end this warning with the labels unjudged.
+    const { index } = await this.state(h);
+    const labels = index !== null && (typeof index.people[p.id]?.provider_state === 'string' || (await this.hasProviderState(p)));
+    return labels ? { ...known, unknown: { ...known.unknown, needs: '0.9.7' } } : known;
+  }
+
+  /** Whether the person's folder holds what a provider directory gave. The survey has it, so it costs no request. */
+  private async hasProviderState(p: Person): Promise<boolean> {
+    return (await this.folder.md5([`${p.folder}/${MADE_FROM.provider_state}`]))[0] !== null;
   }
 
   async bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
