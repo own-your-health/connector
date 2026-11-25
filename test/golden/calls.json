@@ -2170,6 +2170,25 @@
         "query": "sample eye",
         "person": "Casey"
       }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "limit": 200,
+        "response_format": "detailed"
+      }
     }
   ]
 }

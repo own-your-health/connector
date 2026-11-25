@@ -39431,6 +39431,1410 @@
      "isError": false
     }
    }
+  },
+  {
+   "folder": "demo",
+   "name": "medrec_records",
+   "arguments": {
+    "kind": "results",
+    "person": "Robin",
+    "limit": 200
+   },
+   "answer": {
+    "jsonrpc": "2.0",
+    "result": {
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"items\":[{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-11-18\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_gdbfi4hfyshulxlnomh2\",\"code\":\"2160-0\",\"value\":\"0.9\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-11-18\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_epil5r55bnskgio225qk\",\"code\":\"2823-3\",\"value\":\"5.4\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_frjiw4amv4cnzzymokjr\",\"code\":\"2093-3\",\"value\":\"176\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_4ejffnzg26vce3wfdavh\",\"code\":\"2160-0\",\"value\":\"0.9\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Glucose\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_2jiwk7nvol47xz66nb7f\",\"code\":\"2345-7\",\"value\":\"92\",\"unit\":\"mg/dL\",\"range\":\"70-99 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_23cehcgjawumfom34hjo\",\"code\":\"2085-9\",\"value\":\"51\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Hemoglobin A1c\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_zky5r26mgj6ntawieyvj\",\"code\":\"4548-4\",\"value\":\"5.4\",\"unit\":\"%\",\"range\":\"4.0-5.6 %\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_cw4anzs7ixp46oezjny4\",\"code\":\"13457-7\",\"value\":\"104\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_2vzuewf4srectrg5i4x3\",\"code\":\"2823-3\",\"value\":\"4.9\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"Normal\",\"private\":\"household\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Sodium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_ri2rxwqxwzylf6i6c5hq\",\"code\":\"2951-2\",\"value\":\"141\",\"unit\":\"mmol/L\",\"range\":\"136-145 mmol/L\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_4eg2srysqochewfejhae\",\"code\":\"2571-8\",\"value\":\"117\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-06-05\",\"title\":\"Hemoglobin\",\"status\":\"final\",\"source\":\"Example Blood Center\",\"id\":\"r_bd2pbun6yr2qetkdjgp4\",\"code\":\"718-7\",\"value\":\"14\",\"unit\":\"g/dL\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_moqd5fez3jthqu5qjkkf\",\"code\":\"2093-3\",\"value\":\"189\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_zy74sazpmf2mwnhpjpfh\",\"code\":\"2085-9\",\"value\":\"48\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mugawodplpyyrkwuijrm\",\"code\":\"13457-7\",\"value\":\"118\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_fjkm35txqicrsx4ks7rk\",\"code\":\"2571-8\",\"value\":\"128\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-02-17\",\"title\":\"Syphilis antibody\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_syphilistestaaaaaaaa\",\"code\":\"20507-0\",\"value\":\"Nonreactive\",\"range\":\"Nonreactive\",\"private\":\"sexual_health\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-12-02\",\"title\":\"Hemoglobin\",\"status\":\"final\",\"source\":\"Example Blood Center\",\"id\":\"r_jnhsovhf4esnoempvov2\",\"code\":\"718-7\",\"value\":\"14.2\",\"unit\":\"g/dL\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_6u6tprxsrc6dj26kgvwi\",\"code\":\"2093-3\",\"value\":\"214\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mcfx2wajjvpibxnab6zt\",\"code\":\"2160-0\",\"value\":\"0.9\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Glucose\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_qpya5zjdlfqxahylgzdz\",\"code\":\"2345-7\",\"value\":\"101\",\"unit\":\"mg/dL\",\"range\":\"70-99 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_fkavarhvnpzq5bisc5vn\",\"code\":\"2085-9\",\"value\":\"46\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_njr5bn3ny7hbkldddwhu\",\"code\":\"13457-7\",\"value\":\"141\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_rad4al7mh3tiim4xmgml\",\"code\":\"2823-3\",\"value\":\"4.6\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Sodium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_jyuebh6utmeh7226pmeu\",\"code\":\"2951-2\",\"value\":\"139\",\"range\":\"136 mmol/L – 145 mmol/L\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_tr3fbbxcedozpzpcaq42\",\"code\":\"2571-8\",\"value\":\"152\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-06-01\",\"title\":\"Hemoglobin\",\"status\":\"final\",\"source\":\"Example Blood Center\",\"id\":\"r_l2tse2sd2msiix2kzx62\",\"code\":\"718-7\",\"value\":\"13.9\",\"unit\":\"g/dL\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_bmixb2jhf642gxn524it\",\"code\":\"2093-3\",\"value\":\"238\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_yj64qrvnxx4sea6vkfj6\",\"code\":\"2160-0\",\"value\":\"0.8\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Glucose\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_bmkeag5zxtlx3ibab3ys\",\"code\":\"2345-7\",\"value\":\"94\",\"unit\":\"mg/dL\",\"range\":\"70-99 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_l63e6du6bncuoti3youm\",\"code\":\"2085-9\",\"value\":\"44\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mzewhpjngag4bpi7fxy5\",\"code\":\"13457-7\",\"value\":\"162\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_j632ex63tz27lw7xdpcf\",\"code\":\"2823-3\",\"value\":\"4.4\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Sodium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mjs2anm34tmrtqwdsxsd\",\"code\":\"2951-2\",\"value\":\"140\",\"unit\":\"mmol/L\",\"range\":\"136-145 mmol/L\",\"flag\":\"Normal\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_bwlwn4tzuqx67v76q4ls\",\"code\":\"2571-8\",\"value\":\"168\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"High\"},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2024-11-14\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_potassiumolderaaaaaa\",\"code\":\"2823-3\",\"value\":\"4.0\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"private\":\"mental_health\"}],\"returned\":36}"
+      }
+     ],
+     "structuredContent": {
+      "items": [
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-11-18",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_gdbfi4hfyshulxlnomh2",
+        "code": "2160-0",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-11-18",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_epil5r55bnskgio225qk",
+        "code": "2823-3",
+        "value": "5.4",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_frjiw4amv4cnzzymokjr",
+        "code": "2093-3",
+        "value": "176",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_4ejffnzg26vce3wfdavh",
+        "code": "2160-0",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Glucose",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_2jiwk7nvol47xz66nb7f",
+        "code": "2345-7",
+        "value": "92",
+        "unit": "mg/dL",
+        "range": "70-99 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_23cehcgjawumfom34hjo",
+        "code": "2085-9",
+        "value": "51",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Hemoglobin A1c",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_zky5r26mgj6ntawieyvj",
+        "code": "4548-4",
+        "value": "5.4",
+        "unit": "%",
+        "range": "4.0-5.6 %",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_cw4anzs7ixp46oezjny4",
+        "code": "13457-7",
+        "value": "104",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_2vzuewf4srectrg5i4x3",
+        "code": "2823-3",
+        "value": "4.9",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "Normal",
+        "private": "household"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Sodium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_ri2rxwqxwzylf6i6c5hq",
+        "code": "2951-2",
+        "value": "141",
+        "unit": "mmol/L",
+        "range": "136-145 mmol/L",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_4eg2srysqochewfejhae",
+        "code": "2571-8",
+        "value": "117",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-06-05",
+        "title": "Hemoglobin",
+        "status": "final",
+        "source": "Example Blood Center",
+        "id": "r_bd2pbun6yr2qetkdjgp4",
+        "code": "718-7",
+        "value": "14",
+        "unit": "g/dL"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_moqd5fez3jthqu5qjkkf",
+        "code": "2093-3",
+        "value": "189",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_zy74sazpmf2mwnhpjpfh",
+        "code": "2085-9",
+        "value": "48",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mugawodplpyyrkwuijrm",
+        "code": "13457-7",
+        "value": "118",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_fjkm35txqicrsx4ks7rk",
+        "code": "2571-8",
+        "value": "128",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-02-17",
+        "title": "Syphilis antibody",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_syphilistestaaaaaaaa",
+        "code": "20507-0",
+        "value": "Nonreactive",
+        "range": "Nonreactive",
+        "private": "sexual_health"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-12-02",
+        "title": "Hemoglobin",
+        "status": "final",
+        "source": "Example Blood Center",
+        "id": "r_jnhsovhf4esnoempvov2",
+        "code": "718-7",
+        "value": "14.2",
+        "unit": "g/dL"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_6u6tprxsrc6dj26kgvwi",
+        "code": "2093-3",
+        "value": "214",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mcfx2wajjvpibxnab6zt",
+        "code": "2160-0",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Glucose",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_qpya5zjdlfqxahylgzdz",
+        "code": "2345-7",
+        "value": "101",
+        "unit": "mg/dL",
+        "range": "70-99 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_fkavarhvnpzq5bisc5vn",
+        "code": "2085-9",
+        "value": "46",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_njr5bn3ny7hbkldddwhu",
+        "code": "13457-7",
+        "value": "141",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_rad4al7mh3tiim4xmgml",
+        "code": "2823-3",
+        "value": "4.6",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Sodium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_jyuebh6utmeh7226pmeu",
+        "code": "2951-2",
+        "value": "139",
+        "range": "136 mmol/L – 145 mmol/L"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_tr3fbbxcedozpzpcaq42",
+        "code": "2571-8",
+        "value": "152",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-06-01",
+        "title": "Hemoglobin",
+        "status": "final",
+        "source": "Example Blood Center",
+        "id": "r_l2tse2sd2msiix2kzx62",
+        "code": "718-7",
+        "value": "13.9",
+        "unit": "g/dL"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_bmixb2jhf642gxn524it",
+        "code": "2093-3",
+        "value": "238",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_yj64qrvnxx4sea6vkfj6",
+        "code": "2160-0",
+        "value": "0.8",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Glucose",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_bmkeag5zxtlx3ibab3ys",
+        "code": "2345-7",
+        "value": "94",
+        "unit": "mg/dL",
+        "range": "70-99 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_l63e6du6bncuoti3youm",
+        "code": "2085-9",
+        "value": "44",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mzewhpjngag4bpi7fxy5",
+        "code": "13457-7",
+        "value": "162",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_j632ex63tz27lw7xdpcf",
+        "code": "2823-3",
+        "value": "4.4",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Sodium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mjs2anm34tmrtqwdsxsd",
+        "code": "2951-2",
+        "value": "140",
+        "unit": "mmol/L",
+        "range": "136-145 mmol/L",
+        "flag": "Normal"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_bwlwn4tzuqx67v76q4ls",
+        "code": "2571-8",
+        "value": "168",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "High"
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2024-11-14",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_potassiumolderaaaaaa",
+        "code": "2823-3",
+        "value": "4.0",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "private": "mental_health"
+       }
+      ],
+      "returned": 36
+     },
+     "isError": false
+    }
+   }
+  },
+  {
+   "folder": "demo",
+   "name": "medrec_records",
+   "arguments": {
+    "kind": "results",
+    "person": "Robin",
+    "limit": 200,
+    "response_format": "detailed"
+   },
+   "answer": {
+    "jsonrpc": "2.0",
+    "result": {
+     "content": [
+      {
+       "type": "text",
+       "text": "{\"items\":[{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-11-18\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_gdbfi4hfyshulxlnomh2\",\"code\":\"2160-0\",\"value\":\"0.9\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-11-18\",\"value\":{\"value\":0.9,\"unit\":\"mg/dL\"},\"reference_range\":\"0.6-1.2 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\",\"issued\":\"2026-11-19T16:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-11-18\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_epil5r55bnskgio225qk\",\"code\":\"2823-3\",\"value\":\"5.4\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"High\",\"fields\":{\"when\":\"2026-11-18\",\"value\":{\"value\":5.4,\"unit\":\"mmol/L\"},\"reference_range\":\"3.5-5.1 mmol/L\",\"interpretation\":\"High\",\"category\":\"Laboratory\",\"issued\":\"2026-11-19T16:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_frjiw4amv4cnzzymokjr\",\"code\":\"2093-3\",\"value\":\"176\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":176,\"unit\":\"mg/dL\"},\"reference_range\":\"<200 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_4ejffnzg26vce3wfdavh\",\"code\":\"2160-0\",\"value\":\"0.9\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":0.9,\"unit\":\"mg/dL\"},\"reference_range\":\"0.6-1.2 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Glucose\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_2jiwk7nvol47xz66nb7f\",\"code\":\"2345-7\",\"value\":\"92\",\"unit\":\"mg/dL\",\"range\":\"70-99 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":92,\"unit\":\"mg/dL\"},\"reference_range\":\"70-99 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_23cehcgjawumfom34hjo\",\"code\":\"2085-9\",\"value\":\"51\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":51,\"unit\":\"mg/dL\"},\"reference_range\":\">39 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Hemoglobin A1c\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_zky5r26mgj6ntawieyvj\",\"code\":\"4548-4\",\"value\":\"5.4\",\"unit\":\"%\",\"range\":\"4.0-5.6 %\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":5.4,\"unit\":\"%\"},\"reference_range\":\"4.0-5.6 %\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_cw4anzs7ixp46oezjny4\",\"code\":\"13457-7\",\"value\":\"104\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":104,\"unit\":\"mg/dL\",\"system\":\"http://unitsofmeasure.org\"},\"reference_range\":\"<130 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\",\"issued\":\"2026-10-01T15:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_2vzuewf4srectrg5i4x3\",\"code\":\"2823-3\",\"value\":\"4.9\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"Normal\",\"private\":\"household\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":4.9,\"unit\":\"mmol/L\"},\"reference_range\":\"3.5-5.1 mmol/L\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Sodium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_ri2rxwqxwzylf6i6c5hq\",\"code\":\"2951-2\",\"value\":\"141\",\"unit\":\"mmol/L\",\"range\":\"136-145 mmol/L\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":141,\"unit\":\"mmol/L\"},\"reference_range\":\"136-145 mmol/L\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-10-01\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_4eg2srysqochewfejhae\",\"code\":\"2571-8\",\"value\":\"117\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-10-01\",\"value\":{\"value\":117,\"unit\":\"mg/dL\"},\"reference_range\":\"<150 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-06-05\",\"title\":\"Hemoglobin\",\"status\":\"final\",\"source\":\"Example Blood Center\",\"id\":\"r_bd2pbun6yr2qetkdjgp4\",\"code\":\"718-7\",\"value\":\"14\",\"unit\":\"g/dL\",\"fields\":{\"when\":\"2026-06-05\",\"value\":{\"value\":14,\"unit\":\"g/dL\"},\"category\":\"Donation screening\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_moqd5fez3jthqu5qjkkf\",\"code\":\"2093-3\",\"value\":\"189\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-03-20\",\"value\":{\"value\":189,\"unit\":\"mg/dL\"},\"reference_range\":\"<200 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_zy74sazpmf2mwnhpjpfh\",\"code\":\"2085-9\",\"value\":\"48\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-03-20\",\"value\":{\"value\":48,\"unit\":\"mg/dL\"},\"reference_range\":\">39 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mugawodplpyyrkwuijrm\",\"code\":\"13457-7\",\"value\":\"118\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-03-20\",\"value\":{\"value\":118,\"unit\":\"mg/dL\",\"system\":\"http://unitsofmeasure.org\"},\"reference_range\":\"<130 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\",\"issued\":\"2026-03-20T15:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-03-20\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_fjkm35txqicrsx4ks7rk\",\"code\":\"2571-8\",\"value\":\"128\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2026-03-20\",\"value\":{\"value\":128,\"unit\":\"mg/dL\"},\"reference_range\":\"<150 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2026-02-17\",\"title\":\"Syphilis antibody\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_syphilistestaaaaaaaa\",\"code\":\"20507-0\",\"value\":\"Nonreactive\",\"range\":\"Nonreactive\",\"private\":\"sexual_health\",\"fields\":{\"when\":\"2026-02-17\",\"value\":\"Nonreactive\",\"reference_range\":\"Nonreactive\",\"category\":\"Laboratory\",\"issued\":\"2026-02-18T15:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-12-02\",\"title\":\"Hemoglobin\",\"status\":\"final\",\"source\":\"Example Blood Center\",\"id\":\"r_jnhsovhf4esnoempvov2\",\"code\":\"718-7\",\"value\":\"14.2\",\"unit\":\"g/dL\",\"fields\":{\"when\":\"2025-12-02\",\"value\":{\"value\":14.2,\"unit\":\"g/dL\"},\"category\":\"Donation screening\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_6u6tprxsrc6dj26kgvwi\",\"code\":\"2093-3\",\"value\":\"214\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":214,\"unit\":\"mg/dL\"},\"reference_range\":\"<200 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mcfx2wajjvpibxnab6zt\",\"code\":\"2160-0\",\"value\":\"0.9\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":0.9,\"unit\":\"mg/dL\"},\"reference_range\":\"0.6-1.2 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Glucose\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_qpya5zjdlfqxahylgzdz\",\"code\":\"2345-7\",\"value\":\"101\",\"unit\":\"mg/dL\",\"range\":\"70-99 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":101,\"unit\":\"mg/dL\"},\"reference_range\":\"70-99 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_fkavarhvnpzq5bisc5vn\",\"code\":\"2085-9\",\"value\":\"46\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":46,\"unit\":\"mg/dL\"},\"reference_range\":\">39 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_njr5bn3ny7hbkldddwhu\",\"code\":\"13457-7\",\"value\":\"141\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":141,\"unit\":\"mg/dL\",\"system\":\"http://unitsofmeasure.org\"},\"reference_range\":\"<130 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\",\"issued\":\"2025-09-15T15:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_rad4al7mh3tiim4xmgml\",\"code\":\"2823-3\",\"value\":\"4.6\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":4.6,\"unit\":\"mmol/L\"},\"reference_range\":\"3.5-5.1 mmol/L\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Sodium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_jyuebh6utmeh7226pmeu\",\"code\":\"2951-2\",\"value\":\"139\",\"range\":\"136 mmol/L – 145 mmol/L\",\"fields\":{\"when\":\"2025-09-15\",\"value\":\"139\",\"reference_range\":\"136 mmol/L – 145 mmol/L\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-09-15\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_tr3fbbxcedozpzpcaq42\",\"code\":\"2571-8\",\"value\":\"152\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-09-15\",\"value\":{\"value\":152,\"unit\":\"mg/dL\"},\"reference_range\":\"<150 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-06-01\",\"title\":\"Hemoglobin\",\"status\":\"final\",\"source\":\"Example Blood Center\",\"id\":\"r_l2tse2sd2msiix2kzx62\",\"code\":\"718-7\",\"value\":\"13.9\",\"unit\":\"g/dL\",\"fields\":{\"when\":\"2025-06-01\",\"value\":{\"value\":13.9,\"unit\":\"g/dL\"},\"category\":\"Donation screening\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Cholesterol, total\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_bmixb2jhf642gxn524it\",\"code\":\"2093-3\",\"value\":\"238\",\"unit\":\"mg/dL\",\"range\":\"<200 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":238,\"unit\":\"mg/dL\"},\"reference_range\":\"<200 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Creatinine\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_yj64qrvnxx4sea6vkfj6\",\"code\":\"2160-0\",\"value\":\"0.8\",\"unit\":\"mg/dL\",\"range\":\"0.6-1.2 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":0.8,\"unit\":\"mg/dL\"},\"reference_range\":\"0.6-1.2 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Glucose\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_bmkeag5zxtlx3ibab3ys\",\"code\":\"2345-7\",\"value\":\"94\",\"unit\":\"mg/dL\",\"range\":\"70-99 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":94,\"unit\":\"mg/dL\"},\"reference_range\":\"70-99 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"HDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_l63e6du6bncuoti3youm\",\"code\":\"2085-9\",\"value\":\"44\",\"unit\":\"mg/dL\",\"range\":\">39 mg/dL\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":44,\"unit\":\"mg/dL\"},\"reference_range\":\">39 mg/dL\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"LDL cholesterol\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mzewhpjngag4bpi7fxy5\",\"code\":\"13457-7\",\"value\":\"162\",\"unit\":\"mg/dL\",\"range\":\"<130 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":162,\"unit\":\"mg/dL\",\"system\":\"http://unitsofmeasure.org\"},\"reference_range\":\"<130 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\",\"issued\":\"2025-03-10T15:00:00Z\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_j632ex63tz27lw7xdpcf\",\"code\":\"2823-3\",\"value\":\"4.4\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":4.4,\"unit\":\"mmol/L\"},\"reference_range\":\"3.5-5.1 mmol/L\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Sodium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_mjs2anm34tmrtqwdsxsd\",\"code\":\"2951-2\",\"value\":\"140\",\"unit\":\"mmol/L\",\"range\":\"136-145 mmol/L\",\"flag\":\"Normal\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":140,\"unit\":\"mmol/L\"},\"reference_range\":\"136-145 mmol/L\",\"interpretation\":\"Normal\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2025-03-10\",\"title\":\"Triglycerides\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_bwlwn4tzuqx67v76q4ls\",\"code\":\"2571-8\",\"value\":\"168\",\"unit\":\"mg/dL\",\"range\":\"<150 mg/dL\",\"flag\":\"High\",\"fields\":{\"when\":\"2025-03-10\",\"value\":{\"value\":168,\"unit\":\"mg/dL\"},\"reference_range\":\"<150 mg/dL\",\"interpretation\":\"High\",\"category\":\"Laboratory\"}},{\"kind\":\"result\",\"person\":\"Robin Example\",\"date\":\"2024-11-14\",\"title\":\"Potassium\",\"status\":\"final\",\"source\":\"Example Health\",\"id\":\"r_potassiumolderaaaaaa\",\"code\":\"2823-3\",\"value\":\"4.0\",\"unit\":\"mmol/L\",\"range\":\"3.5-5.1 mmol/L\",\"private\":\"mental_health\",\"fields\":{\"when\":\"2024-11-14\",\"value\":{\"value\":4.0,\"unit\":\"mmol/L\",\"system\":\"http://unitsofmeasure.org\"},\"reference_range\":\"3.5-5.1 mmol/L\",\"category\":\"Laboratory\",\"issued\":\"2024-11-14T15:00:00Z\",\"performer\":\"Example Counseling Center\"}}],\"returned\":36}"
+      }
+     ],
+     "structuredContent": {
+      "items": [
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-11-18",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_gdbfi4hfyshulxlnomh2",
+        "code": "2160-0",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-11-18",
+         "value": {
+          "value": 0.9,
+          "unit": "mg/dL"
+         },
+         "reference_range": "0.6-1.2 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory",
+         "issued": "2026-11-19T16:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-11-18",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_epil5r55bnskgio225qk",
+        "code": "2823-3",
+        "value": "5.4",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "High",
+        "fields": {
+         "when": "2026-11-18",
+         "value": {
+          "value": 5.4,
+          "unit": "mmol/L"
+         },
+         "reference_range": "3.5-5.1 mmol/L",
+         "interpretation": "High",
+         "category": "Laboratory",
+         "issued": "2026-11-19T16:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_frjiw4amv4cnzzymokjr",
+        "code": "2093-3",
+        "value": "176",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 176,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<200 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_4ejffnzg26vce3wfdavh",
+        "code": "2160-0",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 0.9,
+          "unit": "mg/dL"
+         },
+         "reference_range": "0.6-1.2 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Glucose",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_2jiwk7nvol47xz66nb7f",
+        "code": "2345-7",
+        "value": "92",
+        "unit": "mg/dL",
+        "range": "70-99 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 92,
+          "unit": "mg/dL"
+         },
+         "reference_range": "70-99 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_23cehcgjawumfom34hjo",
+        "code": "2085-9",
+        "value": "51",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 51,
+          "unit": "mg/dL"
+         },
+         "reference_range": ">39 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Hemoglobin A1c",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_zky5r26mgj6ntawieyvj",
+        "code": "4548-4",
+        "value": "5.4",
+        "unit": "%",
+        "range": "4.0-5.6 %",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 5.4,
+          "unit": "%"
+         },
+         "reference_range": "4.0-5.6 %",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_cw4anzs7ixp46oezjny4",
+        "code": "13457-7",
+        "value": "104",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 104,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+         },
+         "reference_range": "<130 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory",
+         "issued": "2026-10-01T15:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_2vzuewf4srectrg5i4x3",
+        "code": "2823-3",
+        "value": "4.9",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "Normal",
+        "private": "household",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 4.9,
+          "unit": "mmol/L"
+         },
+         "reference_range": "3.5-5.1 mmol/L",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Sodium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_ri2rxwqxwzylf6i6c5hq",
+        "code": "2951-2",
+        "value": "141",
+        "unit": "mmol/L",
+        "range": "136-145 mmol/L",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 141,
+          "unit": "mmol/L"
+         },
+         "reference_range": "136-145 mmol/L",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-10-01",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_4eg2srysqochewfejhae",
+        "code": "2571-8",
+        "value": "117",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-10-01",
+         "value": {
+          "value": 117,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<150 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-06-05",
+        "title": "Hemoglobin",
+        "status": "final",
+        "source": "Example Blood Center",
+        "id": "r_bd2pbun6yr2qetkdjgp4",
+        "code": "718-7",
+        "value": "14",
+        "unit": "g/dL",
+        "fields": {
+         "when": "2026-06-05",
+         "value": {
+          "value": 14,
+          "unit": "g/dL"
+         },
+         "category": "Donation screening"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_moqd5fez3jthqu5qjkkf",
+        "code": "2093-3",
+        "value": "189",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-03-20",
+         "value": {
+          "value": 189,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<200 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_zy74sazpmf2mwnhpjpfh",
+        "code": "2085-9",
+        "value": "48",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-03-20",
+         "value": {
+          "value": 48,
+          "unit": "mg/dL"
+         },
+         "reference_range": ">39 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mugawodplpyyrkwuijrm",
+        "code": "13457-7",
+        "value": "118",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-03-20",
+         "value": {
+          "value": 118,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+         },
+         "reference_range": "<130 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory",
+         "issued": "2026-03-20T15:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-03-20",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_fjkm35txqicrsx4ks7rk",
+        "code": "2571-8",
+        "value": "128",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2026-03-20",
+         "value": {
+          "value": 128,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<150 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2026-02-17",
+        "title": "Syphilis antibody",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_syphilistestaaaaaaaa",
+        "code": "20507-0",
+        "value": "Nonreactive",
+        "range": "Nonreactive",
+        "private": "sexual_health",
+        "fields": {
+         "when": "2026-02-17",
+         "value": "Nonreactive",
+         "reference_range": "Nonreactive",
+         "category": "Laboratory",
+         "issued": "2026-02-18T15:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-12-02",
+        "title": "Hemoglobin",
+        "status": "final",
+        "source": "Example Blood Center",
+        "id": "r_jnhsovhf4esnoempvov2",
+        "code": "718-7",
+        "value": "14.2",
+        "unit": "g/dL",
+        "fields": {
+         "when": "2025-12-02",
+         "value": {
+          "value": 14.2,
+          "unit": "g/dL"
+         },
+         "category": "Donation screening"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_6u6tprxsrc6dj26kgvwi",
+        "code": "2093-3",
+        "value": "214",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 214,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<200 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mcfx2wajjvpibxnab6zt",
+        "code": "2160-0",
+        "value": "0.9",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 0.9,
+          "unit": "mg/dL"
+         },
+         "reference_range": "0.6-1.2 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Glucose",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_qpya5zjdlfqxahylgzdz",
+        "code": "2345-7",
+        "value": "101",
+        "unit": "mg/dL",
+        "range": "70-99 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 101,
+          "unit": "mg/dL"
+         },
+         "reference_range": "70-99 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_fkavarhvnpzq5bisc5vn",
+        "code": "2085-9",
+        "value": "46",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 46,
+          "unit": "mg/dL"
+         },
+         "reference_range": ">39 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_njr5bn3ny7hbkldddwhu",
+        "code": "13457-7",
+        "value": "141",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 141,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+         },
+         "reference_range": "<130 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory",
+         "issued": "2025-09-15T15:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_rad4al7mh3tiim4xmgml",
+        "code": "2823-3",
+        "value": "4.6",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 4.6,
+          "unit": "mmol/L"
+         },
+         "reference_range": "3.5-5.1 mmol/L",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Sodium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_jyuebh6utmeh7226pmeu",
+        "code": "2951-2",
+        "value": "139",
+        "range": "136 mmol/L – 145 mmol/L",
+        "fields": {
+         "when": "2025-09-15",
+         "value": "139",
+         "reference_range": "136 mmol/L – 145 mmol/L",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-09-15",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_tr3fbbxcedozpzpcaq42",
+        "code": "2571-8",
+        "value": "152",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-09-15",
+         "value": {
+          "value": 152,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<150 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-06-01",
+        "title": "Hemoglobin",
+        "status": "final",
+        "source": "Example Blood Center",
+        "id": "r_l2tse2sd2msiix2kzx62",
+        "code": "718-7",
+        "value": "13.9",
+        "unit": "g/dL",
+        "fields": {
+         "when": "2025-06-01",
+         "value": {
+          "value": 13.9,
+          "unit": "g/dL"
+         },
+         "category": "Donation screening"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Cholesterol, total",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_bmixb2jhf642gxn524it",
+        "code": "2093-3",
+        "value": "238",
+        "unit": "mg/dL",
+        "range": "<200 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 238,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<200 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Creatinine",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_yj64qrvnxx4sea6vkfj6",
+        "code": "2160-0",
+        "value": "0.8",
+        "unit": "mg/dL",
+        "range": "0.6-1.2 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 0.8,
+          "unit": "mg/dL"
+         },
+         "reference_range": "0.6-1.2 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Glucose",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_bmkeag5zxtlx3ibab3ys",
+        "code": "2345-7",
+        "value": "94",
+        "unit": "mg/dL",
+        "range": "70-99 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 94,
+          "unit": "mg/dL"
+         },
+         "reference_range": "70-99 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "HDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_l63e6du6bncuoti3youm",
+        "code": "2085-9",
+        "value": "44",
+        "unit": "mg/dL",
+        "range": ">39 mg/dL",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 44,
+          "unit": "mg/dL"
+         },
+         "reference_range": ">39 mg/dL",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "LDL cholesterol",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mzewhpjngag4bpi7fxy5",
+        "code": "13457-7",
+        "value": "162",
+        "unit": "mg/dL",
+        "range": "<130 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 162,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org"
+         },
+         "reference_range": "<130 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory",
+         "issued": "2025-03-10T15:00:00Z"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_j632ex63tz27lw7xdpcf",
+        "code": "2823-3",
+        "value": "4.4",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 4.4,
+          "unit": "mmol/L"
+         },
+         "reference_range": "3.5-5.1 mmol/L",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Sodium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_mjs2anm34tmrtqwdsxsd",
+        "code": "2951-2",
+        "value": "140",
+        "unit": "mmol/L",
+        "range": "136-145 mmol/L",
+        "flag": "Normal",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 140,
+          "unit": "mmol/L"
+         },
+         "reference_range": "136-145 mmol/L",
+         "interpretation": "Normal",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2025-03-10",
+        "title": "Triglycerides",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_bwlwn4tzuqx67v76q4ls",
+        "code": "2571-8",
+        "value": "168",
+        "unit": "mg/dL",
+        "range": "<150 mg/dL",
+        "flag": "High",
+        "fields": {
+         "when": "2025-03-10",
+         "value": {
+          "value": 168,
+          "unit": "mg/dL"
+         },
+         "reference_range": "<150 mg/dL",
+         "interpretation": "High",
+         "category": "Laboratory"
+        }
+       },
+       {
+        "kind": "result",
+        "person": "Robin Example",
+        "date": "2024-11-14",
+        "title": "Potassium",
+        "status": "final",
+        "source": "Example Health",
+        "id": "r_potassiumolderaaaaaa",
+        "code": "2823-3",
+        "value": "4.0",
+        "unit": "mmol/L",
+        "range": "3.5-5.1 mmol/L",
+        "private": "mental_health",
+        "fields": {
+         "when": "2024-11-14",
+         "value": {
+          "value": 4,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org"
+         },
+         "reference_range": "3.5-5.1 mmol/L",
+         "category": "Laboratory",
+         "issued": "2024-11-14T15:00:00Z",
+         "performer": "Example Counseling Center"
+        }
+       }
+      ],
+      "returned": 36
+     },
+     "isError": false
+    }
+   }
   }
  ]
 }
