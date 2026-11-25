@@ -1,6 +1,6 @@
 // This connector answers every call in test/golden/calls.json as `medrec mcp`
-// 0.9.0 did (scripts/golden.mjs recorded it): the same structured result, the
-// same text to the character, the same errors. Events come only from the
+// did (scripts/golden.mjs recorded it): the same structured result, the same
+// text to the character, the same errors. Events come only from the
 // views (medrec groups them; test/fixtures/events holds what it wrote), so
 // read from the files they are refused instead.
 
@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { synth } from '../scripts/synth.mjs';
 import { ParsedCache } from '../src/records/folder';
+import { parseExact } from '../src/records/numbers';
 import { TOOLS, callTool, instructions, unknownTool } from '../src/records/tools';
 import { DEMO, RawWithDerived, addCodeNames, addDerived, folderAt } from './support';
 import { RawStore, type Store } from '../src/records/store';
@@ -25,7 +26,8 @@ interface Golden {
   results: { folder: 'demo' | 'large'; name: string; arguments?: Record<string, unknown>; answer: { result?: Record<string, unknown>; error?: { code: number; message: string } } }[];
 }
 
-const golden = JSON.parse(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.6.json'), 'utf8')) as Golden;
+// Numbers as medrec printed them, as the tools hold them (src/records/numbers.ts).
+const golden = parseExact(readFileSync(join(import.meta.dirname, 'golden/medrec-0.9.6.json'), 'utf8')) as Golden;
 const roots: Record<string, string> = { demo: DEMO };
 /** The same folders with views written beside their files, as medrec writes them. */
 const viewRoots: Record<string, string> = {};

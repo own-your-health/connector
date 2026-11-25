@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
+import { parseExact } from '../src/records/numbers.ts';
 import { synth } from './synth.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -67,7 +68,8 @@ function server(profile) {
   const child = spawn('medrec', ['--profile', profile, 'mcp'], { env, stdio: ['pipe', 'pipe', 'inherit'] });
   const lines = createInterface({ input: child.stdout });
   const waiting = [];
-  lines.on('line', (l) => waiting.shift()?.(JSON.parse(l)));
+  // Numbers as medrec prints them: JSON.parse would write its 4.0 as 4.
+  lines.on('line', (l) => waiting.shift()?.(parseExact(l)));
   let next = 1;
   const request = (method, params) =>
     new Promise((resolve) => {

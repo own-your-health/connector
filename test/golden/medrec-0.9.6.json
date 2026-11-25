@@ -40819,7 +40819,7 @@
         "fields": {
          "when": "2024-11-14",
          "value": {
-          "value": 4,
+          "value": 4.0,
           "unit": "mmol/L",
           "system": "http://unitsofmeasure.org"
          },
