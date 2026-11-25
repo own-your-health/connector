@@ -7,6 +7,7 @@ import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { conditionKey } from './code-names';
 import { isExact, isObject } from './numbers';
+import { sourcesOf, type SourceOf } from './sources';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
 
 /** Longest name or detail a summary line carries, in characters. */
@@ -265,33 +266,6 @@ export function recordDetail(r: RecordEntry): string | undefined {
   }
 }
 
-/** A FHIR base without its trailing slashes. */
-export const baseOf = (b: string | null | undefined) => (b === null || b === undefined ? undefined : b.replace(/\/+$/, ''));
-
-/**
- * Where a record came from: the organization of its own sign-in (the household
- * source with its CLI, organization and FHIR base), else the household's
- * organization at its FHIR base, else its CLI. One base can serve many
- * practices (athenahealth's), so the sign-in comes first (medrec 0.9.3 and
- * later, views::source_label).
- */
-export function recordSource(h: Household, r: RecordEntry): string | undefined {
-  const s = r.provenance?.[0]?.source;
-  if (!s) return undefined;
-  const base = baseOf(s.fhir_base);
-  const cli = s.cli ?? undefined;
-  const organization = s.organization_id ?? undefined;
-  if (cli !== undefined && organization !== undefined) {
-    for (const x of h.sources ?? []) {
-      if (x.cli !== cli || x.organization !== organization || (base !== undefined && baseOf(x.fhir_base) !== base)) continue;
-      const name = trim(x.organization_name ?? '');
-      if (name !== '') return name;
-    }
-  }
-  const org = base === undefined ? undefined : (h.organizations ?? []).find((o) => baseOf(o.fhir_base) === base);
-  return org?.name ?? cli;
-}
-
 /** `q` is the record's code, or words of its name, case-insensitive. */
 export function matchesCode(r: RecordEntry, q: string): boolean {
   const ql = lower(trim(q));
@@ -372,14 +346,14 @@ export interface Listed<T> {
 
 export const cut = <T>(all: T[], n: number): Listed<T> => ({ items: all.slice(0, n), more: Math.max(0, all.length - n) });
 
-function line(h: Household, r: RecordEntry): SummaryLine {
+function line(r: RecordEntry, source: string | undefined): SummaryLine {
   const detail = recordDetail(r);
   return {
     name: clip(r.display, CLIP),
     date: day(r.date),
     detail: detail !== undefined && detail !== (r.status ?? undefined) ? clip(detail, CLIP) : undefined,
     status: r.status ?? undefined,
-    source: recordSource(h, r),
+    source,
     id: r.id,
     name_key: conditionKey(r),
   };
@@ -395,14 +369,14 @@ export interface Vaccine {
   id?: string;
 }
 
-function vaccines(h: Household, records: RecordEntry[]): Vaccine[] {
+function vaccines(records: RecordEntry[], from: SourceOf): Vaccine[] {
   const by = new Map<string, Vaccine>();
   for (const r of records) {
     if (r.kind !== 'immunization' || r.status === 'not-done' || r.status === 'entered-in-error') continue;
     const key = seriesKey(r);
     const v = by.get(key);
     if (v) v.doses += 1;
-    else by.set(key, { vaccine: clip(r.display, CLIP), code: r.code?.code ?? undefined, doses: 1, last_date: day(r.date), source: recordSource(h, r), id: r.id });
+    else by.set(key, { vaccine: clip(r.display, CLIP), code: r.code?.code ?? undefined, doses: 1, last_date: day(r.date), source: from(r), id: r.id });
   }
   return [...by.values()];
 }
@@ -439,7 +413,7 @@ function reading(r: RecordEntry): [string | undefined, string | undefined] {
   return [t === undefined ? undefined : clip(t, CLIP), undefined];
 }
 
-export function resultRow(h: Household, r: RecordEntry): ResultRow {
+export function resultRow(r: RecordEntry, source: string | undefined): ResultRow {
   const [value, unit] = reading(r);
   const text = (k: string) => {
     const v = r.fields?.[k];
@@ -455,13 +429,13 @@ export function resultRow(h: Household, r: RecordEntry): ResultRow {
     unit,
     range: text('reference_range'),
     flag: text('interpretation'),
-    source: recordSource(h, r),
+    source,
     id: r.id,
   };
 }
 
 /** The latest result of each test, with how many are on file and since when; `records` newest first. */
-export function latestResults(h: Household, records: RecordEntry[]): ResultRow[] {
+export function latestResults(records: RecordEntry[], from: SourceOf): ResultRow[] {
   const by = new Map<string, ResultRow>();
   for (const r of records) {
     if (r.kind !== 'result') continue;
@@ -471,7 +445,7 @@ export function latestResults(h: Household, records: RecordEntry[]): ResultRow[]
       row.results = (row.results ?? 0) + 1;
       if (r.date !== null && r.date !== undefined) row.first_date = day(r.date);
     } else {
-      by.set(key, { ...resultRow(h, r), results: 1, first_date: day(r.date) });
+      by.set(key, { ...resultRow(r, from(r)), results: 1, first_date: day(r.date) });
     }
   }
   return [...by.values()];
@@ -558,11 +532,12 @@ export interface Summary {
 
 export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number): Summary {
   const records = newestFirst(idx.records ?? []);
+  const from = sourcesOf(h, p.id, idx.imports);
   const counts = new Map<string, number>();
   const sources = new Map<string, SourceRow>();
   for (const r of records) {
     counts.set(r.kind, (counts.get(r.kind) ?? 0) + 1);
-    const s = recordSource(h, r);
+    const s = from(r);
     if (s !== undefined) {
       let row = sources.get(s);
       if (!row) sources.set(s, (row = { source: s, records: 0 }));
@@ -580,7 +555,7 @@ export function summarize(h: Household, p: Person, idx: PersonIndex, notes: numb
       const key = seriesKey(r);
       if (seen.has(key)) continue;
       seen.add(key);
-      out.push(line(h, r));
+      out.push(line(r, from(r)));
     }
     return out;
   };
@@ -592,10 +567,10 @@ export function summarize(h: Household, p: Person, idx: PersonIndex, notes: numb
     medications: cut(current('medication'), perList),
     conditions: cut(current('condition'), perList),
     allergies: cut(current('allergy'), perList),
-    immunizations: cut(vaccines(h, records), perList),
-    latest_results: cut(latestResults(h, records), perList),
+    immunizations: cut(vaccines(records, from), perList),
+    latest_results: cut(latestResults(records, from), perList),
     recent_visits: cut(
-      records.filter((r) => r.kind === 'encounter').map((r) => line(h, r)),
+      records.filter((r) => r.kind === 'encounter').map((r) => line(r, from(r))),
       perList,
     ),
     bills: cut(bills(idx.documents ?? [], today), perList),
@@ -618,6 +593,7 @@ export interface Event {
 /** A person's documents, records, studies and notes in the range, as timeline events, in the order the files hold them. */
 export function timelineEvents(h: Household, p: Person, idx: PersonIndex, notes: Note[], range: Range): Event[] {
   const out: Event[] = [];
+  const from = sourcesOf(h, p.id, idx.imports);
   {
     for (const d of idx.documents ?? []) {
       if (!holds(range, d.date)) continue;
@@ -634,7 +610,7 @@ export function timelineEvents(h: Household, p: Person, idx: PersonIndex, notes:
     }
     for (const r of idx.records ?? []) {
       if (!holds(range, r.date)) continue;
-      out.push({ date: r.date ?? undefined, person: p.id, person_name: p.name, kind: r.kind, id: r.id, title: r.display, detail: recordDetail(r), source: recordSource(h, r) });
+      out.push({ date: r.date ?? undefined, person: p.id, person_name: p.name, kind: r.kind, id: r.id, title: r.display, detail: recordDetail(r), source: from(r) });
     }
     for (const s of idx.studies ?? []) {
       if (!holds(range, s.date)) continue;

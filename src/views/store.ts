@@ -11,8 +11,9 @@ import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
 import type { Folder } from '../records/folder';
-import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from '../records/model';
+import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
 import { parseExact } from '../records/numbers';
+import { baseOf, sourcesOf, type SourceOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
@@ -20,7 +21,6 @@ import {
   CLIP,
   LAB_QUERIES,
   SUMMARY_LINES,
-  baseOf,
   holds,
   matchesCode,
   resultRow,
@@ -386,9 +386,10 @@ export class ViewsStore implements Store {
     };
   }
 
-  async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry> {
+  async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<ListedRecord> {
     const r = await this.views(h, p);
     if (!r) return yield* this.raw.records(h, p, kind, filter, detailed);
+    const from = viewSources(h, p);
     const run = r.v.records[kind];
     // No record of the kind: no shards of it, nor names.
     if (!run) return;
@@ -403,7 +404,7 @@ export class ViewsStore implements Store {
       const pass = shard.filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
       if (detailed) pass.sort(recordOrder(true));
-      for (const x of pass) yield signedIn(h, p, x);
+      for (const x of pass) yield { ...x, source: from(x) };
     }
   }
 
@@ -437,11 +438,12 @@ export class ViewsStore implements Store {
     });
     rows.sort((a, b) => a.rank - b.rank);
     const out: ResultRow[] = [];
+    const from = viewSources(h, p);
     for (const r of rows) {
       const shard = (await reader.records('result', r.shard)) as RecordEntry[];
       const rec = shard[r.pos];
       if (!rec) throw preparing(p);
-      out.push({ ...resultRow(h, signedIn(h, p, rec)), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
+      out.push({ ...resultRow(rec, from(rec)), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
     }
     return out;
   }
@@ -748,6 +750,20 @@ interface Items {
 }
 
 /**
+ * What the records of a person's views came through: the label medrec 0.9.6
+ * and later write with each. Without it, what the household's sources say
+ * with no patient known, as the views hold no import runs.
+ */
+function viewSources(h: Household, p: Person): SourceOf {
+  const from = sourcesOf(h, p.id);
+  return (r) => {
+    const label = (r as SlimRecord).provenance?.[0]?.source.label;
+    if (typeof label === 'string') return label;
+    return label === null ? undefined : from(signedIn(h, p, r));
+  };
+}
+
+/**
  * A record of the views with its sign-in's organization. Views written by
  * medrec 0.9.3 and earlier leave `organization_id` out of a record's source.
  * The person's only sign-in with its CLI and FHIR base then says it; of
@@ -756,8 +772,8 @@ interface Items {
 function signedIn(h: Household, p: Person, r: RecordEntry): RecordEntry {
   const s = r.provenance?.[0]?.source;
   if (!s || s.organization_id !== undefined || s.cli === undefined || s.cli === null) return r;
-  const base = baseOf(s.fhir_base);
-  const at = new Set((h.sources ?? []).filter((x) => x.person === p.id && x.cli === s.cli && typeof x.organization === 'string' && (base === undefined || baseOf(x.fhir_base) === base)).map((x) => x.organization!));
+  const base = s.fhir_base ?? undefined;
+  const at = new Set((h.sources ?? []).filter((x) => x.person === p.id && x.cli === s.cli && typeof x.organization === 'string' && (base === undefined || baseOf(x.fhir_base) === baseOf(base))).map((x) => x.organization!));
   if (at.size === 0) return r;
   return { ...r, provenance: [{ source: at.size === 1 ? { ...s, organization_id: [...at][0]! } : { cli: s.cli } }] };
 }

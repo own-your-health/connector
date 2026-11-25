@@ -2129,6 +2129,66 @@
         "doc_type": "imaging_report",
         "person": "Robin"
       }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Casey",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "office visit",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample eye",
+        "person": "Casey"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "limit": 200,
+        "response_format": "detailed"
+      }
     }
   ]
 }

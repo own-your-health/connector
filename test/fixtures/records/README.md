@@ -2,7 +2,7 @@
 
 A synthetic medrec records folder for the app’s demo mode and tests. Every person, organization and value in it is invented.
 
-The base is [own-your-health/app](https://github.com/own-your-health/app) `public/demo` at 27111fd, without its views and manifest. Added for medrec 0.9.0's events:
+The base is [own-your-health/app](https://github.com/own-your-health/app) `public/demo` at 112a287, without its views and manifest. Added for medrec 0.9.0's events:
 
 - Robin: an ER trip with only the hospital's claim (2025-11-06), a pharmacy claim (2026-07-21), and two office visits and a lab claim on one day (2026-05-12), the lab fitting either visit;
 - Sam: a hospital stay (2026-07-27 to 07-30) with the hospital's, a doctor's and an anesthesiologist's claims, Jamie's birth among it;
@@ -16,4 +16,9 @@ Added for medrec 0.9.3's private items and 0.9.5's linked documents and studies:
 - Casey: a person with two records and a `marks.json` that does not read, on purpose;
 - payments the household marked: Sam's `marks.json` pays their first bill in full, and Robin's pays part of two, one of them past due.
 
-After changing this folder, run `node scripts/derived.mjs` and `node scripts/golden.mjs` with medrec 0.9.5 on `PATH`.
+Added for medrec 0.9.6's source names:
+
+- one sign-in key (CLI, organization, FHIR base) with two of Casey's sources and one of Robin's, each with a name and a patient of its own, and a source of Casey's with no name;
+- Casey: an office visit filed by each of two import runs, whose patients tell the sources apart; one that no run filed, so that two names are left; and one from the source with no name.
+
+After changing this folder, run `node scripts/derived.mjs` and `node scripts/golden.mjs` with medrec 0.9.6 on `PATH`.

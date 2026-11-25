@@ -6,6 +6,7 @@
 
 import { createHash } from 'node:crypto';
 import type { Household, Person, PersonIndex, RecordEntry } from '../records/model';
+import { sourcesOf, type SourceOf } from '../records/sources';
 import { recordOrder, eventOrder } from '../records/store';
 import { cmpOpt, day, fold, wordStarts } from '../records/text';
 import { SUMMARY_LINES, isLab, newestFirst, personRow, recordDetail, searchables, seriesKey, summarize, timelineEvents, type Event } from '../records/views';
@@ -130,7 +131,7 @@ function cutFromOldest<T>(list: T[], dayOf: (x: T) => string | undefined, size: 
   return { shards, undated };
 }
 
-function slim(r: RecordEntry): SlimRecord {
+function slim(r: RecordEntry, from: SourceOf): SlimRecord {
   const s: SlimRecord = { id: r.id, kind: r.kind, display: r.display };
   if (r.date !== undefined) s.date = r.date;
   if (r.code !== undefined) s.code = r.code;
@@ -142,6 +143,7 @@ function slim(r: RecordEntry): SlimRecord {
     if (typeof src.fhir_base === 'string') keep.fhir_base = src.fhir_base;
     if (typeof src.cli === 'string') keep.cli = src.cli;
     keep.organization_id = typeof src.organization_id === 'string' ? src.organization_id : null;
+    keep.label = from(r) ?? null;
     s.provenance = [{ source: keep }];
   }
   return s;
@@ -189,6 +191,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   const { person: p, index: idx, texts } = f;
   const pid = p.id;
   const records = idx.records ?? [];
+  const from = sourcesOf(h, pid, idx.imports);
   const row = personRow(p, idx, 0);
 
   // ---- summary ----
@@ -212,7 +215,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   const where = new Map<RecordEntry, [shard: number, pos: number]>();
   for (const kind of kinds) {
     const list = records.filter((r) => r.kind === kind).sort(recordOrder(false));
-    const { shards, undated } = cutFromOldest(list, (r) => day(r.date), (r) => json(slim(r)).length);
+    const { shards, undated } = cutFromOldest(list, (r) => day(r.date), (r) => json(slim(r, from)).length);
     spans[kind] = { shards: shards.map((sh) => span(sh, (r) => r.date)), undated: undated.length };
     const names = new Map<string, NameRow>();
     const place = (sh: RecordEntry[], i: number) =>
@@ -224,11 +227,11 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
         if (!held[3].includes(i)) held[3].push(i);
       });
     shards.forEach((sh, i) => {
-      out.set(paths.records(pid, kind, i), json(sh.map(slim)));
+      out.set(paths.records(pid, kind, i), json(sh.map((r) => slim(r, from))));
       place(sh, i);
     });
     if (undated.length > 0) {
-      out.set(paths.records(pid, kind, UNDATED), json(undated.map(slim)));
+      out.set(paths.records(pid, kind, UNDATED), json(undated.map((r) => slim(r, from))));
       place(undated, UNDATED);
     }
     out.set(paths.names(pid, kind), json([...names.values()]));

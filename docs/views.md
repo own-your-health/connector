@@ -16,7 +16,7 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder
 and the large synthetic folder, with the `events.json` medrec wrote for them
 (`test/fixtures/events`; the reference writer does not write it), answers all
-261 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
+268 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
 the views"). Another writer (medrec's) is right when its views pass the same
 calls:
 
@@ -152,24 +152,33 @@ Every record keeps its `index.json` fields `id`, `kind`, `date`, `code`,
 `display`, `status` and `fields` as they are, when present, each number in
 them as that file writes it (`4.10`, not `4.1`). `provenance` is
 cut to its first entry's `source`, keeping only `fhir_base`, `cli` and
-`organization_id` (`null` when it has none). A reader names the record's
-organization from them and `household.json`: its own sign-in's (the
-`sources` entry with its CLI, organization and FHIR base), else the
-`organizations` entry at its FHIR base, else its CLI. One base can serve many
-practices.
+`organization_id` (`null` when it has none), and from medrec 0.9.6 `label`:
+what the record came through, as `medrec mcp` shows it, or `null`. A reader
+shows the `label`.
 
-medrec 0.9.3 and earlier leave `organization_id` out. For such a record, this
-connector takes the person's only sign-in with that CLI and FHIR base. When
-the person has several there, it names only the CLI.
+Views written by medrec 0.9.5 and earlier have no `label`. One CLI,
+organization and FHIR base can be several practices' and several people's, and
+a view does not hold the import runs that say which patient a record was read
+as. So this connector takes the person's own sources (`sources` of
+`household.json`) with the record's CLI, organization and FHIR base. The name
+they all have is the label. Where they differ, or one has none, or there are
+none, it is the CLI.
 
-`summary.json` and `timeline-<n>.json` hold the label their writer gave, as
-they keep no `provenance`. So until a writer that keeps `organization_id`
-writes a person's views, one record can be named two ways: only the CLI in a
-list of its kind or of tests, and an organization in the timeline and the
-summary. Written by medrec 0.9.3, that organization is the record's own.
-Written by an earlier medrec (the `medrec` of `views.json`), it is the first
-of those at the FHIR base, and may be another practice: the CLI is then all
-that is known.
+medrec 0.9.3 and earlier leave `organization_id` out too. For such a record,
+this connector takes the organization of the person's only sign-in with that
+CLI and FHIR base. When the person has several there, it names only the CLI.
+
+A small person's files are read whole, with the import runs: a record is then
+of the source whose `patient_id` is that of the run that filed it
+(`imported_at` is the record's `filed_at`), else of the run that read it
+(`pulled_at` is its `fetched_at`). This is medrec 0.9.6's rule ("Which source"
+in its data contract), and `npm run views` writes each `label` by it.
+
+`summary.json`, `timeline-<n>.json` and the `place` in `events.json` hold the
+name their writer gave, as they keep no `provenance`. Written by medrec 0.9.5
+and earlier, that can be another practice's of the person, or another
+person's, where one sign-in key serves both. medrec 0.9.6 rewrites every
+person's views on its first pass, and they are right from then on.
 
 Shards are cut from the **oldest** end. `records-<kind>-0.json` holds the
 oldest days. A shard closes once it holds 48,000 bytes or more, never inside
