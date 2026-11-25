@@ -277,6 +277,7 @@ describe("over medrec's own folder", () => {
   const TALK = 'r_talkaaaaaaaaaaaaaaaa';
   const PORTAL = 'r_sampleportalaaaaaaaa';
   const BILL = 'd_billaaaaaaaaaaaaaaaa';
+  const BOTH = 'r_privatebothaaaaaaaaa';
   const COUNSELING = 'd_counselingaaaaaaaaaa';
   const root = folder();
 
@@ -306,9 +307,12 @@ describe("over medrec's own folder", () => {
     const about = await list(root, { kind: 'claims', person: 'Robin' });
     expect(about.items.find((i) => i.id === TALK)!.private).toBe('mental_health');
     expect(of(about, TALK)![0]!.role).toBe('psychologist');
+    // One whose reason is a private paper gives it there.
+    expect(of(about, BOTH)).toEqual([{ field: 'provider', practice: 'Example Counseling Center', confidence: 'likely', evidence: [{ from: 'paper', document: 'd_counselingtwoaaaaaaa' }] }]);
     const named = await list(root, { kind: 'claims', name: 'Sample service' });
     expect(named.items.find((i) => i.id === TALK)!.private).toBe('mental_health');
-    expect(of(named, TALK)).toBeUndefined();
+    expect(named.items.find((i) => i.id === BOTH)!.private).toBe('household');
+    expect([of(named, TALK), of(named, BOTH)]).toEqual([undefined, undefined]);
     expect(of(named, SAMPLE)).toBeDefined();
   });
 
@@ -364,7 +368,7 @@ describe("over medrec's own folder", () => {
     expect((await ask(root, 'medrec_records', { kind: 'claims' })).read.filter((f) => f.includes('providers.')).map((f) => relative('views', f).split('/')[0])).toEqual([PERSON]);
     // Nor does one past the page.
     const past = folder((x) => delete x.records.reduce((a, b) => (a.kind === 'claim' && (b.kind !== 'claim' || a.date > b.date) ? a : b)).fields.provider);
-    const top = await ask(past, 'medrec_records', { kind: 'claims', limit: 1 });
+    const top = await ask(past, 'medrec_records', { kind: 'claims', person: 'Robin', limit: 1 });
     expect([top.out.items.length, top.out.next_cursor !== undefined, top.read.some((f) => f.includes('providers.'))]).toEqual([1, true, false]);
     // A later page's are its own.
     const all = (await list(root, { kind: 'claims' })).items.length;
