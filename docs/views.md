@@ -16,8 +16,10 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder,
 the large synthetic folder and medrec's own folder for provider labels, with
 the views only medrec makes as it wrote them for each (`events.json`,
-`bills.json`, `private.json`, `code-names.json` and `providers.json`, in
-`test/fixtures`), answers all 305 recorded calls exactly as `medrec mcp` does
+`bills.json`, `private.json`, `code-names.json`, `providers.json` and
+`standing.json`, in `test/fixtures`), and all of medrec's own views for its six
+other folders (`words`, `errors`, `given`, `questionnaires`, `child` and
+`parts`), answer all 674 recorded calls exactly as `medrec mcp` does
 (`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
 when its views pass the same calls:
 

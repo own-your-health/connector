@@ -7,12 +7,10 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.8 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.9 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 305 recorded calls of `medrec mcp` to
-this connector's answers, to the character. One thing differs until medrec
-0.9.9: what an event's `fields` leave out (`private_members`, below). The tools'
-descriptions and schemas do not mention it.
+same too: `test/golden.test.ts` holds 674 recorded calls of `medrec mcp` to
+this connector's answers, to the character.
 
 | Tool | What it answers |
 |---|---|
