@@ -40,10 +40,10 @@ it('measures', async () => {
   const scratch = mkdtempSync(join(tmpdir(), 'oyh-views-bench-'));
   const root = synth(join(scratch, 'records'));
   const written = writeViewsAt(root);
-  // medrec's events, bills, private items and provider labels for this folder, and code names, as medrec wrote them; then one record in 20 private, and every claim labelled.
+  // medrec's events, bills, private items and provider labels for this folder, and code names, as medrec wrote them; then one record in 20 private, and every claim labelled, in as many bytes as one answer reads (LABELS_LIMIT).
   addDerived(root, 'large');
   const privateRecords = markPrivate(root, 20);
-  const labels = labelClaims(root, 150);
+  const labels = labelClaims(root, 172).reduce((n, size) => n + size, 0);
   const all = files(root);
   const touch = () => clearCacheForTests();
 
@@ -222,7 +222,7 @@ it('measures', async () => {
   rmSync(scratch, { recursive: true, force: true });
   writeFileSync(
     process.env.OUT ?? '/tmp/oyh-views.md',
-    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private, every claim labelled (${(labels / 1e3).toFixed(0)} KB at most)\n` +
+    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private, every claim labelled (${(labels / 1e3).toFixed(0)} KB)\n` +
       `| Call | cold, least | cold, median | warm, least | subrequests |\n|---|---:|---:|---:|---:|\n${rows.join('\n')}\n`,
   );
 }, 600_000);

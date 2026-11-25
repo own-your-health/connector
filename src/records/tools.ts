@@ -9,7 +9,7 @@ import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names'
 import { LeftOut, type Warning } from './partial';
 import { Gate, names, type Privacy } from './private';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Standing, type Store } from './store';
-import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, type Printed, type ProviderLabels } from './provider-labels';
+import { printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, type LabelsFile, type Printed, type ProviderLabels } from './provider-labels';
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { isObject } from './numbers';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
@@ -395,15 +395,44 @@ async function withPlainNames(ctx: Context, h: Household, gate: Gate, household:
   });
 }
 
-/** A person's provider labels; none when they cannot be read, as a label is never worth an answer. */
-async function providerLabels(ctx: Context, h: Household, p: Person): Promise<ProviderLabels> {
-  try {
-    return await ctx.store.providerLabels(h, p);
-  } catch (e) {
-    // As for plain names: only the error's class is logged.
-    if (!(e instanceof ToolError)) console.error(`provider labels failed: ${e instanceof Error ? e.name : typeof e}`);
-    return NO_LABELS;
+/**
+ * The most bytes of providers.json one answer reads, all its people's together:
+ * a label is never worth the CPU the answer needs. 1,500 claims of 150 providers
+ * take about 150,000.
+ */
+export const LABELS_LIMIT = 256_000;
+
+/**
+ * People's provider labels, in the household's order as many as LABELS_LIMIT
+ * has room for; none of one whose cannot be read. And who had no room, with
+ * whether an answer about them alone would.
+ */
+async function providerLabels(ctx: Context, h: Household, people: readonly Person[]): Promise<{ read: ReadonlyMap<string, ProviderLabels>; noRoom: ReadonlyMap<string, { alone: boolean }> }> {
+  const ids = new Set(people.map((p) => p.id));
+  const read = new Map<string, ProviderLabels>();
+  const noRoom = new Map<string, { alone: boolean }>();
+  const tried = async (f: () => Promise<void>) => {
+    try {
+      await f();
+    } catch (e) {
+      // As for plain names: only the error's class is logged.
+      if (!(e instanceof ToolError)) console.error(`provider labels failed: ${e instanceof Error ? e.name : typeof e}`);
+    }
+  };
+  let room = LABELS_LIMIT;
+  const fit: { p: Person; file: LabelsFile }[] = [];
+  for (const p of h.people) {
+    if (!ids.has(p.id)) continue;
+    await tried(async () => {
+      const file = await ctx.store.providerLabels(h, p);
+      if (file === null) return;
+      if (file.size > room) return void noRoom.set(p.id, { alone: file.size <= LABELS_LIMIT });
+      room -= file.size;
+      fit.push({ p, file });
+    });
   }
+  await Promise.all(fit.map(({ p, file }) => tried(async () => void read.set(p.id, await file.read()))));
+  return { read, noRoom };
 }
 
 /** What an answer, about the whole household or one person, may say of this person's labels. */
@@ -412,48 +441,65 @@ const asked = (gate: Gate, p: Person, whole: boolean) => ({ whole, isPrivate: (i
 /** Characters of JSON one item of a page may have: the page's, less its brackets and the item's comma. */
 const ITEM_ROOM = SIZE_BUDGET - ENVELOPE_RESERVE - 3;
 
-/** How many of an item's labels, the first ones, fit a page beside it: a label yields to the record. And the item's size with those. */
-function fitting(it: Record<string, unknown>, labels: JsonObject[]): { n: number; size: number } {
-  let size = chars(JSON.stringify(it));
-  let next = size + ',"provider_labels":[]'.length - 1;
+/** How many labels of an item `size` characters long, the first ones, fit a page beside it: a label yields to the record. And what those add to it. */
+function fitting(size: number, labels: JsonObject[]): { n: number; more: number } {
+  let next = ',"provider_labels":[]'.length - 1;
+  let more = 0;
   let n = 0;
   for (const l of labels) {
     next += chars(JSON.stringify(l)) + 1;
-    if (next > ITEM_ROOM) break;
-    size = next;
+    if (size + next > ITEM_ROOM) break;
+    more = next;
     n++;
   }
-  return { n, size };
+  return { n, more };
 }
+
+/** What a list's items lack of their labels, by place in it. */
+interface Gaps {
+  /** Which did not have room for all of theirs. */
+  cut: ReadonlySet<number>;
+  /** Whose person's labels LABELS_LIMIT had no room for. */
+  unread: ReadonlyMap<number, { p: Person; alone: boolean }>;
+}
+
+const NO_GAPS: Gaps = { cut: new Set(), unread: new Map() };
 
 /**
  * Adds to the items a page can have the labels of what they print (`printed`),
- * before it is cut, so that they count in its size. Labels are read only for
- * the people who print something there, and looked up only until the labelled
- * items fill a page by themselves: no later one can be on it. Returns which
- * items did not have room for all of theirs.
+ * before it is cut, so that they count in its size. Those are the items that
+ * fit a page, first as they are, then with their labels. Labels are read only
+ * for the people who print something among the first, and looked up only among
+ * the second.
  */
-async function addLabels(ctx: Context, h: Household, gate: Gate, household: boolean, page: PageRequest, items: Record<string, unknown>[], printed: (i: number) => { p: Person; printed: readonly Printed[] }): Promise<ReadonlySet<number>> {
+async function addLabels(ctx: Context, h: Household, gate: Gate, household: boolean, page: PageRequest, items: Record<string, unknown>[], printed: (i: number) => { p: Person; printed: readonly Printed[] }): Promise<Gaps> {
   const cut = new Set<number>();
-  const rows: { i: number; p: Person; printed: readonly Printed[] }[] = [];
+  const unread = new Map<number, { p: Person; alone: boolean }>();
+  const rows: { i: number; size: number; before: number; p: Person; printed: readonly Printed[] }[] = [];
+  const room = SIZE_BUDGET - ENVELOPE_RESERVE;
+  let before = 2;
   for (let i = page.offset; i < Math.min(items.length, page.offset + page.limit); i++) {
+    const size = chars(JSON.stringify(items[i]));
+    if (before + size + 1 > room) break;
     const row = printed(i);
-    if (row.printed.length > 0) rows.push({ i, ...row });
+    if (row.printed.length > 0) rows.push({ i, size, before, ...row });
+    before += size + 1;
   }
-  const people = [...new Set(rows.map(({ p }) => p))];
-  const labels = new Map(await Promise.all(people.map(async (p) => [p.id, await providerLabels(ctx, h, p)] as const)));
-  let used = 2;
-  for (const { i, p, printed } of rows) {
+  const labels = await providerLabels(ctx, h, rows.map(({ p }) => p));
+  let added = 0;
+  for (const { i, size, before, p, printed } of rows) {
+    if (before + added + size + 1 > room) break;
     const it = items[i]!;
-    const shown = labels.get(p.id)!.shown(it.id as string, printed, asked(gate, p, household));
+    const none = labels.noRoom.get(p.id);
+    if (none) unread.set(i, { p, ...none });
+    const shown = labels.read.get(p.id)?.shown(it.id as string, printed, asked(gate, p, household)) ?? [];
     if (shown.length === 0) continue;
-    const { n, size } = fitting(it, shown);
+    const { n, more } = fitting(size, shown);
     if (n < shown.length) cut.add(i);
     if (n > 0) items[i] = item({ ...it, provider_labels: shown.slice(0, n) });
-    used += size + 1;
-    if (used > SIZE_BUDGET - ENVELOPE_RESERVE) break;
+    added += more;
   }
-  return cut;
+  return { cut, unread };
 }
 
 /** Each person's private items, for an answer that covers them. */
@@ -470,7 +516,7 @@ function cutPage<T>(
   household: boolean,
   items: T[],
   hint: string,
-  { extra = [], cut = NONE_CUT }: { extra?: Warning[]; /** Which items did not have room for all their labels. */ cut?: ReadonlySet<number> } = {},
+  { extra = [], gaps = NO_GAPS }: { extra?: Warning[]; gaps?: Gaps } = {},
 ): { out: Page<T>; warnings: Warning[] } {
   // Everyone left out is that error, before any cursor is checked.
   const warnings = left.done(people);
@@ -478,14 +524,21 @@ function cutPage<T>(
   const gone = new Set(left.ids());
   const asked = people.filter((p) => !gone.has(p.id));
   const leftOut = household ? gate.leftOut(page.offset, out.returned, out.next_cursor === undefined) : 0;
-  return { out, warnings: [...labelsLeftOut([...cut].filter((i) => i >= page.offset && i < page.offset + out.returned).length), ...gate.warnings(asked, leftOut), ...extra, ...warnings] };
+  const shown = (i: number) => i >= page.offset && i < page.offset + out.returned;
+  return { out, warnings: [...labelsLeftOut([...gaps.cut].filter(shown).length), ...gate.warnings(asked, leftOut), ...extra, ...warnings, ...labelsNotRead(asked, new Map([...gaps.unread].filter(([i]) => shown(i)).map(([, u]) => [u.p.id, u])))] };
 }
-
-const NONE_CUT: ReadonlySet<number> = new Set();
 
 function labelsLeftOut(n: number): Warning[] {
   if (n === 0) return [];
   return [{ code: 'provider-labels-left-out', message: `${n} item${n === 1 ? '' : 's'} on this page: some of the provider_labels did not fit and are left out, the rest of it is whole` }];
+}
+
+function labelsNotRead(people: Person[], unread: ReadonlyMap<string, { alone: boolean }>): Warning[] {
+  return people.flatMap((p) => {
+    const u = unread.get(p.id);
+    if (!u) return [];
+    return [{ code: 'provider-labels-not-read', message: `${p.name}'s provider_labels are left out of this page: ${u.alone ? `those of the others on it are as many as one answer reads. Ask about ${p.name} alone for them` : 'they are more than one answer reads'}` }];
+  });
 }
 
 function gatedPage<T>(...args: Parameters<typeof cutPage<T>>): Record<string, unknown> {
@@ -673,11 +726,11 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     );
     const top = found.map(({ x }) => x);
     const items = found.map((f) => f.item);
-    const cut = await addLabels(ctx, h, gate, household, page, items, (i) => {
+    const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => {
       const { p, x } = top[i]!;
       return { p, printed: detailed ? printedOfRecord(x.fields) : x.kind === 'claim' ? printedOfClaim(x.fields) : [] };
     });
-    const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { cut });
+    const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { gaps });
     if (kind === 'conditions') out.items = await withPlainNames(ctx, h, gate, household, top.slice(page.offset, page.offset + out.returned), out.items);
     return pageJson(out, warnings);
   } else if (kind === 'notes') {
@@ -700,11 +753,11 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       page.full(),
     );
     const events = top.map((t) => t.item);
-    const cut = await addLabels(ctx, h, gate, household, page, events, (i) => {
+    const gaps = await addLabels(ctx, h, gate, household, page, events, (i) => {
       const { p, x: e } = top[i]!.x;
       return { p, printed: e.kind === 'document' ? printedOfDocument(e.source) : e.kind === 'claim' ? printedOfTitle(e.title) : [] };
     });
-    return gatedPage(page, gate, chosen, left, household, events, hint, { cut });
+    return gatedPage(page, gate, chosen, left, household, events, hint, { gaps });
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
@@ -725,11 +778,11 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   rows.sort((x, y) => cmpOptS(y.it.date, x.it.date) || cmpS(x.it.title as string, y.it.title as string));
   const kept = rows.filter(({ p, it, members }) => keep(p, it, members));
   const items = kept.map(({ p, it, members }) => marked(p, it, members));
-  const cut = await addLabels(ctx, h, gate, household, page, items, (i) => {
+  const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => {
     const { p, it } = kept[i]!;
     return { p, printed: it.kind === 'document' ? printedOfDocument(it.source as string | undefined) : [] };
   });
-  return gatedPage(page, gate, chosen, left, household, items, hint, { extra, cut });
+  return gatedPage(page, gate, chosen, left, household, items, hint, { extra, gaps });
 }
 
 /** The warning for a person whose bills.json this connector cannot read now. */
@@ -787,8 +840,8 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   const opens = (it: Item) => id !== undefined || (name !== undefined && [it.title, it.detail, it.source].some((t) => typeof t === 'string' && names(t, name)));
   const kept = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it)));
   const items = kept.map(({ p, it }) => item({ ...it, private: gate.area(p, it.id as string) }));
-  const cut = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
-  return gatedPage(page, gate, chosen, left, household, items, hint, { cut });
+  const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
+  return gatedPage(page, gate, chosen, left, household, items, hint, { gaps });
 }
 
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
@@ -966,7 +1019,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   const [records, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
   // It names no person, so its labels are those of an answer about the whole household.
   const printed = printedOfDocument(d.organization);
-  const labels = printed.length > 0 ? (await providerLabels(ctx, h, p)).shown(d.id, printed, asked(new Gate(true, new Map([[p.id, privacy]])), p, true)) : [];
+  const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).read.get(p.id)?.shown(d.id, printed, asked(new Gate(true, new Map([[p.id, privacy]])), p, true)) ?? []) : [];
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,

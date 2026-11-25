@@ -16,7 +16,7 @@ import { parseExact } from '../records/numbers';
 import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
-import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type ProviderLabels, type ProvidersView } from '../records/provider-labels';
+import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -165,9 +165,6 @@ const DEPENDS = {
   'providers.json': ['marks', 'provider_state'],
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
 
-/** The largest providers.json read, in bytes: a label is never worth the CPU an answer needs. 1,500 claims of 150 providers take about 150,000. */
-export const LABELS_LIMIT = 256_000;
-
 /** private.json as a reader needs it (medrec-private/v1). */
 export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
 
@@ -290,17 +287,11 @@ export class ViewsStore implements Store {
    * `schema`; otherwise why not.
    */
   private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
-    const st = await this.state(h);
-    if (st.newer) return { not: `their views are in a newer layout (${st.newer}) than this connector reads` };
-    const v = st.index?.people[p.id];
-    // medrec writes these three beside every such view; without them, what it was made from cannot be checked.
-    const from = v?.overrides !== undefined && v.marks !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
-    if (!v?.files || v.files[name] === undefined || !from) return { not: `medrec has written no ${name} for them yet` };
-    const on: readonly (keyof typeof MADE_FROM)[] = DEPENDS[name];
-    if (on.includes('provider_state') && (v.provider_state ?? null) === null && (await this.hasProviderState(p))) {
-      return { not: `their views were made without the ${MADE_FROM.provider_state} now in their folder` };
-    }
-    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, on))) return { not: `their records changed after medrec last wrote their ${name}` };
+    const found = await this.findDerived(h, p, name);
+    return 'not' in found ? found : this.readDerived<T>(p, found.v, name, schema, empty);
+  }
+
+  private async readDerived<T>(p: Person, v: PersonViews, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
     // The view medrec writes for a person with nothing in it, known by its MD5 without reading it.
     if (empty !== undefined && createHash('md5').update(empty).digest('hex') === v.files[name]) return { view: JSON.parse(empty) as T };
     let view: { schema?: string };
@@ -312,6 +303,22 @@ export class ViewsStore implements Store {
     }
     if (view.schema !== schema) return { not: `their ${name} is in a layout (${String(view.schema)}) this connector does not read` };
     return { view: view as T };
+  }
+
+  /** The person's entry in views.json when such a view is current; otherwise why not. It costs no request. */
+  private async findDerived(h: Household, p: Person, name: keyof typeof DEPENDS): Promise<{ v: PersonViews } | { not: string }> {
+    const st = await this.state(h);
+    if (st.newer) return { not: `their views are in a newer layout (${st.newer}) than this connector reads` };
+    const v = st.index?.people[p.id];
+    // medrec writes these three beside every such view; without them, what it was made from cannot be checked.
+    const from = v?.overrides !== undefined && v.marks !== undefined && v.linked !== null && typeof v.linked === 'object' && !Array.isArray(v.linked);
+    if (!v?.files || v.files[name] === undefined || !from) return { not: `medrec has written no ${name} for them yet` };
+    const on: readonly (keyof typeof MADE_FROM)[] = DEPENDS[name];
+    if (on.includes('provider_state') && (v.provider_state ?? null) === null && (await this.hasProviderState(p))) {
+      return { not: `their views were made without the ${MADE_FROM.provider_state} now in their folder` };
+    }
+    if (!st.fresh.has(p.id) || !(await this.derivedFresh(h, p, v, on))) return { not: `their records changed after medrec last wrote their ${name}` };
+    return { v };
   }
 
   async privacy(h: Household, p: Person): Promise<Privacy> {
@@ -341,12 +348,17 @@ export class ViewsStore implements Store {
     return 'not' in got ? NO_NAMES : codeNamesOf(got.view, p.id);
   }
 
-  async providerLabels(h: Household, p: Person): Promise<ProviderLabels> {
-    const sum = (await this.state(h)).index?.people[p.id]?.files?.['providers.json'];
-    // The survey has its size, so a look costs no request.
-    if (sum !== undefined && ((await this.folder.size(personDir(p.id) + storedName('providers.json', sum))) ?? 0) > LABELS_LIMIT) return NO_LABELS;
-    const got = await this.derived<ProvidersView>(h, p, 'providers.json', PROVIDERS_SCHEMA);
-    return 'not' in got ? NO_LABELS : providerLabelsOf(got.view, p.id);
+  async providerLabels(h: Household, p: Person): Promise<LabelsFile | null> {
+    const found = await this.findDerived(h, p, 'providers.json');
+    if ('not' in found) return null;
+    return {
+      // The survey has it.
+      size: (await this.folder.size(personDir(p.id) + storedName('providers.json', found.v.files['providers.json']!))) ?? 0,
+      read: async () => {
+        const got = await this.readDerived<ProvidersView>(p, found.v, 'providers.json', PROVIDERS_SCHEMA);
+        return 'not' in got ? NO_LABELS : providerLabelsOf(got.view, p.id);
+      },
+    };
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */

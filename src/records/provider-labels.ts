@@ -231,6 +231,12 @@ const PHONE_FROM: ReadonlyMap<unknown, readonly string[]> = new Map([
 
 export const NO_LABELS = new ProviderLabels({});
 
+/** A person's providers.json, found and not yet read: its size in bytes, which costs no request, for a caller to bound what it reads by. */
+export interface LabelsFile {
+  size: number;
+  read(): Promise<ProviderLabels>;
+}
+
 export function providerLabelsOf(view: ProvidersView, person: string): ProviderLabels {
   return view.person === person ? new ProviderLabels(view) : NO_LABELS;
 }

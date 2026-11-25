@@ -9,7 +9,7 @@ import { VIEWS_INDEX, personDir, storedName, type SlimSource, type ViewsIndex } 
 import type { Household, Person } from '../src/records/model';
 import type { Privacy } from '../src/records/private';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
-import { NO_LABELS, providerLabelsOf, type ProviderLabels, type ProvidersView } from '../src/records/provider-labels';
+import { providerLabelsOf, type LabelsFile, type ProvidersView } from '../src/records/provider-labels';
 import { RawStore, type Standing } from '../src/records/store';
 import { privacyOf, standingOf, type BillsView, type PrivateView } from '../src/views/store';
 
@@ -220,9 +220,9 @@ export class RawWithDerived extends RawStore {
     return v ? codeNamesOf(v, p.id) : NO_NAMES;
   }
 
-  override async providerLabels(_h: Household, p: Person): Promise<ProviderLabels> {
+  override async providerLabels(_h: Household, p: Person): Promise<LabelsFile | null> {
     const v = this.fixture<ProvidersView>('providers', p);
-    return v ? providerLabelsOf(v, p.id) : NO_LABELS;
+    return v ? { size: JSON.stringify(v).length, read: async () => providerLabelsOf(v, p.id) } : null;
   }
 }
 
@@ -255,13 +255,13 @@ export function editSources(root: string, edit: (s: SlimSource) => void): void {
  * Gives every claim of each person a label in their providers.json, and the
  * file `others` labels no claim has, as medrec would for a household whose
  * providers a directory knows, for measuring what labels cost. A private
- * claim's are the private part's. Returns the size of the largest file.
+ * claim's are the private part's. Returns the files' sizes.
  */
-export function labelClaims(root: string, others: number): number {
+export function labelClaims(root: string, others: number): number[] {
   const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string }[] };
   const at = join(root, VIEWS_INDEX);
   const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
-  let largest = 0;
+  const sizes: number[] = [];
   const id = (n: number) => `v_${createHash('md5').update(String(n)).digest('hex').slice(0, 20)}`;
   const label = (n: number) => ({
     name: `Sample Person ${n}, MD`,
@@ -293,10 +293,10 @@ export function labelClaims(root: string, others: number): number {
     const sum = createHash('md5').update(body).digest('hex');
     writeFileSync(join(root, personDir(p.id) + storedName('providers.json', sum)), body);
     v.files['providers.json'] = sum;
-    largest = Math.max(largest, body.length);
+    sizes.push(body.length);
   }
   writeFileSync(at, JSON.stringify(index));
-  return largest;
+  return sizes;
 }
 
 /**
