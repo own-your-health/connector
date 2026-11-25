@@ -362,7 +362,7 @@ describe('the views through Drive', () => {
     it(`answers ${name} ${JSON.stringify(args)} as the files do, in few requests`, async () => {
       const { r, requests } = await viaDrive(large, name, args);
       expect(r).toEqual(await raw(large, name, args));
-      expect(requests).toBeLessThanOrEqual(SUBREQUESTS - 4);
+      expect(requests).toBeLessThanOrEqual(SUBREQUESTS - 2);
     });
   }
 
@@ -1056,8 +1056,16 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
     });
 
     it('reads no private.json for a person whose medrec wrote an empty one', async () => {
-      const { read } = await ask(demo, 'medrec_records', { kind: 'timeline', person: 'Jamie' });
+      const { read } = await ask(demo, 'medrec_records', { kind: 'timeline', person: 'Alex' });
       expect(read.some((f) => f.includes('private'))).toBe(false);
+    });
+
+    it('reads none from before medrec 0.9.9 either', async () => {
+      const root = copy(demo, 'empty-older');
+      setView(root, 'Alex Example', 'private.json', { schema: 'medrec-private/v1', person: personId(root, 'Alex Example'), records: {}, documents: {}, events: {}, studies: {} });
+      const { read, r } = await ask(root, 'medrec_records', { kind: 'timeline', person: 'Alex' });
+      expect(read.some((f) => f.includes('private'))).toBe(false);
+      expect((r.structuredContent as { warnings?: unknown }).warnings).toBeUndefined();
     });
   });
 

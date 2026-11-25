@@ -308,14 +308,15 @@ export class ViewsStore implements Store {
    * (private.json, code-names.json, providers.json), when it is current, in
    * `schema`; otherwise why not.
    */
-  private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
+  private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empties: readonly string[] = []): Promise<{ view: T } | { not: string }> {
     const found = await this.findDerived(h, p, name);
-    return 'not' in found ? found : this.readDerived<T>(p, found.v, name, schema, empty);
+    return 'not' in found ? found : this.readDerived<T>(p, found.v, name, schema, empties);
   }
 
-  private async readDerived<T>(p: Person, v: PersonViews, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
-    // The view medrec writes for a person with nothing in it, known by its MD5 without reading it.
-    if (empty !== undefined && createHash('md5').update(empty).digest('hex') === v.files[name]) return { view: JSON.parse(empty) as T };
+  private async readDerived<T>(p: Person, v: PersonViews, name: keyof typeof DEPENDS, schema: string, empties: readonly string[] = []): Promise<{ view: T } | { not: string }> {
+    // A view medrec writes for a person with nothing in it, known by its MD5 without reading it.
+    const empty = empties.find((e) => createHash('md5').update(e).digest('hex') === v.files[name]);
+    if (empty !== undefined) return { view: JSON.parse(empty) as T };
     let view: { schema?: string };
     try {
       view = await new PersonReader(this.folder, p, v).json<{ schema?: string }>(`${VIEWS_DIR}/${p.id}/${name}`);
@@ -344,9 +345,9 @@ export class ViewsStore implements Store {
   }
 
   async privacy(h: Household, p: Person): Promise<Privacy> {
-    // As medrec 0.9.5 and later write it for a person with nothing private and no study without a report.
-    const empty = JSON.stringify({ schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {}, studies: {} });
-    const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, empty);
+    // As medrec 0.9.9 and later, and 0.9.5 to 0.9.8, write it for a person with nothing private and no study without a report.
+    const none = { schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {}, studies: {} };
+    const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, [JSON.stringify({ ...none, parts: {} }), JSON.stringify(none)]);
     const known: Privacy = 'not' in got ? { areas: new Map(), unknown: { why: 'not-prepared', detail: got.not } } : privacyOf(got.view);
     if (known.unknown?.why !== 'not-prepared') return known;
     // An earlier medrec's pass names no provider-state.json, so once that file is gone too, it would end this warning with the labels unjudged.

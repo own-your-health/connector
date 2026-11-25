@@ -4,8 +4,7 @@
 // test/fixtures/<view>/large/<person id>.json over `scripts/synth.mjs`, and
 // test/fixtures/<view>/labels/<person id>.json over test/fixtures/labels, for each
 // of events.json, bills.json, private.json, providers.json (which a person
-// with no labelled provider has none of), standing.json and search-parts.json
-// (which one with no private part has none of), byte for byte as
+// with no labelled provider has none of) and standing.json, byte for byte as
 // `medrec views write` wrote them, and test/fixtures/<name>/views/, all of what it
 // wrote for each of OWN (scripts/own-folder.mjs). medrec runs from a throwaway profile in a scratch home, so
 // nothing of this machine's medrec is read or changed.
@@ -21,8 +20,8 @@ import { OWN, ownFolder } from './own-folder.mjs';
 import { synth } from './synth.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
-const VIEWS = ['events.json', 'bills.json', 'private.json', 'providers.json', 'standing.json', 'search-parts.json'];
-const OPTIONAL = new Set(['providers.json', 'search-parts.json']);
+const VIEWS = ['events.json', 'bills.json', 'private.json', 'providers.json', 'standing.json'];
+const OPTIONAL = new Set(['providers.json']);
 
 const scratch = mkdtempSync(join(tmpdir(), 'derived-'));
 try {
