@@ -195,6 +195,8 @@ export interface DocumentView extends DocumentEntry {
   text_at?: [pack: number, start: number, bytes: number, chars: number];
   /** The names of the first 20 records filed from it. */
   linked?: string[];
+  /** Their ids (medrec 0.9.9 and later). */
+  linked_ids?: string[];
 }
 
 /**

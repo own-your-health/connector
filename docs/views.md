@@ -245,11 +245,17 @@ against the day they answer, so its value here does not matter.
 
 ## `documents.json` and `text-<n>.bin`
 
-`documents.json` is `index.json`'s `documents`, each with two fields added:
+`documents.json` is `index.json`'s `documents`, each with these fields added:
 - `text_at`: where its text is, as `[pack, byte offset, byte length,
   characters]`. Absent when the document has no text.
 - `linked`: the names (`display`) of the first 20 records that list it in
-  their `documents`, in `index.json` order. Absent when none do.
+  their `documents`, in `index.json` order, but those entered in error (medrec
+  0.9.9 and later). Absent when none do.
+- `linked_ids`: the same records' ids, in the same order (medrec 0.9.9 and
+  later). `medrec_document` names no person, so unless the document is private
+  it leaves out the names whose record the person's `private.json` holds back,
+  and all of them when there are no ids and any record of theirs is private or
+  may be.
 
 `text-<n>.bin` holds the documents' texts as UTF-8, one after another, in
 document order. A pack closes before a text would take it past 1,000,000

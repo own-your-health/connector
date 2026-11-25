@@ -799,6 +799,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       ({ p, x }) => keep(p, { id: x.record.id, title: clip(x.record.display, CLIP) }),
       ({ p, x }) => {
         const it = recordItem(p.name, x.record, detailed);
+        if (household && detailed) it.fields = withoutHeld(gate, p, x.record.fields ?? {});
         // Its words say its status, each source's.
         return marked(p, x.standing !== undefined ? { ...it, status: undefined, standing: x.standing, says: x.says } : { ...it, ...differ(x.record.says) });
       },
@@ -1123,6 +1124,29 @@ function documentItem(person: string, d: DocumentEntry, title: string, today: st
   };
 }
 
+const ITEM_ID = /^[rdem]_[a-z2-7]{20}$/;
+
+/**
+ * A record's `fields` in an answer about the whole household, without the ids
+ * of items it holds back, though the question names the record: a list keeps
+ * its others, and a key left with none is absent.
+ */
+function withoutHeld(gate: Gate, p: Person, fields: JsonObject): JsonObject {
+  const held = (v: Json): boolean => typeof v === 'string' && ITEM_ID.test(v) && gate.heldBack(p, v);
+  const left = (v: Json): Json | undefined => {
+    if (held(v)) return undefined;
+    if (Array.isArray(v)) {
+      const some = v.map(left).filter((x) => x !== undefined);
+      return v.length > 0 && some.length === 0 ? undefined : some;
+    }
+    return isObject(v) ? withoutHeld(gate, p, v) : v;
+  };
+  return Object.fromEntries(Object.entries(fields).flatMap(([k, v]): [string, Json][] => {
+    const some = left(v);
+    return some === undefined ? [] : [[k, some]];
+  }));
+}
+
 function recordItem(person: string, r: ListedRecord, detailed: boolean): Item {
   const detail = recordDetail(r);
   const it: Item = {
@@ -1217,10 +1241,15 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   if (page === 1 || (page === undefined && offset === undefined)) start = 0;
   else if (page !== undefined) start = breaks[page - 2]! + 1;
   else start = Math.min(offset!, cs.length);
-  const [records, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
-  // It names no person, so its labels are those of an answer about the whole household.
+  const [linked, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
+  // It names no person, so it is an answer about the whole household: only a private document's private records are named.
+  const gate = new Gate(true, new Map([[p.id, privacy]]));
+  // Views from before medrec 0.9.9 do not say which record a name is.
+  const any = privacy.unknown !== undefined || [...privacy.areas.keys()].some((id) => id.startsWith('r_'));
+  const held = (id: string | undefined) => (id === undefined ? any : gate.heldBack(p, id));
+  const records = linked.filter(({ id }) => privacy.areas.has(d.id) || !held(id)).map(({ name }) => name);
   const printed = printedOfDocument(d.organization);
-  const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).read.get(p.id)?.shown(d.id, printed, asked(new Gate(true, new Map([[p.id, privacy]])), p, true)) ?? []) : [];
+  const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).read.get(p.id)?.shown(d.id, printed, asked(gate, p, true)) ?? []) : [];
   const note = await noteOf(ctx, h, p, d);
   const hint = (text?: string) => [note, text].filter((x) => x !== undefined).join(' ') || undefined;
   const s = d.statement ?? undefined;

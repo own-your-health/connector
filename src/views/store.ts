@@ -637,9 +637,10 @@ export class ViewsStore implements Store {
     return decoder.decode(await r.bytes(paths.text(p.id, pack), start, start + bytes));
   }
 
-  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
+  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]> {
     if (!(await this.views(h, p))) return this.raw.documentRecords(h, p, d);
-    return ((d as DocumentView).linked ?? []).map((n) => clip(n, CLIP));
+    const { linked = [], linked_ids = [] } = d as DocumentView;
+    return linked.map((n, i) => ({ id: linked_ids[i], name: clip(n, CLIP) }));
   }
 
   /** A person's search items (search-items.bin): their count, and each one's text and details. */

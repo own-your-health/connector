@@ -147,8 +147,8 @@ export interface Store {
    */
   search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]>;
   documentText(h: Household, p: Person, d: DocumentEntry): Promise<string>;
-  /** The names of the first 20 records filed from the document. */
-  documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]>;
+  /** The first 20 records filed from the document. Views from before medrec 0.9.9 give no ids. */
+  documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]>;
   /** Fetch what the hits' snippets need in as few requests as the store can, before `snippet()` is called on each. */
   prepare?(hits: Candidate[]): Promise<void>;
   /**
@@ -399,11 +399,11 @@ export class RawStore implements Store {
     return (await this.folder.text(p)).texts?.[d.id] ?? '';
   }
 
-  async documentRecords(_h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
+  async documentRecords(_h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]> {
     return ((await this.folder.index(p)).records ?? [])
       .filter((r) => (r.documents ?? []).includes(d.id))
       .slice(0, 20)
-      .map((r) => clip(r.display, CLIP));
+      .map((r) => ({ id: r.id, name: clip(r.display, CLIP) }));
   }
 }
 
