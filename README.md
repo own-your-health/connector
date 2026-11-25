@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.9 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.10 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 674 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 681 recorded calls of `medrec mcp` to
 this connector's answers, to the character. What some of them need is in
 medrec's views alone, and without those an answer differs as said below.
 
@@ -37,9 +37,9 @@ join: `links` or `could_join` is absent when nothing is left of it.
 `fields.private_members`, a number, says how many members were left out. It is
 absent when none were. An answer about one person lists all of that person's
 own. Another person's private document or event is in no answer about the
-first, and `private_members` counts such a document there too. An event asked
-for by its id gives, as medrec 0.9.9 does, the id of each of its items that is
-entered in error, private ones too (`in_error`, `not_applied`). The place of
+first, and `private_members` counts such a document there too. An event's
+`in_error` and `not_applied` name only what such an answer may show, unless the
+event is private itself. The place of
 another person's stay, as of a birth, is an event's place only when that stay
 holds nothing private.
 A claim, a bill or an event can be open with a private part: a service among
@@ -102,6 +102,11 @@ sources say it of says `sources differ` and each word, from medrec's views.
 Current views from before medrec 0.9.9, or from an earlier version's `npm run
 views`, list what is entered in error, and nothing counts it. Everyone else's is
 told from their files, or from what medrec's or this version's views name.
+
+A panel or a report names the results its source says it lists (`members`, in
+its `fields`), when medrec 0.9.10 or later has read them. A panel with no value
+of its own is a heading: its `detail` is `panel`, and it is in no latest results
+and no `tests`.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -256,6 +261,8 @@ At the limits:
   two results of one date and name. When one of them cannot be found there,
   that person's tests are left out of an answer about everyone with a
   `person-unavailable` warning, and an answer about them says to ask again.
+  A private heading, which is in no series, is not looked for: `private.json`
+  from medrec 0.9.10 says which ones are.
 - **Which source a record came from.** A CLI, an organization and a FHIR base
   do not name one. Views from medrec 0.9.6 and later label each record with
   the name of its source, or with the CLI when none is known. In earlier

@@ -3776,6 +3776,68 @@
       }
     },
     {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "panel"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "pair",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "panel",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "panel"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "pair",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "panel"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "check-in",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
       "folder": "child",
       "name": "medrec_records",
       "arguments": {

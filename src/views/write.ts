@@ -8,6 +8,7 @@ import { createHash } from 'node:crypto';
 import { shownIndex } from '../records/about';
 import { allOf, enteredInError } from '../records/errors';
 import type { Household, Person, PersonIndex, RecordEntry } from '../records/model';
+import { heads } from '../records/panels';
 import { sourcesOf, type SourceOf } from '../records/sources';
 import { recordOrder, eventOrder } from '../records/store';
 import { cmpOpt, day, fold, wordStarts } from '../records/text';
@@ -140,6 +141,7 @@ function slim(r: RecordEntry, from: SourceOf): SlimRecord {
   if (r.code !== undefined) s.code = r.code;
   if (r.status !== undefined) s.status = r.status;
   if (r.fields !== undefined) s.fields = r.fields;
+  if (heads(r)) s.heading = true;
   const src = r.provenance?.[0]?.source;
   if (src) {
     const keep: SlimSource = {};
@@ -244,7 +246,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   }
 
   // ---- tests: each result series, newest first ----
-  const results = newestFirst(records.filter((r) => r.kind === 'result' && !gone.has(r.id)));
+  const results = newestFirst(records.filter((r) => r.kind === 'result' && !gone.has(r.id) && !heads(r)));
   const series = new Map<string, TestSeries>();
   results.forEach((r, rank) => {
     const key = seriesKey(r);

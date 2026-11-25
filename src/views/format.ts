@@ -180,6 +180,8 @@ export interface SlimRecord {
   display: string;
   status?: string | null;
   fields?: JsonObject;
+  /** On a result that is a heading (panels.ts). */
+  heading?: boolean;
   provenance?: { source: SlimSource }[];
 }
 

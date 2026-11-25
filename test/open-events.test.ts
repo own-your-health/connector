@@ -5,14 +5,13 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { labelsFolder } from '../scripts/labels-folder.mjs';
+import { ownFolder } from '../scripts/own-folder.mjs';
 import type { JsonObject } from '../src/records/model';
 import { ToolError } from '../src/mcp/errors';
 import type { Privacy } from '../src/records/private';
 import { callTool } from '../src/records/tools';
-import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
-import { addDerived, folderAt } from './support';
+import { folderAt } from './support';
 
 type Member = JsonObject & { record?: string; document?: string };
 type Item = { id: string; private?: string; fields?: { members?: Member[]; private_members?: number } };
@@ -20,9 +19,8 @@ type Item = { id: string; private?: string; fields?: { members?: Member[]; priva
 describe("an open event's private members", async () => {
   const scratch = mkdtempSync(join(tmpdir(), 'oyh-open-events-'));
   afterAll(() => rmSync(scratch, { recursive: true, force: true }));
-  const root = labelsFolder(join(scratch, 'f'));
-  writeViewsAt(root);
-  addDerived(root, 'labels');
+  // medrec's own views of a folder with open events that have private members.
+  const root = ownFolder('questionnaires', join(scratch, 'f'), { views: true });
   const store = new ViewsStore(folderAt(root));
   const h = await store.household();
   const robin = h.people[0]!;

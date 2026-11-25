@@ -6,10 +6,12 @@
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { conditionKey } from './code-names';
+import { HEADING, heads } from './panels';
 import { withoutPapers } from './papers';
 import { isExact, isObject } from './numbers';
 import { sourcesOf, type SourceOf } from './sources';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
+import { than, valueText } from './values';
 
 /** Longest name or detail a summary line carries, in characters. */
 export const CLIP = 200;
@@ -98,19 +100,6 @@ export function selected(h: Household, query: string | undefined): Person[] {
 }
 
 // ---- values --------------------------------------------------------------------------------------
-
-export function valueText(v: Json | undefined): string {
-  if (v === undefined || v === null) return '';
-  if (typeof v === 'string') return v;
-  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
-  if (isExact(v)) return v.rawJSON;
-  if (Array.isArray(v)) return v.map(valueText).join('; ');
-  // As serde_json's `get(..).or_else(..)`: a key present with null does not fall through.
-  const num = valueText('value' in v ? v.value : v.amount);
-  const u = 'unit' in v ? v.unit : v.currency;
-  const unit = typeof u === 'string' ? u : '';
-  return trim(`${num} ${unit}`);
-}
 
 /** An id of anything in the folder. */
 const AN_ID = /^[a-z]_[a-z2-7]{20}$/;
@@ -227,7 +216,7 @@ export function recordDetail(r: RecordEntry): string | undefined {
   const status = r.status ?? undefined;
   switch (r.kind) {
     case 'result': {
-      const v = f.value === undefined ? undefined : nonEmpty(valueText(f.value));
+      const v = (f.value === undefined ? undefined : nonEmpty(valueText(f.value))) ?? (heads(r) ? HEADING : undefined);
       const flag = str(f, 'interpretation');
       if (v !== undefined && flag !== undefined) return `${v} (${flag})`;
       return v ?? flag;
@@ -412,8 +401,8 @@ function reading(r: RecordEntry): [string | undefined, string | undefined] {
   const v = r.fields?.value;
   if (v === undefined) return [undefined, undefined];
   if (isObject(v)) {
-    const unit = v.unit;
-    return [v.value === undefined ? undefined : nonEmpty(valueText(v.value)), typeof unit === 'string' ? unit : undefined];
+    const [unit, text] = [v.unit, v.value === undefined ? undefined : nonEmpty(valueText(v.value))];
+    return [text === undefined ? undefined : than(v) + text, typeof unit === 'string' ? unit : undefined];
   }
   const t = nonEmpty(valueText(v));
   return [t === undefined ? undefined : clip(t, CLIP), undefined];
@@ -444,7 +433,7 @@ export function resultRow(r: RecordEntry, source: string | undefined): ResultRow
 export function latestResults(records: RecordEntry[], from: SourceOf): ResultRow[] {
   const by = new Map<string, ResultRow>();
   for (const r of records) {
-    if (r.kind !== 'result') continue;
+    if (r.kind !== 'result' || heads(r)) continue;
     const key = seriesKey(r);
     const row = by.get(key);
     if (row) {
