@@ -1287,7 +1287,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   const more =
     notShown(part) !== undefined
       ? `${notShown(part)}: pass ${p.name} as person for all of it.`
-      : household && privacy.unknown !== undefined && cs.length > 0
+      : household && privacy.unknown?.why === 'not-prepared' && !privacy.areas.has(d.id) && cs.length > 0
         ? 'Which of its lines are private is not known, so it is given whole: keep it out of anything shared.'
         : undefined;
   const hint = (text?: string) => [note, more, text].filter((x) => x !== undefined).join(' ') || undefined;

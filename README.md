@@ -47,7 +47,7 @@ others, a diagnosis, a line of the text. When medrec 0.9.9 or later has marked
 those, an answer that names no person leaves them out, lists and finds the item
 by what is left, and says how much it left out: `not_shown`, or a text's `(1 line
 not shown)` and its `hint`. `medrec_document` gives all of the text with
-`person`, whose document it is. Where that person's private items are not known
+`person`, whose document it is. With no current `private.json` for that person
 it gives all of it without `person` too, and its `hint` says so. What an item
 cost stays.
 This is discretion, not access control: anyone the connector lets in can ask

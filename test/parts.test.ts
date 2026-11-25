@@ -227,6 +227,13 @@ describe('answers over private parts', async () => {
     expect((await open({ person: 'Robin' })).hint).toBeUndefined();
   });
 
+  it('say nothing of a bill whose marks medrec could not read, as medrec does', async () => {
+    for (const why of ['marks-unreadable', 'labels-unreadable'] as const) {
+      const store = Object.assign(Object.create(new ViewsStore(folderAt(root))), { privacy: async () => ({ areas: new Map(), unknown: { why } }) }) as ViewsStore;
+      expect((await ask(store, 'medrec_document', { id: 'd_accountaaaaaaaaaaaaa' })).structuredContent!.hint).toBeUndefined();
+    }
+  });
+
   it('never ask files for less than the whole of an item', async () => {
     const store = new RawStore(folderAt(root));
     const h = await store.household();
