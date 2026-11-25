@@ -2,11 +2,11 @@
 // (src/sources.rs; its data contract's "Which source"), so each label matches
 // `medrec mcp`'s.
 //
-// One CLI, organization and FHIR base can serve several practices and several
-// people, as a records connection does, so those three alone name no
-// practice. A source is told apart by its person and by the patient its
-// records were imported as, which the import run that filed a record says.
-// Where differently named sources are left, none of them is the one.
+// A CLI, an organization and a FHIR base do not name a source: sources can
+// have all three alike and differ in their person, their patient or both. A
+// source is told apart by its person and by the patient its records were
+// imported as, which the import run that filed a record says. Where
+// differently named sources are left, none of them is the one.
 
 import type { Household, ImportRun, RecordEntry, SignIn } from './model';
 import { trim } from './text';

@@ -27,7 +27,7 @@ try {
   mkdirSync(home);
   const env = { ...process.env, HOME: home, XDG_CONFIG_HOME: join(home, '.config'), XDG_CACHE_HOME: join(home, '.cache') };
   const medrec = (...args) => execFileSync('medrec', args, { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
-  const version = medrec('--version').trim();
+  const version = medrec('-V').trim();
   medrec('profiles', 'add', 't', '--json');
   const folders = { records: join(scratch, 'records'), large: join(scratch, 'large'), labels: join(scratch, 'labels') };
   cpSync(join(ROOT, 'test/fixtures/records'), folders.records, { recursive: true });

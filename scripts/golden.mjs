@@ -63,7 +63,7 @@ function codeNames(folder, from) {
   writeFileSync(at, JSON.stringify(index));
 }
 
-const version = medrec('--version').trim().split(' ').pop();
+const version = medrec('-V').trim().split(' ').pop();
 const today = new Date().toISOString().slice(0, 10);
 
 /** One `medrec mcp` per folder, spoken to over stdio, one request at a time. */

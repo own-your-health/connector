@@ -191,13 +191,12 @@ At the limits:
   two results of one date and name. When one of them cannot be found there,
   that person's tests are left out of an answer about everyone with a
   `person-unavailable` warning, and an answer about them says to ask again.
-- **Several practices behind one sign-in.** One CLI, organization and FHIR
-  base can serve several practices and several people, as athenahealth's
-  does. Views from medrec 0.9.6 and later label each record with the practice
-  it came through, or with the CLI (`athena`) when none is known. In earlier
-  views, a list of records or tests names the practice only where the person
-  has no other under that sign-in. The timeline, the summary and events keep
-  the name their writer gave, which can be another practice's.
+- **Which source a record came from.** A CLI, an organization and a FHIR base
+  do not name one. Views from medrec 0.9.6 and later label each record with
+  the name of its source, or with the CLI when none is known. In earlier
+  views, a list of records or tests names a source only where the person's
+  own with those three all have one name. The timeline, the summary and events
+  keep the name their writer gave, which can be another source's.
 - **Plain names.** Each person with a coded condition on the page costs one
   more request to Google, and one for a summary with any. When that request
   fails, or would pass the limit, the answer comes without the names.

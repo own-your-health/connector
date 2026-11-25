@@ -157,13 +157,12 @@ cut to its first entry's `source`, keeping only `fhir_base`, `cli` and
 what the record came through, as `medrec mcp` shows it, or `null`. A reader
 shows the `label`.
 
-Views written by medrec 0.9.5 and earlier have no `label`. One CLI,
-organization and FHIR base can be several practices' and several people's, and
-a view does not hold the import runs that say which patient a record was read
-as. So this connector takes the person's own sources (`sources` of
-`household.json`) with the record's CLI, organization and FHIR base. The name
-they all have is the label. Where they differ, or one has none, or there are
-none, it is the CLI.
+Views written by medrec 0.9.5 and earlier have no `label`. A CLI, an
+organization and a FHIR base do not name a source, and a view does not hold
+the import runs that say which patient a record was read as. So this connector
+takes the person's own sources (`sources` of `household.json`) with the
+record's CLI, organization and FHIR base. The name they all have is the label.
+Where they differ, or one has none, or there are none, it is the CLI.
 
 medrec 0.9.3 and earlier leave `organization_id` out too. For such a record,
 this connector takes the organization of the person's only sign-in with that
@@ -177,8 +176,7 @@ in its data contract), and `npm run views` writes each `label` by it.
 
 `summary.json`, `timeline-<n>.json` and the `place` in `events.json` hold the
 name their writer gave, as they keep no `provenance`. Written by medrec 0.9.5
-and earlier, that can be another practice's of the person, or another
-person's, where one sign-in key serves both. medrec 0.9.6 rewrites every
+and earlier, that can be another source's. medrec 0.9.6 rewrites every
 person's views on its first pass, and they are right from then on.
 
 Shards are cut from the **oldest** end. `records-<kind>-0.json` holds the
