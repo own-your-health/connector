@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-05e465cb","meta":{"lastUpdated":"2023-12-19T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"215"}],"text":"Pneumococcal conjugate PCV 15"},"occurrenceDateTime":"2023-12-19","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

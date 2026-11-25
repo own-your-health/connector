@@ -1,0 +1,1 @@
+{"resourceType":"MedicationStatement","id":"medicationstatement-b14b4ccd","meta":{"lastUpdated":"2026-05-20T08:00:00Z"},"status":"completed","medicationCodeableConcept":{"text":"Ibuprofen 200 mg tablet"},"effectiveDateTime":"2026-05-20","dosage":[{"text":"2 tablets by mouth every 6 hours as needed for pain"}]}

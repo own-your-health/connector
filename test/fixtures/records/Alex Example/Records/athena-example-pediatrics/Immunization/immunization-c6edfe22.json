@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-c6edfe22","meta":{"lastUpdated":"2025-10-20T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"141"}],"text":"Influenza, seasonal, injectable"},"occurrenceDateTime":"2025-10-20","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

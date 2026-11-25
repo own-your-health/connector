@@ -1,0 +1,1419 @@
+{
+  "schema": "medrec-index/v1",
+  "person": "p_pogh34br5z7sfph3okor",
+  "rev": 3,
+  "documents": [
+    {
+      "id": "d_h3r4xo576sfo4z2hdluw",
+      "path": "Drew Example/Documents/2025/2025-12-16_visit_summary_example_pediatrics_visit_summary_binary-7c82efb6.xml",
+      "sha256": "1b8c997b0b345c0b7572cc287b8158e88680de4669c45f6a0b18cf0488dba13e",
+      "md5": "58e7dccc817c7069611068e23ecfc35d",
+      "size": 1208,
+      "media_type": "application/xml",
+      "title": "Visit summary",
+      "doc_type": "visit_summary",
+      "loinc": "34133-9",
+      "date": "2025-12-16",
+      "organization": "Example Pediatrics",
+      "filed_at": "2026-10-18T20:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "action": "imported"
+      },
+      "text": {
+        "chars": 220,
+        "engines": [
+          "xml"
+        ]
+      },
+      "minhash": [
+        291856406,
+        49482089,
+        198216908,
+        104181541,
+        148161996,
+        52635682,
+        68658080,
+        65533312,
+        13002027,
+        61871757,
+        447185592,
+        27978185,
+        30916262,
+        240826223,
+        15411241,
+        171743891,
+        117335966,
+        317508313,
+        63158158,
+        67126228,
+        49808213,
+        243610226,
+        20914999,
+        16009391,
+        27307096,
+        41985137,
+        190798635,
+        207130971,
+        106842813,
+        3295967,
+        190825255,
+        369854339,
+        175401908,
+        80818219,
+        97276103,
+        69475652,
+        147945935,
+        2381587,
+        40935813,
+        191908540,
+        491489826,
+        410405927,
+        195232411,
+        126810478,
+        97255667,
+        150394372,
+        196458476,
+        204837075,
+        512112901,
+        70892312,
+        144297591,
+        116593780,
+        96319687,
+        9733137,
+        92039009,
+        30248738,
+        123908739,
+        188598098,
+        386971293,
+        59653489,
+        9279135,
+        21044230,
+        97064804,
+        34960271
+      ],
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "athena",
+          "cli_version": "0.6.1",
+          "organization_id": "example-pediatrics",
+          "fhir_base": "https://api.example.net/fhir/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "DocumentReference",
+          "id": "documentreference-92d33dfe",
+          "last_updated": "2025-12-16T08:00:00Z"
+        },
+        "fetched_at": "2026-10-18T20:00:00Z",
+        "filed_at": "2026-10-18T20:00:00Z",
+        "raw_path": "Drew Example/Records/athena-example-pediatrics/Binary/binary-7c82efb6.json",
+        "filed_by": "medrec 0.9.7"
+      }
+    },
+    {
+      "id": "d_oq3cezkeu4pdhqc6xyl4",
+      "path": "Drew Example/Documents/2025/2025-12-16_letter_example_pediatrics_preschool_health_form_binary-59a79c77.pdf",
+      "sha256": "574f3cb9fda8d75db4c3368adab95cd0c341da2d7a105385274eabc161e1338f",
+      "md5": "b7c773572ab13c7a39fbf30bc705439d",
+      "size": 860,
+      "media_type": "application/pdf",
+      "pages": 1,
+      "title": "Preschool health form",
+      "doc_type": "letter",
+      "loinc": "letter",
+      "date": "2025-12-16",
+      "organization": "Example Pediatrics",
+      "filed_at": "2026-10-18T20:00:00Z",
+      "origin": {
+        "kind": "fhir",
+        "action": "imported"
+      },
+      "text": {
+        "chars": 125,
+        "engines": [
+          "pdftotext sample"
+        ]
+      },
+      "minhash": [
+        256249343,
+        94095158,
+        348237545,
+        105764348,
+        104886546,
+        165959536,
+        139724178,
+        277235115,
+        77946676,
+        145207475,
+        21386287,
+        171775277,
+        437416452,
+        428527699,
+        122147293,
+        291862668,
+        53842230,
+        109174405,
+        334378530,
+        31008049,
+        21487581,
+        586079196,
+        50171496,
+        206199500,
+        205884391,
+        75675412,
+        42688224,
+        356019814,
+        106842813,
+        152493187,
+        21176847,
+        339281715,
+        179119515,
+        247135555,
+        137326544,
+        132557917,
+        63592983,
+        338800560,
+        157949459,
+        155126830,
+        224852742,
+        110954131,
+        137492469,
+        264975392,
+        148485797,
+        24734587,
+        108682466,
+        460106007,
+        32580285,
+        202651999,
+        13009720,
+        248753383,
+        148079395,
+        180449365,
+        115830876,
+        30248738,
+        201968520,
+        195782841,
+        287761868,
+        111034925,
+        143821614,
+        98035525,
+        164126965,
+        58057120
+      ],
+      "provenance": {
+        "source": {
+          "kind": "fhir",
+          "cli": "athena",
+          "cli_version": "0.6.1",
+          "organization_id": "example-pediatrics",
+          "fhir_base": "https://api.example.net/fhir/r4"
+        },
+        "method": "fhir-api",
+        "source_resource": {
+          "type": "DocumentReference",
+          "id": "documentreference-f7b3170f",
+          "last_updated": "2025-12-16T08:00:00Z"
+        },
+        "fetched_at": "2026-10-18T20:00:00Z",
+        "filed_at": "2026-10-18T20:00:00Z",
+        "raw_path": "Drew Example/Records/athena-example-pediatrics/Binary/binary-59a79c77.json",
+        "filed_by": "medrec 0.9.7"
+      }
+    }
+  ],
+  "records": [
+    {
+      "id": "r_uszvqd4ncbpqza4vcrn3",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|146|2023-02-14",
+      "date": "2023-02-14",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "146",
+        "display": "DTaP-IPV-Hib-HepB"
+      },
+      "display": "DTaP-IPV-Hib-HepB",
+      "status": "completed",
+      "fields": {
+        "when": "2023-02-14",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-82438a67",
+            "last_updated": "2023-02-14T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-82438a67.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_k5n33gyxiva73gdzxbhi",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|215|2023-02-14",
+      "date": "2023-02-14",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "215",
+        "display": "Pneumococcal conjugate PCV 15"
+      },
+      "display": "Pneumococcal conjugate PCV 15",
+      "status": "completed",
+      "fields": {
+        "when": "2023-02-14",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-7bff8686",
+            "last_updated": "2023-02-14T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-7bff8686.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_ii7bf3p4ikuuhmb3gces",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|116|2023-02-14",
+      "date": "2023-02-14",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "116",
+        "display": "Rotavirus, pentavalent"
+      },
+      "display": "Rotavirus, pentavalent",
+      "status": "completed",
+      "fields": {
+        "when": "2023-02-14",
+        "route": "Oral",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-44d84df5",
+            "last_updated": "2023-02-14T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-44d84df5.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_zaxxjh25qeucbmze3jnb",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|146|2023-04-18",
+      "date": "2023-04-18",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "146",
+        "display": "DTaP-IPV-Hib-HepB"
+      },
+      "display": "DTaP-IPV-Hib-HepB",
+      "status": "completed",
+      "fields": {
+        "when": "2023-04-18",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-188fb283",
+            "last_updated": "2023-04-18T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-188fb283.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_eujw4755jhrzqxd5jqnt",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|215|2023-04-18",
+      "date": "2023-04-18",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "215",
+        "display": "Pneumococcal conjugate PCV 15"
+      },
+      "display": "Pneumococcal conjugate PCV 15",
+      "status": "completed",
+      "fields": {
+        "when": "2023-04-18",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-63aed2b5",
+            "last_updated": "2023-04-18T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-63aed2b5.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_5kmfi4qnyqjoy2skj5gg",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|116|2023-04-18",
+      "date": "2023-04-18",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "116",
+        "display": "Rotavirus, pentavalent"
+      },
+      "display": "Rotavirus, pentavalent",
+      "status": "completed",
+      "fields": {
+        "when": "2023-04-18",
+        "route": "Oral",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-127e7a31",
+            "last_updated": "2023-04-18T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-127e7a31.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_mmltmtf5of6ym4kxb3fo",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|146|2023-06-20",
+      "date": "2023-06-20",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "146",
+        "display": "DTaP-IPV-Hib-HepB"
+      },
+      "display": "DTaP-IPV-Hib-HepB",
+      "status": "completed",
+      "fields": {
+        "when": "2023-06-20",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-91252087",
+            "last_updated": "2023-06-20T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-91252087.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_2u7c7u6da5y5zkpp3xkv",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|215|2023-06-20",
+      "date": "2023-06-20",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "215",
+        "display": "Pneumococcal conjugate PCV 15"
+      },
+      "display": "Pneumococcal conjugate PCV 15",
+      "status": "completed",
+      "fields": {
+        "when": "2023-06-20",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-370d8cf8",
+            "last_updated": "2023-06-20T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-370d8cf8.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_2myvgrvf7ehnw6hzv6xu",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|116|2023-06-20",
+      "date": "2023-06-20",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "116",
+        "display": "Rotavirus, pentavalent"
+      },
+      "display": "Rotavirus, pentavalent",
+      "status": "completed",
+      "fields": {
+        "when": "2023-06-20",
+        "route": "Oral",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-4af6ee27",
+            "last_updated": "2023-06-20T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-4af6ee27.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_756jrr7lsjqnt5ztmssq",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|140|2023-10-10",
+      "date": "2023-10-10",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "140",
+        "display": "Influenza, seasonal, preservative free"
+      },
+      "display": "Influenza, seasonal, preservative free",
+      "status": "completed",
+      "fields": {
+        "when": "2023-10-10",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-fe5c3c76",
+            "last_updated": "2023-10-10T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-fe5c3c76.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_svmsu3uem6dsx6nv7qpn",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|140|2023-11-14",
+      "date": "2023-11-14",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "140",
+        "display": "Influenza, seasonal, preservative free"
+      },
+      "display": "Influenza, seasonal, preservative free",
+      "status": "completed",
+      "fields": {
+        "when": "2023-11-14",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-9e648eaa",
+            "last_updated": "2023-11-14T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-9e648eaa.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_7gt535c24wree3x5ia6o",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|03|2023-12-19",
+      "date": "2023-12-19",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "03",
+        "display": "MMR"
+      },
+      "display": "MMR",
+      "status": "completed",
+      "fields": {
+        "when": "2023-12-19",
+        "route": "Subcutaneous",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-25475503",
+            "last_updated": "2023-12-19T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-25475503.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_6naegq233ilpyqwzvwo4",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|21|2023-12-19",
+      "date": "2023-12-19",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "21",
+        "display": "Varicella"
+      },
+      "display": "Varicella",
+      "status": "completed",
+      "fields": {
+        "when": "2023-12-19",
+        "route": "Subcutaneous",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-f839b5b4",
+            "last_updated": "2023-12-19T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-f839b5b4.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_kx62ainnxxajev3n7v3i",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|83|2023-12-19",
+      "date": "2023-12-19",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "83",
+        "display": "Hep A, ped/adol, 2 dose"
+      },
+      "display": "Hep A, ped/adol, 2 dose",
+      "status": "completed",
+      "fields": {
+        "when": "2023-12-19",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-e49317fb",
+            "last_updated": "2023-12-19T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-e49317fb.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_g6v6sbbmwsh427ie2le7",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|215|2023-12-19",
+      "date": "2023-12-19",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "215",
+        "display": "Pneumococcal conjugate PCV 15"
+      },
+      "display": "Pneumococcal conjugate PCV 15",
+      "status": "completed",
+      "fields": {
+        "when": "2023-12-19",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-05e465cb",
+            "last_updated": "2023-12-19T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-05e465cb.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_xbnxnkcyf6xail537pl3",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|20|2024-03-19",
+      "date": "2024-03-19",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "20",
+        "display": "DTaP"
+      },
+      "display": "DTaP",
+      "status": "completed",
+      "fields": {
+        "when": "2024-03-19",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-45d6cebf",
+            "last_updated": "2024-03-19T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-45d6cebf.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_wszgljxpikdh7o5sz5h3",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|48|2024-03-19",
+      "date": "2024-03-19",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "48",
+        "display": "Hib (PRP-T)"
+      },
+      "display": "Hib (PRP-T)",
+      "status": "completed",
+      "fields": {
+        "when": "2024-03-19",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-da70d6f7",
+            "last_updated": "2024-03-19T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-da70d6f7.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_feld5luakt3guhuyz4k3",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|83|2024-06-25",
+      "date": "2024-06-25",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "83",
+        "display": "Hep A, ped/adol, 2 dose"
+      },
+      "display": "Hep A, ped/adol, 2 dose",
+      "status": "completed",
+      "fields": {
+        "when": "2024-06-25",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-f87dcbbb",
+            "last_updated": "2024-06-25T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-f87dcbbb.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_wdn6zdclzomtpomt2yaw",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|140|2024-10-08",
+      "date": "2024-10-08",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "140",
+        "display": "Influenza, seasonal, preservative free"
+      },
+      "display": "Influenza, seasonal, preservative free",
+      "status": "completed",
+      "fields": {
+        "when": "2024-10-08",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-59586644",
+            "last_updated": "2024-10-08T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-59586644.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_zjnvw6n5dzlspmo73dle",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|140|2025-10-07",
+      "date": "2025-10-07",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "140",
+        "display": "Influenza, seasonal, preservative free"
+      },
+      "display": "Influenza, seasonal, preservative free",
+      "status": "completed",
+      "fields": {
+        "when": "2025-10-07",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-e28b22d8",
+            "last_updated": "2025-10-07T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-e28b22d8.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_zc5xk7ownwljaoro6doc",
+      "kind": "immunization",
+      "key": "immunization|http://hl7.org/fhir/sid/cvx|140|2026-10-06",
+      "date": "2026-10-06",
+      "code": {
+        "system": "http://hl7.org/fhir/sid/cvx",
+        "code": "140",
+        "display": "Influenza, seasonal, preservative free"
+      },
+      "display": "Influenza, seasonal, preservative free",
+      "status": "completed",
+      "fields": {
+        "when": "2026-10-06",
+        "route": "Intramuscular",
+        "performer": "Example Pediatrics"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Immunization",
+            "id": "immunization-35c51b54",
+            "last_updated": "2026-10-06T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Immunization/immunization-35c51b54.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_eupwpmocf5xlmnjupzj2",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99392|2024-12-17",
+      "date": "2024-12-17",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99392",
+        "display": "Well child visit, 2 years"
+      },
+      "display": "Well child visit, 2 years",
+      "status": "finished",
+      "fields": {
+        "when": "2024-12-17T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Example Pediatrics",
+        "practitioner": "Dr. Morgan Placeholder",
+        "period": {
+          "start": "2024-12-17T15:00:00Z"
+        }
+      },
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000022"
+        }
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-6a59cd09",
+            "last_updated": "2024-12-17T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Encounter/encounter-6a59cd09.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_wu2m72qfgbazqdj5p7m7",
+      "kind": "result",
+      "key": "result|http://loinc.org|29463-7|2024-12-17",
+      "date": "2024-12-17",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "29463-7",
+        "display": "Weight"
+      },
+      "display": "Weight",
+      "status": "final",
+      "fields": {
+        "when": "2024-12-17",
+        "value": {
+          "value": 12.4,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org"
+        },
+        "category": "Vital signs"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-345c12da",
+            "last_updated": "2024-12-17T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Observation/observation-345c12da.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_m3a6nqkyw5nw7tdmez4e",
+      "kind": "result",
+      "key": "result|http://loinc.org|8302-2|2024-12-17",
+      "date": "2024-12-17",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "8302-2",
+        "display": "Height"
+      },
+      "display": "Height",
+      "status": "final",
+      "fields": {
+        "when": "2024-12-17",
+        "value": {
+          "value": 86.5,
+          "unit": "cm",
+          "system": "http://unitsofmeasure.org"
+        },
+        "category": "Vital signs"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-720dc883",
+            "last_updated": "2024-12-17T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Observation/observation-720dc883.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_5opl4nqk7nxws7vrmxee",
+      "kind": "result",
+      "key": "result|http://loinc.org|5671-3|2024-12-17",
+      "date": "2024-12-17",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "5671-3",
+        "display": "Lead, blood"
+      },
+      "display": "Lead, blood",
+      "status": "final",
+      "fields": {
+        "when": "2024-12-17",
+        "value": {
+          "value": 1.1,
+          "unit": "ug/dL",
+          "system": "http://unitsofmeasure.org"
+        },
+        "reference_range": "<3.5 ug/dL",
+        "interpretation": "Normal",
+        "category": "Laboratory"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-ac37a7d7",
+            "last_updated": "2024-12-17T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Observation/observation-ac37a7d7.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_4trlwwis5b3ykpmjzatk",
+      "kind": "encounter",
+      "key": "encounter|http://www.ama-assn.org/go/cpt|99392|2025-12-16",
+      "date": "2025-12-16",
+      "code": {
+        "system": "http://www.ama-assn.org/go/cpt",
+        "code": "99392",
+        "display": "Well child visit, 3 years"
+      },
+      "display": "Well child visit, 3 years",
+      "status": "finished",
+      "fields": {
+        "when": "2025-12-16T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Example Pediatrics",
+        "practitioner": "Dr. Morgan Placeholder",
+        "period": {
+          "start": "2025-12-16T15:00:00Z"
+        }
+      },
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000022"
+        }
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-654c9e50",
+            "last_updated": "2025-12-16T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Encounter/encounter-654c9e50.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_gfsnyn2q2mbzn76cuhlu",
+      "kind": "result",
+      "key": "result|http://loinc.org|29463-7|2025-12-16",
+      "date": "2025-12-16",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "29463-7",
+        "display": "Weight"
+      },
+      "display": "Weight",
+      "status": "final",
+      "fields": {
+        "when": "2025-12-16",
+        "value": {
+          "value": 14.6,
+          "unit": "kg",
+          "system": "http://unitsofmeasure.org"
+        },
+        "category": "Vital signs"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-69c727b2",
+            "last_updated": "2025-12-16T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Observation/observation-69c727b2.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_vtt6ljvg35kyylvgwumx",
+      "kind": "result",
+      "key": "result|http://loinc.org|8302-2|2025-12-16",
+      "date": "2025-12-16",
+      "code": {
+        "system": "http://loinc.org",
+        "code": "8302-2",
+        "display": "Height"
+      },
+      "display": "Height",
+      "status": "final",
+      "fields": {
+        "when": "2025-12-16",
+        "value": {
+          "value": 95.8,
+          "unit": "cm",
+          "system": "http://unitsofmeasure.org"
+        },
+        "category": "Vital signs"
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-pediatrics",
+            "fhir_base": "https://api.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Observation",
+            "id": "observation-8802953e",
+            "last_updated": "2025-12-16T08:00:00Z"
+          },
+          "fetched_at": "2026-10-18T20:00:00Z",
+          "filed_at": "2026-10-18T20:00:00Z",
+          "raw_path": "Drew Example/Records/athena-example-pediatrics/Observation/observation-8802953e.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    }
+  ],
+  "studies": [],
+  "imports": [
+    {
+      "id": "i_3iwhzdw6gfr3akp7wip7",
+      "source_dir": "Drew Example/Records/athena-example-pediatrics",
+      "stream_sha256": "ee009243a2b6004878ea5530ba864de421e9259c2ca2e14819fe212d27952079",
+      "stream_bytes": 16085,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-pediatrics",
+      "patient_id": "pat-d6583c",
+      "pulled_at": "2026-10-18T20:00:00Z",
+      "imported_at": "2026-10-18T20:00:00Z",
+      "counts": {
+        "Binary": 2,
+        "DocumentReference": 2,
+        "Encounter": 2,
+        "Immunization": 21,
+        "Observation": 5,
+        "Patient": 1
+      },
+      "records_added": 28,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 33,
+      "resources_unchanged": 0,
+      "documents_added": 2
+    },
+    {
+      "id": "i_xux7xx2jz6lwyvuisebz",
+      "source_dir": "Drew Example/Records/athena-example-pediatrics",
+      "stream_sha256": "4e15f5d5b2c69119cf4f8e3464b049e518b053fa0e03fb279d07bc99edd3ca8f",
+      "stream_bytes": 16085,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-pediatrics",
+      "patient_id": "pat-d6583c",
+      "pulled_at": "2026-11-22T00:00:00Z",
+      "imported_at": "2026-11-22T00:00:00Z",
+      "counts": {
+        "Binary": 2,
+        "DocumentReference": 2,
+        "Encounter": 2,
+        "Immunization": 21,
+        "Observation": 5,
+        "Patient": 1
+      },
+      "records_added": 0,
+      "records_updated": 0,
+      "records_unchanged": 28,
+      "records_older": 0,
+      "resources_written": 0,
+      "resources_unchanged": 33,
+      "documents_added": 0
+    }
+  ]
+}

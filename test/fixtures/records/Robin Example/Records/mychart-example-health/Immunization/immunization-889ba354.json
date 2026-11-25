@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-889ba354","meta":{"lastUpdated":"2025-10-04T08:00:00Z"},"status":"not-done","statusReason":{"text":"Patient declined"},"vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"309"}],"text":"COVID-19 vaccine"},"occurrenceDateTime":"2025-10-04"}

@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-f839b5b4","meta":{"lastUpdated":"2023-12-19T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"21"}],"text":"Varicella"},"occurrenceDateTime":"2023-12-19","route":{"text":"Subcutaneous"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

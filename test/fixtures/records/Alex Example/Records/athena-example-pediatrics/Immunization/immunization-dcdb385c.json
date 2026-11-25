@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-dcdb385c","meta":{"lastUpdated":"2019-04-08T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"48"}],"text":"Hib (PRP-T)"},"occurrenceDateTime":"2019-04-08","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

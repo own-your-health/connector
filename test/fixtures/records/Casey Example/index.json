@@ -1,207 +1,122 @@
 {
   "schema": "medrec-index/v1",
-  "person": "p_caseyexampleaaaaaaaa",
-  "rev": 1,
+  "person": "p_dmt3uaaxl577c3l7giqq",
+  "rev": 6,
   "documents": [],
-  "studies": [],
-  "imports": [
-    {
-      "id": "i_caseyfirstaaaaaaaaaa",
-      "source_dir": "Casey Example/Records/athena-example-records-pat-c0f1a1",
-      "stream_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-      "stream_bytes": 2000,
-      "cli": "athena",
-      "cli_version": "0.6.1",
-      "organization": "example-records",
-      "patient_id": "pat-c0f1a1",
-      "pulled_at": "2026-11-20T18:00:00Z",
-      "imported_at": "2026-11-20T18:00:00Z",
-      "counts": {
-        "Encounter": 1
-      },
-      "records_added": 1,
-      "records_updated": 0,
-      "records_unchanged": 0,
-      "records_older": 0,
-      "resources_written": 1,
-      "resources_unchanged": 0,
-      "documents_added": 0
-    },
-    {
-      "id": "i_caseysecondaaaaaaaaa",
-      "source_dir": "Casey Example/Records/athena-example-records-pat-c0f1a2",
-      "stream_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-      "stream_bytes": 2000,
-      "cli": "athena",
-      "cli_version": "0.6.1",
-      "organization": "example-records",
-      "patient_id": "pat-c0f1a2",
-      "pulled_at": "2026-11-20T18:05:00Z",
-      "imported_at": "2026-11-20T18:05:00Z",
-      "counts": {
-        "Encounter": 1
-      },
-      "records_added": 1,
-      "records_updated": 0,
-      "records_unchanged": 0,
-      "records_older": 0,
-      "resources_written": 1,
-      "resources_unchanged": 0,
-      "documents_added": 0
-    },
-    {
-      "id": "i_caseynonameaaaaaaaaa",
-      "source_dir": "Casey Example/Records/athena-example-records-2-pat-c0f1a4",
-      "stream_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
-      "stream_bytes": 2000,
-      "cli": "athena",
-      "cli_version": "0.6.1",
-      "organization": "example-records-2",
-      "patient_id": "pat-c0f1a4",
-      "pulled_at": "2026-11-20T18:10:00Z",
-      "imported_at": "2026-11-20T18:10:00Z",
-      "counts": {
-        "Encounter": 1
-      },
-      "records_added": 1,
-      "records_updated": 0,
-      "records_unchanged": 0,
-      "records_older": 0,
-      "resources_written": 1,
-      "resources_unchanged": 0,
-      "documents_added": 0
-    }
-  ],
   "records": [
     {
-      "id": "r_caseyconditionaaaaaa",
+      "id": "r_hsmtjfri3xsyeigrhl3i",
+      "kind": "encounter",
+      "key": "encounter|office visit|2025-03-04",
+      "date": "2025-03-04",
+      "code": {
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-03-04T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Example Walk-in Clinic",
+        "practitioner": "Dr. Riley Placeholder",
+        "period": {
+          "start": "2025-03-04T15:00:00Z",
+          "end": "2025-03-04T15:30:00Z"
+        }
+      },
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000162"
+        }
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-41ed60b0",
+            "last_updated": "2025-03-04T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T19:58:21Z",
+          "filed_at": "2026-11-22T19:58:21Z",
+          "raw_path": "Casey Example/Records/athena-example-records/Encounter/encounter-41ed60b0.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_mjpu4tdrckjwt5uy6csn",
       "kind": "condition",
-      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|J30.2|2026-04-28",
-      "date": "2026-04-28",
+      "key": "condition|http://hl7.org/fhir/sid/icd-10-cm|J30.2|2020-05-01",
+      "date": "2020-05-01",
       "code": {
         "system": "http://hl7.org/fhir/sid/icd-10-cm",
         "code": "J30.2",
-        "display": "Other seasonal allergic rhinitis"
+        "display": "Seasonal allergies"
       },
       "display": "Seasonal allergies",
       "status": "active",
       "fields": {
-        "when": "2026-04-28",
+        "when": "2020-05-01",
         "verification_status": "confirmed",
         "category": "Problem list item"
       },
-      "documents": [],
       "provenance": [
         {
           "source": {
             "kind": "fhir",
-            "cli": "mychart",
-            "cli_version": "0.7.1",
-            "organization_id": "example-health",
-            "fhir_base": "https://fhir.example.org/r4"
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records",
+            "fhir_base": "https://records.example.net/fhir/r4"
           },
           "method": "fhir-api",
           "source_resource": {
             "type": "Condition",
-            "id": "condition-a1f00007",
-            "last_updated": "2026-04-28T08:00:00Z"
+            "id": "condition-e95b82b6",
+            "last_updated": "2020-05-01T08:00:00Z"
           },
-          "fetched_at": "2026-11-22T18:30:00Z",
-          "filed_at": "2026-11-22T18:30:00Z",
-          "filed_by": "medrec 0.9.2"
+          "fetched_at": "2026-11-22T19:58:21Z",
+          "filed_at": "2026-11-22T19:58:21Z",
+          "raw_path": "Casey Example/Records/athena-example-records/Condition/condition-e95b82b6.json",
+          "filed_by": "medrec 0.9.7"
         }
       ]
     },
     {
-      "id": "r_caseyresultaaaaaaaaa",
-      "kind": "result",
-      "key": "result|http://loinc.org|2276-4|2026-04-28",
-      "date": "2026-04-28",
-      "code": {
-        "system": "http://loinc.org",
-        "code": "2276-4",
-        "display": "Ferritin"
-      },
-      "display": "Ferritin",
-      "status": "final",
-      "fields": {
-        "when": "2026-04-28",
-        "value": {
-          "value": 61,
-          "unit": "ng/mL",
-          "system": "http://unitsofmeasure.org"
-        },
-        "reference_range": "24-336 ng/mL",
-        "category": "Laboratory",
-        "issued": "2026-04-28T15:00:00Z"
-      },
-      "documents": [],
-      "provenance": [
-        {
-          "source": {
-            "kind": "fhir",
-            "cli": "mychart",
-            "cli_version": "0.7.1",
-            "organization_id": "example-health",
-            "fhir_base": "https://fhir.example.org/r4"
-          },
-          "method": "fhir-api",
-          "source_resource": {
-            "type": "Observation",
-            "id": "observation-a1f00008",
-            "last_updated": "2026-04-28T08:00:00Z"
-          },
-          "fetched_at": "2026-11-22T18:30:00Z",
-          "filed_at": "2026-11-22T18:30:00Z",
-          "filed_by": "medrec 0.9.2"
-        }
-      ]
-    },
-    {
-      "id": "r_caseyvisitoneaaaaaaa",
-      "kind": "encounter",
-      "key": "encounter|office visit|2025-03-04",
-      "date": "2025-03-04",
-      "display": "Office visit",
-      "status": "finished",
-      "fields": {
-        "when": "2025-03-04",
-        "class": "AMB"
-      },
-      "documents": [],
-      "provenance": [
-        {
-          "source": {
-            "kind": "fhir",
-            "cli": "athena",
-            "cli_version": "0.6.1",
-            "organization_id": "example-records",
-            "fhir_base": "https://records.example.net/fhir/r4"
-          },
-          "method": "fhir-api",
-          "source_resource": {
-            "type": "Encounter",
-            "id": "encounter-c0f1b1",
-            "last_updated": "2025-03-04T15:00:00Z"
-          },
-          "fetched_at": "2026-11-20T18:00:00Z",
-          "filed_at": "2026-11-20T18:00:00Z",
-          "filed_by": "medrec 0.9.6"
-        }
-      ]
-    },
-    {
-      "id": "r_caseyvisittwoaaaaaaa",
+      "id": "r_hqyx2nb3urxz2c7grb7s",
       "kind": "encounter",
       "key": "encounter|office visit|2025-04-08",
       "date": "2025-04-08",
+      "code": {
+        "display": "Office visit"
+      },
       "display": "Office visit",
       "status": "finished",
       "fields": {
-        "when": "2025-04-08",
-        "class": "AMB"
+        "when": "2025-04-08T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Sample Eye Center",
+        "practitioner": "Dr. Riley Placeholder",
+        "period": {
+          "start": "2025-04-08T15:00:00Z",
+          "end": "2025-04-08T15:30:00Z"
+        }
       },
-      "documents": [],
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000162"
+        }
+      ],
       "provenance": [
         {
           "source": {
@@ -214,27 +129,42 @@
           "method": "fhir-api",
           "source_resource": {
             "type": "Encounter",
-            "id": "encounter-c0f1b2",
-            "last_updated": "2025-04-08T15:00:00Z"
+            "id": "encounter-f5ab2caa",
+            "last_updated": "2025-04-08T08:00:00Z"
           },
-          "fetched_at": "2026-11-20T18:05:00Z",
-          "filed_at": "2026-11-20T18:05:00Z",
-          "filed_by": "medrec 0.9.6"
+          "fetched_at": "2026-11-22T19:58:22Z",
+          "filed_at": "2026-11-22T19:58:22Z",
+          "raw_path": "Casey Example/Records/athena-example-records/Encounter/encounter-f5ab2caa.json",
+          "filed_by": "medrec 0.9.7"
         }
       ]
     },
     {
-      "id": "r_caseyvisitthreeaaaaa",
+      "id": "r_z7vfph4kf6x3v7u2wvjv",
       "kind": "encounter",
       "key": "encounter|office visit|2025-05-13",
       "date": "2025-05-13",
+      "code": {
+        "display": "Office visit"
+      },
       "display": "Office visit",
       "status": "finished",
       "fields": {
-        "when": "2025-05-13",
-        "class": "AMB"
+        "when": "2025-05-13T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Example Walk-in Clinic",
+        "practitioner": "Dr. Riley Placeholder",
+        "period": {
+          "start": "2025-05-13T15:00:00Z",
+          "end": "2025-05-13T15:30:00Z"
+        }
       },
-      "documents": [],
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000162"
+        }
+      ],
       "provenance": [
         {
           "source": {
@@ -247,27 +177,90 @@
           "method": "fhir-api",
           "source_resource": {
             "type": "Encounter",
-            "id": "encounter-c0f1b3",
-            "last_updated": "2025-05-13T15:00:00Z"
+            "id": "encounter-3e709aac",
+            "last_updated": "2025-05-13T08:00:00Z"
           },
-          "fetched_at": "2026-11-19T09:00:00Z",
-          "filed_at": "2026-11-19T09:00:00Z",
-          "filed_by": "medrec 0.9.6"
+          "fetched_at": "2026-11-22T19:58:23Z",
+          "filed_at": "2026-11-22T19:58:23Z",
+          "raw_path": "Casey Example/Records/athena-example-records/Encounter/encounter-3e709aac.json",
+          "filed_by": "medrec 0.9.7"
         }
       ]
     },
     {
-      "id": "r_caseyvisitfouraaaaaa",
+      "id": "r_f725piz32x2njb6ajr7v",
       "kind": "encounter",
       "key": "encounter|office visit|2025-06-17",
       "date": "2025-06-17",
+      "code": {
+        "display": "Office visit"
+      },
       "display": "Office visit",
       "status": "finished",
       "fields": {
-        "when": "2025-06-17",
-        "class": "AMB"
+        "when": "2025-06-17T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Sample Eye Center",
+        "practitioner": "Dr. Riley Placeholder",
+        "period": {
+          "start": "2025-06-17T15:00:00Z",
+          "end": "2025-06-17T15:30:00Z"
+        }
       },
-      "documents": [],
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000162"
+        }
+      ],
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "Encounter",
+            "id": "encounter-d322c3fb",
+            "last_updated": "2025-06-17T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T19:58:23Z",
+          "filed_at": "2026-11-22T19:58:23Z",
+          "raw_path": "Casey Example/Records/athena-example-records/Encounter/encounter-d322c3fb.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    },
+    {
+      "id": "r_sj5ubej6gpz2qldvl5td",
+      "kind": "encounter",
+      "key": "encounter|office visit|2025-07-22",
+      "date": "2025-07-22",
+      "code": {
+        "display": "Office visit"
+      },
+      "display": "Office visit",
+      "status": "finished",
+      "fields": {
+        "when": "2025-07-22T15:00:00Z",
+        "class": "ambulatory",
+        "location": "Example Clinic",
+        "practitioner": "Dr. Riley Placeholder",
+        "period": {
+          "start": "2025-07-22T15:00:00Z",
+          "end": "2025-07-22T15:30:00Z"
+        }
+      },
+      "providers": [
+        {
+          "field": "practitioner",
+          "npi": "0000000162"
+        }
+      ],
       "provenance": [
         {
           "source": {
@@ -280,14 +273,177 @@
           "method": "fhir-api",
           "source_resource": {
             "type": "Encounter",
-            "id": "encounter-c0f1b4",
-            "last_updated": "2025-06-17T15:00:00Z"
+            "id": "encounter-05fe6865",
+            "last_updated": "2025-07-22T08:00:00Z"
           },
-          "fetched_at": "2026-11-20T18:10:00Z",
-          "filed_at": "2026-11-20T18:10:00Z",
-          "filed_by": "medrec 0.9.6"
+          "fetched_at": "2026-11-22T19:58:24Z",
+          "filed_at": "2026-11-22T19:58:24Z",
+          "raw_path": "Casey Example/Records/athena-example-records-2/Encounter/encounter-05fe6865.json",
+          "filed_by": "medrec 0.9.7"
         }
       ]
+    },
+    {
+      "id": "r_cktjm6xmbkqqki2svqss",
+      "kind": "allergy",
+      "key": "allergy|http://snomed.info/sct|300916003|2015-02-01",
+      "date": "2015-02-01",
+      "code": {
+        "system": "http://snomed.info/sct",
+        "code": "300916003",
+        "display": "Latex"
+      },
+      "display": "Latex",
+      "status": "active",
+      "fields": {
+        "when": "2015-02-01",
+        "criticality": "low",
+        "reaction": [
+          "Itching"
+        ]
+      },
+      "provenance": [
+        {
+          "source": {
+            "kind": "fhir",
+            "cli": "athena",
+            "cli_version": "0.6.1",
+            "organization_id": "example-records-2",
+            "fhir_base": "https://records.example.net/fhir/r4"
+          },
+          "method": "fhir-api",
+          "source_resource": {
+            "type": "AllergyIntolerance",
+            "id": "allergyintolerance-cd51bfec",
+            "last_updated": "2015-02-01T08:00:00Z"
+          },
+          "fetched_at": "2026-11-22T19:58:24Z",
+          "filed_at": "2026-11-22T19:58:24Z",
+          "raw_path": "Casey Example/Records/athena-example-records-2/AllergyIntolerance/allergyintolerance-cd51bfec.json",
+          "filed_by": "medrec 0.9.7"
+        }
+      ]
+    }
+  ],
+  "studies": [],
+  "imports": [
+    {
+      "id": "i_twl7i4ishl73qng5k2ge",
+      "source_dir": "Casey Example/Records/athena-example-records",
+      "stream_sha256": "a71dfc4a1c40f4f51e605d604cb5fa149964b187502341802b56eb8b3f0f3ebf",
+      "stream_bytes": 1760,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records",
+      "patient_id": "pat-c0f1a1",
+      "pulled_at": "2026-11-22T19:58:21Z",
+      "imported_at": "2026-11-22T19:58:21Z",
+      "counts": {
+        "Condition": 1,
+        "Encounter": 1,
+        "Patient": 1
+      },
+      "records_added": 2,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 3,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    },
+    {
+      "id": "i_wvun6exzbc36citc7uhj",
+      "source_dir": "Casey Example/Records/athena-example-records",
+      "stream_sha256": "158fbbcec1b77d4e0d9ce77d95b9a5b41539a537d2b2975a78e336c74026065f",
+      "stream_bytes": 1213,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records",
+      "patient_id": "pat-c0f1a2",
+      "pulled_at": "2026-11-22T19:58:22Z",
+      "imported_at": "2026-11-22T19:58:22Z",
+      "counts": {
+        "Encounter": 1,
+        "Patient": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 2,
+      "resources_unchanged": 0,
+      "documents_added": 0
+    },
+    {
+      "id": "i_zuk2x7bcpykti5g7ef3i",
+      "source_dir": "Casey Example/Records/athena-example-records",
+      "stream_sha256": "ea748208857ce1b8d04bb56f714da2fa8d499904fcec9b53496d10cdeae64ec3",
+      "stream_bytes": 2299,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records",
+      "patient_id": "pat-c0f1a1",
+      "pulled_at": "2026-11-22T19:58:23Z",
+      "imported_at": "2026-11-22T19:58:23Z",
+      "counts": {
+        "Condition": 1,
+        "Encounter": 2,
+        "Patient": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 2,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 3,
+      "documents_added": 0
+    },
+    {
+      "id": "i_awtfi4sbgnkecwpexfdu",
+      "source_dir": "Casey Example/Records/athena-example-records",
+      "stream_sha256": "c85334ea56a9429ad61dea9247a4a5020347b2438201ca3ad1cecf74f66a4c73",
+      "stream_bytes": 1747,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records",
+      "patient_id": "pat-c0f1a2",
+      "pulled_at": "2026-11-22T19:58:23Z",
+      "imported_at": "2026-11-22T19:58:23Z",
+      "counts": {
+        "Encounter": 2,
+        "Patient": 1
+      },
+      "records_added": 1,
+      "records_updated": 0,
+      "records_unchanged": 1,
+      "records_older": 0,
+      "resources_written": 1,
+      "resources_unchanged": 2,
+      "documents_added": 0
+    },
+    {
+      "id": "i_em4nse6ce6mjt6ckp4to",
+      "source_dir": "Casey Example/Records/athena-example-records-2",
+      "stream_sha256": "ae163b88a909468c150304cdd342f186acd2e74170caedfc9ddf591c5873be4f",
+      "stream_bytes": 1655,
+      "cli": "athena",
+      "cli_version": "0.6.1",
+      "organization": "example-records-2",
+      "patient_id": "pat-c0f1a4",
+      "pulled_at": "2026-11-22T19:58:24Z",
+      "imported_at": "2026-11-22T19:58:24Z",
+      "counts": {
+        "AllergyIntolerance": 1,
+        "Encounter": 1,
+        "Patient": 1
+      },
+      "records_added": 2,
+      "records_updated": 0,
+      "records_unchanged": 0,
+      "records_older": 0,
+      "resources_written": 3,
+      "resources_unchanged": 0,
+      "documents_added": 0
     }
   ]
 }
