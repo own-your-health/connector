@@ -33,6 +33,8 @@ function changed(text: string): [number, number][] {
   const out: [number, number][] = [];
   // Not in a string, and neither is anything before it that is still to be told.
   let known = 0;
+  // The first quote from there on, or -1.
+  let quote = text.indexOf('"');
   for (const m of text.matchAll(MAYBE)) {
     const n = m[1]!;
     const at = m.index;
@@ -47,11 +49,13 @@ function changed(text: string): [number, number][] {
       told = !'{[,:'.includes(text[q - 1]!) && text.charCodeAt(q - 1) > 32;
     }
     if (!told) {
-      for (let open = text.indexOf('"', known); open !== -1 && open < at; open = text.indexOf('"', known)) {
-        let end = text.indexOf('"', open + 1);
+      if (quote !== -1 && quote < known) quote = text.indexOf('"', known);
+      while (quote !== -1 && quote < at) {
+        let end = text.indexOf('"', quote + 1);
         while (end !== -1 && !bare(text, end)) end = text.indexOf('"', end + 1);
         if (end === -1) return out;
         known = end + 1;
+        quote = text.indexOf('"', known);
       }
       if (at < known) continue;
     }
