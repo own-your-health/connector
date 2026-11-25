@@ -94,6 +94,8 @@ class Part {
   private readonly claims: Record<string, unknown>;
   /** The ids of what the household said. */
   readonly said: ReadonlySet<unknown>;
+  /** The items it said it of, where it did of one alone. */
+  readonly about: readonly unknown[];
   private named?: Map<unknown, string[]>;
 
   constructor(v: PartView) {
@@ -101,7 +103,9 @@ class Part {
     this.byName = object(v.by_name);
     this.byItem = object(v.by_item);
     this.claims = object(v.claims);
-    this.said = new Set(Array.isArray(v.overrides) ? v.overrides.map((o) => object(o).id) : []);
+    const said = Array.isArray(v.overrides) ? v.overrides.map(object) : [];
+    this.said = new Set(said.map((o) => o.id));
+    this.about = said.map((o) => o.item);
   }
 
   id(item: string, p: Printed): string | undefined {
@@ -145,6 +149,11 @@ export class ProviderLabels {
   constructor(v: ProvidersView) {
     this.open = new Part(v);
     this.priv = new Part(object(v.private));
+  }
+
+  /** How many times the household said something of this item alone. */
+  corrections(item: string): number {
+    return [...this.open.about, ...this.priv.about].filter((x) => x === item).length;
   }
 
   /** The labels of what an item prints, as an answer shows them. Two that print the same and have one label are one. */

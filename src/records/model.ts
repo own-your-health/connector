@@ -70,6 +70,8 @@ export interface RecordEntry {
   fields?: JsonObject;
   documents?: string[];
   provenance?: Provenance[];
+  /** What each source says of one that a source says is entered in error (the views, medrec 0.9.9 and later). */
+  says?: Json;
 }
 
 /** A record as a list shows it. */
@@ -101,6 +103,8 @@ export interface DocumentEntry {
   text?: { chars?: number } | null;
   statement?: Statement | null;
   same_statement_as?: string | null;
+  /** As a record's. */
+  says?: Json;
 }
 
 export interface Series {

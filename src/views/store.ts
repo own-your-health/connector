@@ -14,9 +14,10 @@ import type { Folder } from '../records/folder';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
 import { parseExact } from '../records/numbers';
 import { atBase, sourcesOf } from '../records/sources';
-import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
+import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Bills, type Candidate, type Events, type RecordFilter, type Skip, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
 import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
+import { STANDING_SCHEMA, allOf, errorsOf, standingsOf, type StandingView, type Standings } from '../records/standing';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -186,12 +187,24 @@ export function privacyOf(view: PrivateView): Privacy {
 }
 
 /** bills.json as a reader needs it (medrec-bills/v1). */
-export type BillsView = { bills?: Record<string, { settled?: unknown; left?: unknown }> };
+export type BillsView = { bills?: Record<string, { settled?: unknown; left?: unknown }>; in_error?: Record<string, { as?: unknown; bill?: unknown; not_applied?: { from?: unknown }[] }> };
 
-/** What is paid and left on each bill bills.json gives, by document id. */
-export function standingOf(view: BillsView): Map<string, Standing> {
-  return new Map(Object.entries(view.bills ?? {}).map(([id, b]) => [id, { settled: b.settled === true, ...(typeof b.left === 'string' ? { left: b.left } : {}) }]));
+/** What bills.json gives of a person's bills, by document id. */
+export function billsOf(view: BillsView): Bills {
+  const gone = new Map(Object.entries(view.in_error ?? {}));
+  const kept = (id: string) => gone.get(id)?.not_applied ?? [];
+  return {
+    standing: new Map(Object.entries(view.bills ?? {}).map(([id, b]) => [id, { settled: b.settled === true, ...(typeof b.left === 'string' ? { left: b.left } : {}) }])),
+    lost: new Map([...gone].filter(([, g]) => g.as === 'bill').map(([id]) => [id, kept(id).some((x) => x.from === 'household')])),
+    kept: (paper) => {
+      const of = gone.get(paper)?.bill;
+      return kept(typeof of === 'string' ? of : paper).length;
+    },
+  };
 }
+
+/** events.json as a reader needs it (medrec-events/v1). */
+type EventsView = { schema?: string; events?: JsonObject[]; events_in_error?: JsonObject[]; in_error?: Record<string, { not_applied?: unknown[] }> };
 
 export class ViewsStore implements Store {
   private readonly raw: RawStore;
@@ -237,7 +250,7 @@ export class ViewsStore implements Store {
     return this.state_;
   }
 
-  async events(h: Household, p: Person): Promise<JsonObject[]> {
+  async events(h: Household, p: Person): Promise<Events> {
     const st = await this.state(h);
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads`).withFix(
@@ -253,13 +266,14 @@ export class ViewsStore implements Store {
         "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
       ).personUnavailable(p.id);
     }
-    const e = await new PersonReader(this.folder, p, v).json<{ schema?: string; events?: JsonObject[] }>(paths.events(p.id));
+    const e = await new PersonReader(this.folder, p, v).json<EventsView>(paths.events(p.id));
     if (e.schema !== EVENTS_SCHEMA) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s events in a layout (${String(e.schema)}) this connector does not read`).withFix(
         "Tell the user the connector needs updating: its README's Updating section has the steps",
       ).personUnavailable(p.id);
     }
-    return e.events ?? [];
+    const gone = new Map(Object.entries(e.in_error ?? {}));
+    return { events: e.events ?? [], lost: e.events_in_error ?? [], kept: (id) => gone.get(id)?.not_applied?.length ?? 0 };
   }
 
   /**
@@ -338,9 +352,9 @@ export class ViewsStore implements Store {
     return (await this.folder.md5([`${p.folder}/${MADE_FROM.provider_state}`]))[0] !== null;
   }
 
-  async bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+  async bills(h: Household, p: Person): Promise<Bills | null> {
     const got = await this.derived<BillsView>(h, p, 'bills.json', BILLS_SCHEMA);
-    return 'not' in got ? null : standingOf(got.view);
+    return 'not' in got ? null : billsOf(got.view);
   }
 
   async codeNames(h: Household, p: Person): Promise<CodeNames> {
@@ -359,6 +373,26 @@ export class ViewsStore implements Store {
         return 'not' in got ? NO_LABELS : providerLabelsOf(got.view, p.id);
       },
     };
+  }
+
+  async standings(h: Household, p: Person, kind?: string): Promise<Standings | null> {
+    const st = await this.state(h);
+    // Made from household.json and index.json alone, so it is as current as the person's views.
+    const v = st.fresh.has(p.id) ? st.index!.people[p.id]! : undefined;
+    if (!v || v.files['standing.json'] === undefined || (kind !== undefined && !v.records[kind])) return null;
+    let view: StandingView & { schema?: unknown };
+    try {
+      view = await new PersonReader(this.folder, p, v).json(`${VIEWS_DIR}/${p.id}/standing.json`);
+    } catch (e) {
+      if (e instanceof ToolError && e.unavailable === p.id) return null;
+      throw e;
+    }
+    return view.schema === STANDING_SCHEMA ? standingsOf(view, p.id) : null;
+  }
+
+  async errors(h: Household, p: Person): Promise<ReadonlySet<string>> {
+    const st = await this.state(h);
+    return st.fresh.has(p.id) ? allOf(errorsOf(st.index!.people[p.id]!.in_error)) : new Set();
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */
@@ -714,8 +748,8 @@ export class ViewsStore implements Store {
         hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: firstAt[ord]!, reader: r },
         snippet: () => this.snippet(c),
       };
-      if (skip?.(c)) c.held = true;
-      else kept++;
+      c.held = skip?.(c);
+      if (c.held === undefined) kept++;
       ranked.push({ c, seq });
     }
 
@@ -736,7 +770,7 @@ export class ViewsStore implements Store {
       ranked.map((r) => r.c),
       want,
     );
-    let shown = out.filter((c) => !c.held).length;
+    let shown = out.filter((c) => c.held === undefined).length;
 
     // A lab query's finds by kind score 0: after every text hit, highest item number first.
     for (let i = r.v.search.labs - 1; labs && shown < want && i >= 0; i--) {
@@ -745,8 +779,8 @@ export class ViewsStore implements Store {
         const [ord, date, kind, id, title, snippet] = rows[j]!;
         if (isHit(ord) || !holds(range, date)) continue;
         const c: Candidate = { kind, id, date: date ?? undefined, title, score: 0, snippet: async () => snippet };
-        if (skip?.(c)) c.held = true;
-        else shown++;
+        c.held = skip?.(c);
+        if (c.held === undefined) shown++;
         out.push(c);
       }
     }

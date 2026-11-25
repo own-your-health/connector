@@ -173,6 +173,8 @@ it('measures', async () => {
     ['records medications, active', call('medrec_records', { kind: 'medications', active: true })],
     ['records conditions, everyone, 200', call('medrec_records', { kind: 'conditions', limit: 200 })],
     ['records conditions, Robin', call('medrec_records', { kind: 'conditions', person: 'Robin' })],
+    ['records conditions, active, everyone', call('medrec_records', { kind: 'conditions', active: true })],
+    ['records allergies, active, everyone', call('medrec_records', { kind: 'allergies', active: true })],
     ['records documents Sam', call('medrec_records', { kind: 'documents', person: 'Sam' })],
     ['records bills, everyone', call('medrec_records', { kind: 'bills' })],
     ['records claims, everyone, 200', call('medrec_records', { kind: 'claims', limit: 200 })],

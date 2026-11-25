@@ -270,7 +270,8 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   );
   const located = new Map(withText.map((d, i) => [d.id, textAt[i]!]));
   const dv: DocumentView[] = docs.map((d) => {
-    const v: DocumentView = { ...d };
+    // What a source gave and no item shows decides what is private, and is in no view.
+    const { given: _given, ...v }: DocumentView & { given?: unknown } = d;
     const at = located.get(d.id);
     if (at) v.text_at = [...at, Array.from(texts[d.id]!).length];
     const linked = records.filter((r) => (r.documents ?? []).includes(d.id)).slice(0, 20).map((r) => r.display);

@@ -3,9 +3,10 @@
 // test/fixtures/<view>/records/<person id>.json over test/fixtures/records, and
 // test/fixtures/<view>/large/<person id>.json over `scripts/synth.mjs`, and
 // test/fixtures/<view>/labels/<person id>.json over test/fixtures/labels, for each
-// of events.json, bills.json, private.json and providers.json (which a person
-// with no labelled provider has none of), byte for byte as `medrec views write`
-// wrote them. medrec runs from a throwaway profile in a scratch home, so
+// of events.json, bills.json, private.json, providers.json (which a person
+// with no labelled provider has none of) and standing.json, byte for byte as
+// `medrec views write` wrote them, and test/fixtures/words/views/ and
+// test/fixtures/errors/views/, all of what it wrote for those two. medrec runs from a throwaway profile in a scratch home, so
 // nothing of this machine's medrec is read or changed.
 //
 //   node scripts/derived.mjs
@@ -15,10 +16,11 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { labelsFolder } from './labels-folder.mjs';
+import { OWN, ownFolder } from './own-folder.mjs';
 import { synth } from './synth.mjs';
 
 const ROOT = join(import.meta.dirname, '..');
-const VIEWS = ['events.json', 'bills.json', 'private.json', 'providers.json'];
+const VIEWS = ['events.json', 'bills.json', 'private.json', 'providers.json', 'standing.json'];
 const OPTIONAL = new Set(['providers.json']);
 
 const scratch = mkdtempSync(join(tmpdir(), 'derived-'));
@@ -33,9 +35,17 @@ try {
   cpSync(join(ROOT, 'test/fixtures/records'), folders.records, { recursive: true });
   synth(folders.large);
   labelsFolder(folders.labels);
+  for (const name of OWN) folders[name] = ownFolder(name, join(scratch, name));
   for (const [name, folder] of Object.entries(folders)) {
     medrec('--profile', 't', 'config', 'set', 'folder', folder, '--json');
     medrec('--profile', 't', 'views', 'write', '--all', '--json');
+    if (OWN.includes(name)) {
+      const out = join(ROOT, 'test/fixtures', name, 'views');
+      rmSync(out, { recursive: true, force: true });
+      cpSync(join(folder, 'views'), out, { recursive: true });
+      console.log(`${name}: its views, from ${version}`);
+      continue;
+    }
     const index = JSON.parse(readFileSync(join(folder, 'views/views.json'), 'utf8'));
     for (const view of VIEWS) {
       const out = join(ROOT, 'test/fixtures', view.replace(/\.json$/, ''), name);

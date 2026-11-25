@@ -10,6 +10,8 @@
 
 import type { Warning } from './partial';
 import type { Person } from './model';
+import { billsInError, inError } from './standing';
+import type { Why } from './store';
 import { fold } from './text';
 
 /**
@@ -65,22 +67,41 @@ export function names(title: string, query: string): boolean {
 }
 
 /**
- * The private items of the people an answer covers, as it is built in the
- * tool's order. `keep` decides each item: one held back from an answer about
- * the whole household that does not name it is counted and left out. The
- * count a page reports is the held-back items after the previous page's last
- * item, up to its own last item; the last page counts to the end.
+ * The private items of the people an answer covers, and their records and
+ * papers entered in error (medrec 0.9.9 and later), as it is built in the tool's order.
+ * `keep` decides each item: one held back from an answer about the whole
+ * household that does not name it is counted and left out, and so is one
+ * entered in error from any answer. The count a page reports for each reason
+ * is the items left out after the previous page's last item, up to its own
+ * last item; the last page counts to the end.
  */
 export class Gate {
-  private held = 0;
-  /** For each item kept, how many were held back before it. */
-  private readonly before: number[] = [];
+  private readonly out: Record<Why, number> = { private: 0, error: 0, paid: 0 };
+  /** For each item kept, how many were left out before it. */
+  private readonly before: Readonly<Record<Why, number>>[] = [];
 
   constructor(
     /** Whether the answer is about the whole household. */
     private readonly household: boolean,
     private readonly people: ReadonlyMap<string, Privacy>,
+    /** Each person's records and papers entered in error. */
+    private readonly errors: ReadonlyMap<string, ReadonlySet<string>> = new Map(),
   ) {}
+
+  /** A gate over the same answer that judges these people's items too. */
+  judging(others: ReadonlyMap<string, Privacy>): Gate {
+    return new Gate(this.household, new Map([...this.people, ...others]), this.errors);
+  }
+
+  /** Whether it is entered in error. */
+  inError(p: Person, id: string): boolean {
+    return this.errors.get(p.id)?.has(id) ?? false;
+  }
+
+  /** The person's records and papers entered in error. */
+  errorsOf(p: Person): ReadonlySet<string> | undefined {
+    return this.errors.get(p.id);
+  }
 
   /** The item's area when it is private; a test series' is its latest result's, else the first of its other results' (`members`, newest first). */
   area(p: Person, id: string, members: readonly string[] = []): string | undefined {
@@ -89,9 +110,9 @@ export class Gate {
     return areas.get(id) ?? members.map((m) => areas.get(m)).find((a) => a !== undefined);
   }
 
-  /** The person's private records' ids, for a test series to find among its results. */
+  /** The ids of the person's private records not entered in error, for a test series to find among its results. */
   records(p: Person): ReadonlySet<string> {
-    return new Set([...(this.people.get(p.id)?.areas.keys() ?? [])].filter((id) => id.startsWith('r_')));
+    return new Set([...(this.people.get(p.id)?.areas.keys() ?? [])].filter((id) => id.startsWith('r_') && !this.inError(p, id)));
   }
 
   /**
@@ -106,53 +127,61 @@ export class Gate {
     return v.areas.has(id) || (v.unjudged?.has(id) ?? false) || (v.unknown !== undefined && HELD.test(id));
   }
 
+  /** As `heldBack`, of an id that may be another person's the answer covers. */
+  heldBackOf(p: Person, id: string): boolean {
+    return this.heldBack(p, id) || [...this.people.values()].some((v) => v.areas.has(id) || (v.unjudged?.has(id) ?? false));
+  }
+
   /**
    * Whether the item stays in the answer: `named` says whether the question
    * names it. A test series is held back when any of its results is
-   * (`members`), and counted once.
+   * (`members`), and counted once. `wrong` is why else one is left out.
    */
-  keep(p: Person, id: string, named: () => boolean, members: readonly string[] = []): boolean {
-    if (this.household && (this.heldBack(p, id) || members.some((m) => this.heldBack(p, m))) && !named()) {
-      this.held++;
-      return false;
-    }
-    this.before.push(this.held);
-    return true;
+  keep(p: Person, id: string, named: () => boolean, members: readonly string[] = [], wrong: Why | undefined = this.inError(p, id) ? 'error' : undefined): boolean {
+    const held = this.household && (this.heldBack(p, id) || members.some((m) => this.heldBack(p, m))) && !named();
+    const why = held ? 'private' : wrong;
+    if (why) this.skipped(why);
+    else this.kept();
+    return why === undefined;
   }
 
-  /** Counts an item held back that the answer never asked `keep` about: search's, skipped where it ranks. */
-  skipped(): void {
-    this.held++;
+  /** Counts an item left out that the answer never asked `keep` about: search's, skipped where it ranks. */
+  skipped(why: Why): void {
+    this.out[why]++;
   }
 
   /** Records a kept item that `keep` did not see: search's, at its rank. */
   kept(): void {
-    this.before.push(this.held);
+    this.before.push({ ...this.out });
   }
 
   /**
    * How many items the page of kept items from `offset`, `returned` long, left
-   * out: those after the previous page's last item, up to its own last item,
+   * out for `why`: those after the previous page's last item, up to its own last item,
    * or to the end of what was read when `last`. A page past the kept items (a
    * cursor from before the list shrank) follows the true last page, which
    * counted the rest (medrec's views::LeftOut::on_page).
    */
-  leftOut(offset: number, returned: number, last: boolean): number {
+  leftOut(why: Why, offset: number, returned: number, last: boolean): number {
     if (offset > 0 && offset >= this.before.length) return 0;
-    // Held back before the kept item `i`; past the kept items read, every one held back so far.
-    const below = (i: number) => (i >= 0 && i < this.before.length ? this.before[i]! : this.held);
-    const from = offset > 0 ? this.before[offset - 1]! : 0;
-    const to = last ? this.held : below(offset + returned - 1);
+    // Left out before the kept item `i`; past the kept items read, every one left out so far.
+    const below = (i: number) => (i >= 0 && i < this.before.length ? this.before[i]! : this.out)[why];
+    const from = offset > 0 ? this.before[offset - 1]![why] : 0;
+    const to = last ? this.out[why] : below(offset + returned - 1);
     return to - from;
   }
 
   /**
-   * The page's warnings, medrec's first: how many it left out, and for each of
-   * the people whose marks.json or provider-state.json does not read, or who
-   * have no current private.json here, that their items are held back.
+   * The page's warnings, medrec's first: how many it left out, entered in
+   * error and private, and for each of the people whose marks.json or
+   * provider-state.json does not read, or who have no current private.json
+   * here, that their items are held back. `paid`, of a page of bills, is how
+   * many more it left out, entered in error with a payment the household marked.
    */
-  warnings(people: Person[], leftOut: number): Warning[] {
+  warnings(people: Person[], leftOut: number, errors: number, paid?: number): Warning[] {
     const out: Warning[] = [];
+    const n = errors + (paid ?? 0);
+    if (n > 0) out.push({ code: 'entered-in-error', message: paid === undefined ? inError(n) : billsInError(n, paid) });
     if (leftOut > 0) {
       out.push({
         code: 'private-left-out',

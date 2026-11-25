@@ -2,7 +2,7 @@
   "tools": [
     {
       "name": "medrec_summary",
-      "title": "Household or person summary",
+      "title": "Summary",
       "description": "The people, and with person their summary. Use it first. Medicines, conditions, allergies, vaccines, results, visits, bills.",
       "inputSchema": {
         "type": "object",
@@ -124,6 +124,12 @@
                           "detail": {
                             "type": "string"
                           },
+                          "standing": {
+                            "type": "string"
+                          },
+                          "says": {
+                            "type": "string"
+                          },
                           "source": {
                             "type": "string"
                           },
@@ -141,6 +147,9 @@
                     },
                     "more": {
                       "type": "integer"
+                    },
+                    "note": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -165,7 +174,7 @@
         ]
       },
       "annotations": {
-        "title": "Household or person summary",
+        "title": "Summary",
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
@@ -181,15 +190,15 @@
         "properties": {
           "query": {
             "type": "string",
-            "description": "Words that must all appear."
+            "description": "Words to find."
           },
           "person": {
             "type": "string",
-            "description": "A name, alias or id."
+            "description": "Name, alias or id."
           },
           "since": {
             "type": "string",
-            "description": "YYYY-MM-DD, inclusive."
+            "description": "YYYY-MM-DD."
           },
           "until": {
             "type": "string",
@@ -304,7 +313,7 @@
     },
     {
       "name": "medrec_records",
-      "title": "List records by kind",
+      "title": "List records",
       "description": "One kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time, with range and flag.",
       "inputSchema": {
         "type": "object",
@@ -333,11 +342,11 @@
           },
           "person": {
             "type": "string",
-            "description": "A name, alias or id."
+            "description": "Name, alias or id."
           },
           "since": {
             "type": "string",
-            "description": "YYYY-MM-DD, inclusive."
+            "description": "YYYY-MM-DD."
           },
           "until": {
             "type": "string",
@@ -412,6 +421,12 @@
                   "type": "string"
                 },
                 "status": {
+                  "type": "string"
+                },
+                "standing": {
+                  "type": "string"
+                },
+                "says": {
                   "type": "string"
                 },
                 "source": {
@@ -514,7 +529,7 @@
         ]
       },
       "annotations": {
-        "title": "List records by kind",
+        "title": "List records",
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,
@@ -523,8 +538,8 @@
     },
     {
       "name": "medrec_document",
-      "title": "Read a document's text",
-      "description": "A filed document's text, with its title, date, type and organization. Read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset, or page to jump.",
+      "title": "Read a document",
+      "description": "A filed document's text, with its title, date, type and organization. Read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset, or page.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -534,12 +549,12 @@
           },
           "page": {
             "type": "integer",
-            "description": "Start at this page (from 1).",
+            "description": "Start at this page.",
             "minimum": 0
           },
           "offset": {
             "type": "integer",
-            "description": "A previous answer's `next_offset`.",
+            "description": "An earlier `next_offset`.",
             "minimum": 0
           }
         },
@@ -627,7 +642,7 @@
         ]
       },
       "annotations": {
-        "title": "Read a document's text",
+        "title": "Read a document",
         "readOnlyHint": true,
         "destructiveHint": false,
         "idempotentHint": true,

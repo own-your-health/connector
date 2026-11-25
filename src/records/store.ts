@@ -16,6 +16,7 @@ import { NO_NAMES, type CodeNames } from './code-names';
 import type { Folder } from './folder';
 import type { Privacy } from './private';
 import type { LabelsFile } from './provider-labels';
+import type { Standings } from './standing';
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { sourcesOf } from './sources';
@@ -46,6 +47,8 @@ export interface RecordFilter {
   range: Range;
   /** Leave out records whose status says they ended. */
   active: boolean;
+  /** Those entered in error: passed whatever their status, for the list to count. */
+  errors?: ReadonlySet<string>;
   /** `matchesCode`: an exact code, or part of the name. */
   name?: string;
 }
@@ -57,25 +60,28 @@ export interface Candidate {
   date?: string;
   title: string;
   score: number;
-  /** Ranked but held back from the answer (private.ts): counted where it ranks, never shown. */
-  held?: boolean;
+  /** Ranked but left out of the answer (private.ts), and why: counted where it ranks, never shown. */
+  held?: Why;
   snippet(): Promise<string>;
 }
 
-/** Which hits a search holds back where they rank: private items a question about everyone does not name. */
-export type Skip = (c: { id: string; title: string }) => boolean;
+/** Why a list leaves an item out: it is private, and the question does not name it; or it is entered in error (`paid`: a bill the household marked a payment on). */
+export type Why = 'private' | 'error' | 'paid';
+
+/** Which hits a search leaves out where they rank, and why. */
+export type Skip = (c: { id: string; title: string }) => Why | undefined;
 
 /**
- * The first hits of `ranked` up to `want` not held back, with those held back
+ * The first hits of `ranked` up to `want` not left out, with those left out
  * (`skip`) that rank among them, flagged `held`.
  */
-export function upTo<T extends { held?: boolean }>(ranked: T[], want: number, skip?: (x: T) => boolean): T[] {
+export function upTo<T extends { held?: Why }>(ranked: T[], want: number, skip?: (x: T) => Why | undefined): T[] {
   const out: T[] = [];
   let kept = 0;
   for (const x of ranked) {
     if (kept >= want) break;
-    if (x.held || skip?.(x)) x.held = true;
-    else kept++;
+    x.held ??= skip?.(x);
+    if (x.held === undefined) kept++;
     out.push(x);
   }
   return out;
@@ -86,6 +92,27 @@ export interface Standing {
   settled: boolean;
   left?: string;
 }
+
+/** A person's bills, from their bills.json. */
+export interface Bills {
+  /** What is paid and left on each that stands, by document id. */
+  standing: ReadonlyMap<string, Standing>;
+  /** Those entered in error, and whether the household marked a payment on each (medrec 0.9.9 and later). */
+  lost: ReadonlyMap<string, boolean>;
+  /** How many payments are kept on the bill a paper entered in error is of, and not applied. */
+  kept(paper: string): number;
+}
+
+/** A person's events, from their events.json. */
+export interface Events {
+  events: readonly JsonObject[];
+  /** Those that are none without what is entered in error (medrec 0.9.9 and later). */
+  lost: readonly JsonObject[];
+  /** How many of the household's decisions name an item entered in error, and are not applied. */
+  kept(id: string): number;
+}
+
+export const NO_EVENTS: Events = { events: [], lost: [], kept: () => 0 };
 
 /**
  * What the tools read. A person-scoped method that cannot read that person's
@@ -130,19 +157,27 @@ export interface Store {
    * groups records into events, so a person without current events gets a
    * personUnavailable error, however small their files.
    */
-  events(h: Household, p: Person): Promise<JsonObject[]>;
+  events(h: Household, p: Person): Promise<Events>;
   /**
    * The person's private items (private.json, in full from medrec 0.9.5), or
    * why they are not known: never an error, since not knowing only holds
    * their items back from answers about everyone.
    */
   privacy(h: Household, p: Person): Promise<Privacy>;
-  /** What is paid and left on each of the person's bills by document id (bills.json, medrec 0.9.1 and later); null when not known. */
-  bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null>;
+  /** The person's bills (bills.json, medrec 0.9.1 and later); null when not known. */
+  bills(h: Household, p: Person): Promise<Bills | null>;
   /** The plain names of the person's condition codes (code-names.json, medrec 0.9.4 and later); none when missing or stale. */
   codeNames(h: Household, p: Person): Promise<CodeNames>;
   /** Who the providers the person's items print are (providers.json, medrec 0.9.7 and later), to read; null when missing or stale. */
   providerLabels(h: Household, p: Person): Promise<LabelsFile | null>;
+  /**
+   * What each source says of the person's conditions, allergies and medicines
+   * (standing.json, medrec 0.9.9 and later); null when missing or stale. With
+   * `kind`, null too when the person has no record of it.
+   */
+  standings(h: Household, p: Person, kind?: string): Promise<Standings | null>;
+  /** The person's records and papers entered in error, which no list shows (medrec 0.9.9 and later); none when not known. */
+  errors(h: Household, p: Person): Promise<ReadonlySet<string>>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -156,7 +191,7 @@ export const eventOrder = (a: Event, b: Event) =>
   cmpOpt(b.date, a.date) || cmpStr(clip(a.title, CLIP), clip(b.title, CLIP)) || cmpStr(a.kind, b.kind) || cmpStr(a.title, b.title);
 
 export function passes(r: RecordEntry, kind: string, f: RecordFilter): boolean {
-  return r.kind === kind && holds(f.range, r.date) && !(f.active && isEnded(r.status)) && (f.name === undefined || matchesCode(r, f.name));
+  return r.kind === kind && holds(f.range, r.date) && !(f.active && isEnded(r.status) && !f.errors?.has(r.id)) && (f.name === undefined || matchesCode(r, f.name));
 }
 
 /**
@@ -219,7 +254,7 @@ export async function searchHousehold(
   want: number,
   /** Asks one person, or leaves them out (partial.ts LeftOut.of); by default the person's error is the answer. */
   each: <T>(p: Person, f: () => Promise<T>, none: T) => Promise<T> = (_p, f) => f(),
-  /** Each person's hits held back where they rank. */
+  /** Each person's hits left out where they rank. */
   skip?: (p: Person) => Skip | undefined,
 ): Promise<{ p: Person; c: Candidate }[]> {
   const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want, skip?.(p)), [])));
@@ -234,12 +269,14 @@ export function searchTerms(query: string): { terms: string[]; labs: boolean } {
   return { terms, labs: LAB_QUERIES.includes(terms.join(' ')) };
 }
 
+const NONE: ReadonlySet<string> = new Set();
+
 /** The store over the records folder's own files, read whole. */
 export class RawStore implements Store {
   constructor(readonly folder: Folder) {}
 
   /** Events are medrec's alone, in its views, which this store does not read. */
-  async events(_h: Household, p: Person): Promise<JsonObject[]> {
+  async events(_h: Household, p: Person): Promise<Events> {
     throw eventsNotPrepared(p);
   }
 
@@ -249,7 +286,7 @@ export class RawStore implements Store {
   }
 
   /** So are payments. */
-  async bills(_h: Household, _p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+  async bills(_h: Household, _p: Person): Promise<Bills | null> {
     return null;
   }
 
@@ -261,6 +298,15 @@ export class RawStore implements Store {
   /** And who a printed provider is. */
   async providerLabels(_h: Household, _p: Person): Promise<LabelsFile | null> {
     return null;
+  }
+
+  /** And what each source says, and what is entered in error. */
+  async standings(_h: Household, _p: Person, _kind?: string): Promise<Standings | null> {
+    return null;
+  }
+
+  async errors(_h: Household, _p: Person): Promise<ReadonlySet<string>> {
+    return NONE;
   }
 
   household(): Promise<Household> {

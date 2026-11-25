@@ -138,6 +138,8 @@ export interface PersonViews {
    * there is none. The file is medrec's own, and is never read here.
    */
   provider_state?: string | null;
+  /** medrec 0.9.9 on: the ids of the person's records entered in error, by kind, as standing.json has them; absent when there are none. */
+  in_error?: Json;
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */
@@ -152,6 +154,8 @@ export interface SummaryView {
   recent_visits: Listed<SummaryLine>;
   /** Bills as `summarize` gives them; `past_due` is recomputed against the day asked. */
   bills: Listed<Bill>;
+  /** medrec 0.9.9 on: every record that standing.json has as current or on hold, in its order, to make the three lists of. */
+  standing?: Record<'medications' | 'conditions' | 'allergies', SummaryLine[]>;
 }
 
 /** Where a record came from, as a view keeps it. */

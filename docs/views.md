@@ -55,6 +55,7 @@ views/<person id>/bills.json              medrec 0.9.1 on; medrec's own, below
 views/<person id>/private.json            medrec 0.9.1 on; medrec's own, below
 views/<person id>/code-names.json         medrec 0.9.4 on; medrec's own, below
 views/<person id>/providers.json          medrec 0.9.7 on; medrec's own, below
+views/<person id>/standing.json           medrec 0.9.9 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -492,6 +493,66 @@ items that fit the page without labels: claims, documents, bills and events, and
 any record in detail. The labels count in the page's size. An item keeps the
 first of its labels that fit a page beside it, and the
 `provider-labels-left-out` warning counts the items that lost any.
+
+## `standing.json` (medrec 0.9.9 and later)
+
+What each of a person's sources says of their conditions, allergies and
+medicines, and what that makes of each, in medrec's layout
+`medrec-standing/v1` (medrec's `docs/data-contract.md`, "Standing"). No
+source's word wins over another's. The reference writer here does not write it.
+
+It is made from `household.json` and the person's `index.json` alone, so it is
+current whenever the person's views are. Two other views come with it:
+
+- **`views.json`** has `people.<id>.in_error`, the same object as
+  `standing.json`'s: the ids of the person's records entered in error, by kind,
+  and of their papers, as `document`. A reader that leaves them out of an answer
+  opens no other view for it.
+- **`summary.json`** has `standing`: each medicine, condition and allergy that
+  is current or on hold, uncut, for a reader to make the summary's lists of.
+  `medications`, `conditions` and `allergies` beside it are by each record's
+  own `status`, for a reader without `standing.json`.
+
+This connector makes the lists by medrec's rules ("As a reader lists them"), on
+the day it answers and of the records the answer may show: a private one it may
+not show makes no line current and no line differ. It reads `standing.json` for
+`kind: "conditions"`, `"allergies"` and `"medications"` and for a person's
+summary. With `active`, it reads all of the person's records of the kind, since
+a line's records may be of any date. Without a current `standing.json` it lists
+by status, as views from 0.9.8 and earlier are, and says nothing of sources
+that differ.
+
+## What is entered in error (medrec 0.9.9 and later)
+
+A record or paper is entered in error when every source of it says so. medrec's
+views hold it, and make everything else without it: events, bills, totals,
+labels, and the summary's other lists. A reader shows it in no list, the
+timeline or the search, and counts it (an `entered-in-error` warning, or a
+summary list's `note`). What the household decided of it is kept, and is not
+applied while it is. These views say what they leave out, by id:
+
+- **`events.json`**: `in_error` on an event (a list of the person's own items it
+  would have) and `not_applied` (the decisions naming one), `events_in_error`
+  (the events that are none without it), and the document's own `in_error` (an
+  object, by item). An event says how many of its own there are, of those the
+  answer may show. One in `events_in_error` is listed for nobody, and shown as
+  `entered in error` when it is asked for by its id.
+- **`bills.json`**: `in_error`, by document id, with what each is (`as`) and the
+  payments kept on it. A bill is all the papers that are one statement, so one
+  whose first paper is entered in error is its next copy's, and this connector
+  lists as bills those in `bills`, counting those that are `bill` in `in_error`.
+  Without a current `bills.json` it works that out from `documents.json`. A page
+  that leaves out a bill with a payment the household marked says so.
+- **`providers.json`**: `applied: false` on what the household said of one.
+- **`documents.json` and the records' shards**: `says`, what each source says, on
+  one that some source says is entered in error. One its sources differ on
+  stays, and an answer shows it with `sources differ` and those words. A
+  condition, allergy or medicine has its words in `standing.json` instead.
+
+`medrec_document` of a paper entered in error says so first in its `hint`, with
+how many decisions, payments and corrections are kept. For those alone it reads
+`events.json`, `bills.json` and `providers.json`, and leaves out what it cannot
+read. One its sources differ on says what each says.
 
 ## Without a current `private.json` or `bills.json`
 

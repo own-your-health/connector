@@ -346,7 +346,8 @@ export interface Listed<T> {
 
 export const cut = <T>(all: T[], n: number): Listed<T> => ({ items: all.slice(0, n), more: Math.max(0, all.length - n) });
 
-function line(r: RecordEntry, source: string | undefined): SummaryLine {
+/** A record as a line of a summary's list. */
+export function line(r: RecordEntry, source: string | undefined): SummaryLine {
   const detail = recordDetail(r);
   return {
     name: clip(r.display, CLIP),
@@ -528,6 +529,8 @@ export interface Summary {
   latest_results: Listed<ResultRow>;
   recent_visits: Listed<SummaryLine>;
   bills: Listed<Bill>;
+  /** The records a list of what is current by each source's words can be made of, when the summary has them (medrec 0.9.9 and later). */
+  standing?: Record<'medications' | 'conditions' | 'allergies', SummaryLine[]>;
 }
 
 export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number): Summary {

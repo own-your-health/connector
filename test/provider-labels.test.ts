@@ -14,7 +14,7 @@ import { ENVELOPE_RESERVE, SIZE_BUDGET, chars } from '../src/mcp/shape';
 import { Folder, ParsedCache } from '../src/records/folder';
 import type { JsonObject } from '../src/records/model';
 import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, providerLabelsOf, type LabelsFile, type Printed } from '../src/records/provider-labels';
-import { RawStore } from '../src/records/store';
+import { NO_EVENTS, RawStore } from '../src/records/store';
 import { LABELS_LIMIT, callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
@@ -614,7 +614,7 @@ describe("over medrec's own folder", () => {
         const at = many(members, name);
         const id = 'e_bigeventaaaaaaaaaaaa';
         const event = { id, kind: 'visit', start: '2025-02-04', end: '2025-02-04', title: 'Sample visit', place: 'J SAMPLE', members: Array.from({ length: members }, (_, i) => ({ record: `r_member${i}`, kind: 'claim', title: 'Sample service', provider: name(i) })) };
-        const store = (s: ViewsStore) => Object.assign(Object.create(s), { events: async () => [event] }) as ViewsStore;
+        const store = (s: ViewsStore) => Object.assign(Object.create(s), { events: async () => ({ ...NO_EVENTS, events: [event] }) }) as ViewsStore;
         for (const args of [{ kind: 'events', id }, { kind: 'events', person: 'Robin', response_format: 'detailed' }]) {
           const { out } = await ask(at, 'medrec_records', args, store);
           const labels = out.items[0]!.provider_labels!;
@@ -652,7 +652,7 @@ describe("over medrec's own folder", () => {
       const at = folder();
       const big = (id: string, start: string, pad: number) => ({ id, kind: 'visit', start, end: start, title: 'x'.repeat(pad), place: 'J SAMPLE' });
       const events = [big('e_biggestaaaaaaaaaaaaa', '2025-02-05', 30_350), big('e_smallaaaaaaaaaaaaaaa', '2025-02-04', 10), big('e_biggesthaaaaaaaaaaaa', '2025-02-03', 30_350)];
-      const store = (s: ViewsStore) => Object.assign(Object.create(s), { events: async () => events }) as ViewsStore;
+      const store = (s: ViewsStore) => Object.assign(Object.create(s), { events: async () => ({ ...NO_EVENTS, events }) }) as ViewsStore;
       const first = (await ask(at, 'medrec_records', { kind: 'events', person: 'Robin' }, store)).out;
       expect(first.items.map((i) => [i.id, i.provider_labels?.length])).toEqual([['e_biggestaaaaaaaaaaaaa', undefined]]);
       expect(first.warnings!.map((w) => w.message)).toEqual(['1 item on this page: some of the provider_labels did not fit and are left out, the rest of it is whole']);

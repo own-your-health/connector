@@ -62,6 +62,19 @@ not fit a page beside it are left out with a `provider-labels-left-out`
 warning, and those of a person whose file one answer has no room to read with a
 `provider-labels-not-read` warning.
 
+A condition, allergy or medicine carries `standing`, what all of its sources
+make of it today, and `says`, each source's word with the day it was read, when
+medrec 0.9.9 or later has prepared them (`standing.json`). `active` lists what
+any source says is current, one line for each condition or allergy, then
+medicines on hold and those whose end date has passed. Where sources differ, the
+line says so and gives each word; none wins. What is entered in error by
+every source that has it is in no list, event, bill or total, and an
+`entered-in-error` warning says how many; a paper or an event of it opens by its
+id, and says so. Any other item its sources differ on says `sources differ` and
+each word. A `no-problem-list`
+warning names the sources that send only diagnoses from visits. Views from an
+earlier medrec are listed by each record's own status.
+
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
 ## How it keeps the records private
