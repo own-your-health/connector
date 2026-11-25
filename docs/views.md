@@ -410,10 +410,13 @@ in a layout it does not read) holds back all their records, documents, events
 and studies from answers about the whole household, with a
 `private-not-prepared` warning naming them, and includes them unmarked, with
 the same warning, in answers about that person. A `private.json` without
-`studies` (medrec 0.9.4 and earlier) is handled the same way, as it names no
-private study and no document for being linked by a private record. What it
-does mark stays marked in answers about the person. An `unreported_studies`
-that is not a list of ids counts as missing too. Without a current
+`studies` (medrec 0.9.4 and earlier; the layout's name did not change, so
+this is the sign) is handled the same way, as it names no private study and no
+document for being linked by a private record. What it does mark stays marked
+in answers about the person. An `unreported_studies` that is not a list of ids
+counts as missing too. `marks_unreadable` comes before either: the person's
+items are held back with the `private-marks-unreadable` warning, whichever
+medrec wrote the file. Without a current
 `bills.json`, bills are shown by their statements with a
 `bills-not-prepared` warning. medrec's own reader judges from the files, so
 it gives neither warning.

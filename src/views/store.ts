@@ -156,12 +156,14 @@ export function privacyOf(view: PrivateView): Privacy {
   for (const kind of ['records', 'documents', 'events', 'studies'] as const) {
     for (const [id, w] of Object.entries(view[kind] ?? {})) if (typeof w?.area === 'string') areas.set(id, w.area);
   }
+  // First: every item is held back either way, and a newer medrec would not read the marks.
+  if (view.marks_unreadable === true) return { areas, unknown: { why: 'marks-unreadable' } };
   const unreported = view.unreported_studies ?? [];
   if (view.studies === undefined || !Array.isArray(unreported) || !unreported.every((x) => typeof x === 'string')) {
     // medrec 0.9.4 and earlier say of no document or study that a private record or report makes it private.
     return { areas, unknown: { why: 'not-prepared', detail: 'the views medrec wrote for them do not cover linked documents and imaging studies' } };
   }
-  return { areas, unjudged: new Set(unreported), ...(view.marks_unreadable === true ? { unknown: { why: 'marks-unreadable' as const } } : {}) };
+  return { areas, unjudged: new Set(unreported) };
 }
 
 /** bills.json as a reader needs it (medrec-bills/v1). */

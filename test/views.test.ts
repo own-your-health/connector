@@ -912,6 +912,15 @@ describe('private items and payments from the views (medrec 0.9.1)', () => {
       }
     });
 
+    it('says the marks do not read, whichever medrec wrote the private.json', async () => {
+      const root = copy(demo, 'study-older-unreadable');
+      privateOf(root, 'Sam Example', {}, { marks_unreadable: true, studies: undefined });
+      const { r } = await ask(root, 'medrec_records', { kind: 'timeline', ...days });
+      expect(items(r)).toEqual([]);
+      const sam = (r.structuredContent as { warnings: { code: string; message: string }[] }).warnings.filter((w) => w.message.startsWith('Sam Example') || /Sam Example's private/.test(w.message));
+      expect(sam.map((w) => w.code)).toEqual(['private-marks-unreadable']);
+    });
+
     it('marks what a private.json from before medrec 0.9.5 does say, in an answer about the person', async () => {
       const root = copy(demo, 'study-older-marks');
       const robin = JSON.parse(readFileSync(stored(root, `views/${personId(root, 'Robin Example')}/private.json`), 'utf8')) as Record<string, unknown>;
