@@ -4,7 +4,7 @@
 
 import spec from '../../spec/medrec-tools.json';
 import { ToolError, type ServerInfo } from '../mcp/errors';
-import { ENVELOPE_RESERVE, HARD_LIMIT, PageRequest, SIZE_BUDGET, chars, type ListArgs, type Page } from '../mcp/shape';
+import { HARD_LIMIT, PageRequest, chars, type ListArgs, type Page, type Room } from '../mcp/shape';
 import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names';
 import { LeftOut, type Warning } from './partial';
 import { Gate, names, type Privacy } from './private';
@@ -491,17 +491,14 @@ async function providerLabels(ctx: Context, h: Household, people: readonly Perso
 /** What an answer, about the whole household or one person, may say of this person's labels. */
 const asked = (gate: Gate, p: Person, whole: boolean) => ({ whole, isPrivate: (id: string) => gate.area(p, id) !== undefined, heldBack: (id: string) => gate.heldBack(p, id) });
 
-/** Characters of JSON one item of a page may have: the page's, less its brackets and the item's comma. */
-const ITEM_ROOM = SIZE_BUDGET - ENVELOPE_RESERVE - 3;
-
-/** How many labels of an item `size` characters long, the first ones, fit a page beside it: a label yields to the record. And what those add to it. */
-function fitting(size: number, labels: JsonObject[]): { n: number; more: number } {
+/** How many labels of an item `size` characters long, the first ones, fit an `empty` page beside it: a label yields to the record. And what those add to it. */
+function fitting(empty: Room, size: number, labels: JsonObject[]): { n: number; more: number } {
   let next = ',"provider_labels":[]'.length - 1;
   let more = 0;
   let n = 0;
   for (const l of labels) {
     next += chars(JSON.stringify(l)) + 1;
-    if (size + next > ITEM_ROOM) break;
+    if (!empty.fits(size + next)) break;
     more = next;
     n++;
   }
@@ -528,29 +525,26 @@ const NO_GAPS: Gaps = { cut: new Set(), unread: new Map() };
 async function addLabels(ctx: Context, h: Household, gate: Gate, household: boolean, page: PageRequest, items: Record<string, unknown>[], printed: (i: number) => { p: Person; printed: readonly Printed[] }): Promise<Gaps> {
   const cut = new Set<number>();
   const unread = new Map<number, { p: Person; alone: boolean }>();
-  const rows: { i: number; size: number; before: number; p: Person; printed: readonly Printed[] }[] = [];
-  const room = SIZE_BUDGET - ENVELOPE_RESERVE;
-  let before = 2;
+  const rows: { i: number; size: number; p: Person; printed: readonly Printed[] }[] = [];
+  const bare = page.room();
   for (let i = page.offset; i < Math.min(items.length, page.offset + page.limit); i++) {
     const size = chars(JSON.stringify(items[i]));
-    if (before + size + 1 > room) break;
-    const row = printed(i);
-    if (row.printed.length > 0) rows.push({ i, size, before, ...row });
-    before += size + 1;
+    if (!bare.fits(size)) break;
+    bare.take(size);
+    rows.push({ i, size, ...printed(i) });
   }
-  const labels = await providerLabels(ctx, h, rows.map(({ p }) => p));
-  let added = 0;
-  for (const { i, size, before, p, printed } of rows) {
-    if (before + added + size + 1 > room) break;
+  const labels = await providerLabels(ctx, h, rows.flatMap(({ p, printed }) => (printed.length > 0 ? [p] : [])));
+  const room = page.room();
+  for (const { i, size, p, printed } of rows) {
+    if (!room.fits(size)) break;
     const it = items[i]!;
-    const none = labels.noRoom.get(p.id);
+    const none = printed.length > 0 ? labels.noRoom.get(p.id) : undefined;
     if (none) unread.set(i, { p, ...none });
-    const shown = labels.read.get(p.id)?.shown(it.id as string, printed, asked(gate, p, household)) ?? [];
-    if (shown.length === 0) continue;
-    const { n, more } = fitting(size, shown);
+    const shown = printed.length > 0 ? (labels.read.get(p.id)?.shown(it.id as string, printed, asked(gate, p, household)) ?? []) : [];
+    const { n, more } = fitting(page.room(), size, shown);
     if (n < shown.length) cut.add(i);
     if (n > 0) items[i] = item({ ...it, provider_labels: shown.slice(0, n) });
-    added += more;
+    room.take(size + more);
   }
   return { cut, unread };
 }
@@ -616,7 +610,7 @@ function labelsNotRead(people: Person[], unread: ReadonlyMap<string, { alone: bo
   return people.flatMap((p) => {
     const u = unread.get(p.id);
     if (!u) return [];
-    return [{ code: 'provider-labels-not-read', message: `${p.name}'s provider_labels are left out of this page: ${u.alone ? `those of the others on it are as many as one answer reads. Ask about ${p.name} alone for them` : 'they are more than one answer reads'}` }];
+    return [{ code: 'provider-labels-not-read', message: `${p.name}'s provider_labels are left out of this page: ${u.alone ? `the labels of the other people on it already use all that one answer reads. Ask about ${p.name} alone for them` : 'they are more than one answer reads'}` }];
   });
 }
 

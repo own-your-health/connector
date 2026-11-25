@@ -538,7 +538,7 @@ describe("over medrec's own folder", () => {
         expect([readOf(files).sort(), owners(out.items.filter((i) => i.provider_labels))]).toEqual([[...read].sort(), new Set(read)]);
         const not = [robin, sam, alex].flatMap((p, i) => {
           const { name } = people.find((q) => q.id === p)!;
-          const why = sizes[i]! > LABELS_LIMIT ? 'they are more than one answer reads' : `those of the others on it are as many as one answer reads. Ask about ${name} alone for them`;
+          const why = sizes[i]! > LABELS_LIMIT ? 'they are more than one answer reads' : `the labels of the other people on it already use all that one answer reads. Ask about ${name} alone for them`;
           return (read as readonly string[]).includes(p) ? [] : [{ code: 'provider-labels-not-read', message: `${name}'s provider_labels are left out of this page: ${why}` }];
         });
         expect(out.warnings!.slice(0, codes.length).map((w) => w.code)).toEqual(codes);
