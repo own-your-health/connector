@@ -91,6 +91,10 @@
       ],
       "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" } }]
     },
+    "only a source with no person": {
+      "sources": [{ "cli": "portal-d", "organization": "link-4", "organization_name": "Example Dale Clinic", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-d", "organization_id": "link-4", "fhir_base": "https://three.example.test/fhir" } }]
+    },
     "only an entry of organizations": {
       "organizations": [{ "id": "link-1", "name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir" }],
       "sources": [],
@@ -136,6 +140,14 @@
     "a final slash on the source's base": {
       "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir/", "patient_id": "pat-1" }],
       "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "several final slashes on the record's base": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir///" } }]
+    },
+    "a record with an empty base and a source with none": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "" } }]
     },
     "a record with no base": {
       "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],

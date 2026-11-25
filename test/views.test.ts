@@ -21,7 +21,7 @@ import { ToolError } from '../src/mcp/errors';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
-import { DEMO, LocalSource, RawWithDerived, addDerived, folderAt } from './support';
+import { DEMO, LocalSource, RawWithDerived, addDerived, editSources, folderAt } from './support';
 
 const TODAY = '2026-11-23';
 let scratch = '';
@@ -577,34 +577,16 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
     return root;
   }
 
-  /** Takes these keys out of the source of every record of the views, as an earlier medrec wrote them. */
-  function withoutKeys(root: string, ...keys: string[]): void {
-    const at = join(root, VIEWS_INDEX);
-    const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
-    let n = 0;
-    for (const [pid, v] of Object.entries(index.people)) {
-      for (const [view, sum] of Object.entries(v.files)) {
-        if (!view.startsWith('records-')) continue;
-        const recs = JSON.parse(readFileSync(join(root, personDir(pid) + storedName(view, sum)), 'utf8')) as { provenance?: { source: Record<string, unknown> }[] }[];
-        for (const r of recs) {
-          for (const p of r.provenance ?? []) {
-            for (const k of keys) {
-              if (k in p.source) n++;
-              delete p.source[k];
-            }
-          }
-        }
-        const text = JSON.stringify(recs);
-        const next = createHash('md5').update(text).digest('hex');
-        writeFileSync(join(root, personDir(pid) + storedName(view, next)), text);
-        v.files[view] = next;
-      }
-    }
-    expect(n).toBeGreaterThan(0);
-    writeFileSync(at, JSON.stringify(index));
-  }
   /** As medrec 0.9.3 and earlier write them. */
-  const withoutOrganizations = (root: string) => withoutKeys(root, 'organization_id', 'label');
+  const withoutOrganizations = (root: string) => {
+    let n = 0;
+    editSources(root, (s) => {
+      if ('organization_id' in s) n++;
+      delete s.organization_id;
+      delete s.label;
+    });
+    expect(n).toBeGreaterThan(0);
+  };
 
   type Page = { items: { id: string; source?: string }[] };
   const sources = async (root: string, args: Record<string, unknown>) => ((await ask(root, 'medrec_records', { limit: 200, ...args })).r.structuredContent as Page).items.map((x) => [x.id, x.source] as const);

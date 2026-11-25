@@ -36,6 +36,7 @@ describe('the name', () => {
 describe('whose sources', () => {
   test("other people's do not count", () => expect(shown("other people's sources beside")).toBe('Example Valley Clinic'));
   test("other people's alone name nothing", () => expect(shown("only other people's sources")).toBe('portal-b'));
+  test("a source with no person is nobody's", () => expect(shown('only a source with no person')).toBe('portal-d'));
   test('an entry of organizations names nothing', () => expect(shown('only an entry of organizations')).toBe('portal-a'));
   test('a household with no sources shows the CLI', () => expect(shown('no list of sources')).toBe('portal-a'));
 });
@@ -47,6 +48,8 @@ describe('which of their sources', () => {
   test('one with no FHIR base does not count for a record with one', () => expect(shown('sources with no base beside')).toBe('Example Hill Clinic'));
   test("a final slash on the record's base is no difference", () => expect(shown("a final slash on the record's base")).toBe('Example Hill Clinic'));
   test("a final slash on the source's base is no difference", () => expect(shown("a final slash on the source's base")).toBe('Example Hill Clinic'));
+  test('several final slashes on a base are no difference', () => expect(shown("several final slashes on the record's base")).toBe('Example Hill Clinic'));
+  test('an empty base and no base are the same', () => expect(shown('a record with an empty base and a source with none')).toBe('Example Hill Clinic'));
   test('a record with no base came from one at any base', () => expect(shown('a record with no base')).toBe('Example Hill Clinic'));
   test('a record with a null base came from one at any base', () => expect(shown('a record with a null base')).toBe('Example Hill Clinic'));
   test('a record with no base and several names shows the CLI', () => expect(shown('a record with no base, and a name at each of three')).toBe('portal-a'));

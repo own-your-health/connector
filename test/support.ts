@@ -5,7 +5,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { open, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Folder, ParsedCache, type FileSource } from '../src/records/folder';
-import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
+import { VIEWS_INDEX, personDir, storedName, type SlimSource, type ViewsIndex } from '../src/views/format';
 import type { Household, Person } from '../src/records/model';
 import type { Privacy } from '../src/records/private';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
@@ -216,6 +216,31 @@ export class RawWithDerived extends RawStore {
     const v = this.fixture<CodeNamesView>('code-names', p);
     return v ? codeNamesOf(v, p.id) : NO_NAMES;
   }
+}
+
+/** Changes the source of every record the views hold, as another writer's would differ. */
+export function editSources(root: string, edit: (s: SlimSource) => void): void {
+  const at = join(root, VIEWS_INDEX);
+  const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+  let n = 0;
+  for (const [pid, v] of Object.entries(index.people)) {
+    for (const [view, sum] of Object.entries(v.files)) {
+      if (!view.startsWith('records-')) continue;
+      const records = JSON.parse(readFileSync(join(root, personDir(pid) + storedName(view, sum)), 'utf8')) as { provenance?: { source: SlimSource }[] }[];
+      for (const r of records) {
+        for (const p of r.provenance ?? []) {
+          edit(p.source);
+          n++;
+        }
+      }
+      const text = JSON.stringify(records);
+      const next = createHash('md5').update(text).digest('hex');
+      writeFileSync(join(root, personDir(pid) + storedName(view, next)), text);
+      v.files[view] = next;
+    }
+  }
+  if (n === 0) throw new Error('the views name no source');
+  writeFileSync(at, JSON.stringify(index));
 }
 
 /**

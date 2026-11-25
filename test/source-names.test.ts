@@ -10,10 +10,11 @@ import { Folder, ParsedCache } from '../src/records/folder';
 import type { PersonIndex, RecordEntry } from '../src/records/model';
 import { callTool } from '../src/records/tools';
 import type { SlimSource } from '../src/views/format';
+import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 import sample from './fixtures/source-names.json';
-import { ask, editSources, writeFolder, writeViews } from './names-support';
-import { LocalSource } from './support';
+import { ask, writeFolder } from './names-support';
+import { LocalSource, editSources } from './support';
 
 type Who = keyof typeof sample.people;
 type Shown = { now: string | null; no_label: string | null; no_organization: string | null };
@@ -54,7 +55,7 @@ function folder(): string {
   const root = mkdtempSync(join(tmpdir(), 'source-names-'));
   roots.push(root);
   writeFolder(root, sample.household, sample.people);
-  writeViews(root);
+  writeViewsAt(root);
   return root;
 }
 afterAll(() => roots.forEach((r) => rmSync(r, { recursive: true, force: true })));
