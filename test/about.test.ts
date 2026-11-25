@@ -81,6 +81,28 @@ describe('what is about another person', () => {
     expect([isPaper({ title: 'Letter', given: [{ title: 'EPDS' }] }), isPaper({ title: 'Letter', given: [{}] })]).toEqual([true, false]);
   });
 
+  it('is one by the resource its values are of', () => {
+    const from = (n: number, x: object = {}) => ({ source: { ...source, organization_id: `org${n}` }, source_resource: { type: 'Observation', id: `o${n}` }, raw_path: `x/${n}.json`, ...x });
+    const said = (raw_path?: string) => ({ ...(raw_path === undefined ? {} : { raw_path }), fields: { about: 'a parent' } });
+    const of2 = (x: Partial<RecordEntry>) => is({ display: 'Hemoglobin', ...x });
+    const two = [from(1), from(2)];
+    // Of the only one, and of what no resource is known of.
+    expect([of2({ provenance: [from(1)], given: [said('x/1.json')] }), of2({ provenance: [from(1)], given: [said('x/2.json')] }), of2({ provenance: two, given: [said()] })]).toEqual([true, false, true]);
+    // Of the one it names, else of the first one.
+    const given = [said('x/2.json')];
+    expect(['x/2.json', 'x/1.json', 'x/gone.json', undefined].map((fields_from) => of2({ provenance: two, given, fields_from }))).toEqual([true, false, false, false]);
+    expect(of2({ provenance: two, given: [said('x/1.json')] })).toBe(true);
+    // A source's second resource writes nothing, unless its first says it is entered in error.
+    const later = [from(1), from(1, { raw_path: 'x/2.json', source_resource: { type: 'Observation', id: 'o2' } })];
+    expect(of2({ provenance: later, given, fields_from: 'x/2.json' })).toBe(false);
+    const words = (status: string) => [{ raw_path: 'x/1.json', status }];
+    expect(['final', 'entered-in-error', ' Entered_in error'].map((s) => of2({ provenance: later, given, fields_from: 'x/2.json', words: words(s) }))).toEqual([false, true, true]);
+    // One with no id is the first of its type.
+    const idless = (type: string) => [from(1), from(1, { raw_path: 'x/2.json', source_resource: { type, id: '' } })];
+    expect(of2({ provenance: idless('Observation'), given, fields_from: 'x/2.json' })).toBe(true);
+    expect(of2({ provenance: [...idless('Observation').slice(1).map((v) => ({ ...v, raw_path: 'x/0.json' })), ...idless('Observation')], given, fields_from: 'x/2.json' })).toBe(false);
+  });
+
   it('is a paper a source served, and not one the household filed', () => {
     const household = { source: { kind: 'scan' } };
     expect([isPaper({}), isPaper({ date: '2024-03-05' }), isPaper({ title: 'Letter' }), isPaper({ provenance: household }), isPaper({ also_from: [household] })]).toEqual([true, false, false, false, false]);

@@ -56,11 +56,14 @@ export interface Coding {
 
 export interface Provenance {
   source: { kind?: string; cli?: string | null; organization_id?: string | null; fhir_base?: string | null };
+  source_resource?: { type: string; id: string } | null;
   fetched_at?: string | null;
   filed_at?: string;
+  raw_path?: string | null;
 }
 
 export interface Given {
+  raw_path?: string | null;
   display?: string;
   code?: Coding;
   fields?: JsonObject;
@@ -82,6 +85,10 @@ export interface RecordEntry {
   provenance?: Provenance[];
   /** What a source gave and no item shows (medrec 0.9.9 and later). It is in no view or answer. */
   given?: Given[];
+  /** The raw file its values are of, when several have it (medrec 0.9.9 and later). */
+  fields_from?: string | null;
+  /** What each source says of it (medrec 0.9.9 and later). */
+  words?: { raw_path: string; status?: string | null; verification?: string | null }[];
   /** What each source says of one that a source says is entered in error (the views, medrec 0.9.9 and later). */
   says?: Json;
 }

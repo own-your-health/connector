@@ -6,6 +6,7 @@
 import type { DocumentEntry, Given, GivenPaper, Json, JsonObject, Person, PersonIndex, Provenance, RecordEntry } from './model';
 import { isObject } from './numbers';
 import { grownAnswers } from './questionnaires';
+import { saysInError } from './standing';
 import { cmpStr } from './text';
 
 /** The age from which a person answers a screening of themselves. */
@@ -37,24 +38,55 @@ type Seen = Map<string, boolean | undefined>;
 
 const text = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
 
+const list = <T>(v: readonly T[] | null | undefined): readonly T[] => (Array.isArray(v) ? v : []);
+
 /** A record as it is, then as each source gave it. */
 function* asGiven(r: RecordEntry): Iterable<RecordEntry> {
   yield r;
   for (const g of list<Given>(r.given)) yield { ...r, display: g.display ?? r.display, code: g.code ?? r.code, fields: { ...r.fields, ...g.fields } };
 }
 
-const list = <T>(v: readonly T[] | null | undefined): readonly T[] => (Array.isArray(v) ? v : []);
-
 function recordIs(p: Person, r: RecordEntry, seen: Seen): boolean {
   if (r.kind !== 'result' && r.kind !== 'report') return false;
+  if (saidAbout(r)) return true;
   for (const x of asGiven(r)) {
-    if (text(x.fields?.about) !== undefined) return true;
     const read = list<Provenance>(x.provenance).flatMap((v) => v.fetched_at ?? []);
     const day = x.date ?? read.sort(cmpStr)[0];
     // A laboratory's alcohol or drug test is none. Names are read last: most of them are old enough.
     if (tooYoung(p, day) && !text(x.fields?.category)?.toLowerCase().startsWith('lab') && grownAnswers(x.display, x.code, seen)) return true;
   }
   return false;
+}
+
+/** Whether the resource a record's values are of says, or said, that it is about somebody else; what no resource is known of is every one's. */
+function saidAbout(r: RecordEntry): boolean {
+  if (text(r.fields?.about) !== undefined) return true;
+  const said = list<Given>(r.given).filter((g) => text(g.fields?.about) !== undefined);
+  if (said.length === 0) return false;
+  const path = wrote(r);
+  return said.some((g) => g.raw_path == null || g.raw_path === path);
+}
+
+/** The raw file a record's values are of, as far as that is known: the only one, the one it names, else that of the first resource import lets write. */
+function wrote(r: RecordEntry): string | undefined {
+  const from = list<Provenance>(r.provenance);
+  if (from.length === 1) return from[0]!.raw_path ?? undefined;
+  const may = from.filter((v) => canWrite(r, from, v));
+  const named = r.fields_from != null && may.some((v) => v.raw_path === r.fields_from) ? r.fields_from : may[0]?.raw_path;
+  return named ?? undefined;
+}
+
+/** Import lets the first resource of a source on the record write its fields, and of those with no id the first of its type; one that says it is entered in error after the others. */
+function canWrite(r: RecordEntry, from: readonly Provenance[], v: Provenance): boolean {
+  const isError = (q: Provenance) => {
+    const word = q.raw_path == null ? undefined : list(r.words).find((w) => w.raw_path === q.raw_path);
+    return word !== undefined && saysInError(word);
+  };
+  const same = (a: string | null | undefined, b: string | null | undefined) => (a ?? undefined) === (b ?? undefined);
+  const source = (q: Provenance) => same(q.source.fhir_base, v.source.fhir_base) && same(q.source.cli, v.source.cli) && same(q.source.organization_id, v.source.organization_id);
+  const idless = (q: Provenance) => !q.source_resource?.id;
+  const like = from.filter((q) => source(q) && (!idless(v) || (idless(q) && same(q.source_resource?.type, v.source_resource?.type))));
+  return (like.find((q) => !isError(q)) ?? like[0]) === v;
 }
 
 const papers = (d: DocumentEntry): readonly Provenance[] => [...(d.provenance ? [d.provenance] : []), ...list<Provenance>(d.also_from)];

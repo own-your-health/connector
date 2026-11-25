@@ -83,6 +83,9 @@ const isEnded = (w: Word) => w.is === 'ended' || w.is === 'refuted';
 /** A code as its letters, whatever its case and its spaces. */
 const code = (s: string) => s.trim().toLowerCase().replace(/[ _]/g, '-');
 
+/** Whether a source's word is that the item is entered in error. */
+export const saysInError = (w: { status?: string | null; verification?: string | null }) => [w.status, w.verification].some((s) => s != null && code(s) === 'entered-in-error');
+
 /** A word as a line says it, with the day it was read. */
 function wordText(w: Word): string {
   const said = [w.status ?? 'no status'];
