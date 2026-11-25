@@ -9,14 +9,14 @@ import { Folder, ParsedCache } from '../src/records/folder';
 import type { Json } from '../src/records/model';
 import { isExact, parseExact } from '../src/records/numbers';
 import { RawStore } from '../src/records/store';
-import { callTool } from '../src/records/tools';
-import { valueText } from '../src/records/views';
+import { callTool, memberOwes } from '../src/records/tools';
+import { moneyForTests, valueText } from '../src/records/views';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 import { DEMO, LocalSource, addDerived, folderAt } from './support';
 
-const KEPT = ['4.0', '4.10', '0.90', '-1.0', '100.00', '0.0', '-0', '-0.0', '1e5', '1E-2', '1.50e+3', '12345678901234567890', '0.12345678901234567890', '-0.10'];
-const PLAIN = ['0', '4', '-4', '10', '100', '4.1', '0.9', '5.37', '-2.5', '1000000', '9007199254740991'];
+const KEPT = ['4.0', '4.10', '0.90', '-1.0', '100.00', '0.0', '-0', '-0.0', '1e5', '1E-2', '1.50e+3', '12345678901234567890', '0.12345678901234567890', '-0.10', '0.0000005', '-0.0000005'];
+const PLAIN = ['0', '4', '-4', '10', '100', '4.1', '0.9', '5.37', '-2.5', '1000000', '9007199254740991', '0.000001'];
 
 describe('numbers as their file writes them', () => {
   it('keeps one JSON.parse would change, and leaves the rest numbers', () => {
@@ -29,26 +29,54 @@ describe('numbers as their file writes them', () => {
     for (const n of PLAIN) expect((parseExact(`{"value":${n}}`) as { value: unknown }).value, n).toBe(Number(n));
     // Printed with spaces or on lines of their own, as index.json is.
     expect(JSON.stringify(parseExact('{\n  "value" : 4.0 ,\n  "unit": "x",\n  "n": 1.20\n}'))).toBe('{"value":4.0,"unit":"x","n":1.20}');
-    expect(JSON.stringify(parseExact('{"a":{"b":[{"c":4.0},{"c":[{"d":5.50}]}]}}'))).toBe('{"a":{"b":[{"c":4.0},{"c":[{"d":5.50}]}]}}');
+    for (const same of ['{"a":{"b":[{"c":4.0},{"c":[{"d":5.50}]}]}}', '[4.0,[5.50,"4.0"],{"a":6.0}]', '4.0', '"4.0"', '[]', '{"a%":4.0,"a.":4.0,"a ":4.0,"é":4.0,"":4.0,"a:":4.0,"a,":4.0}', '{"__proto__":4.0,"b":{"__proto__":{"c":5.0}}}']) {
+      expect(JSON.stringify(parseExact(same)), same).toBe(same);
+    }
+    expect(JSON.stringify(parseExact('[ 4.0 , 5.0\t, 6.0\n]'))).toBe('[4.0,5.0,6.0]');
   });
 
   it('changes no string', () => {
-    for (const s of ['4.0', 'a":4.0,', '":4.0,', 'k":4.0}', '"k":4.0,"', '\\":4.0,', '\\\\":4.0}', ': 4.0,', '"', '\\', '\n"x":1.0,', 'x\\"y":2.0,']) {
-      for (const text of [JSON.stringify({ s }), JSON.stringify({ [s]: 1, z: s }), JSON.stringify([s, { s: [s] }]), JSON.stringify({ a: s, b: 2 }, null, 2)]) {
+    for (const s of ['4.0', 'a":4.0,', '":4.0,', 'k":4.0}', '"k":4.0,"', '\\":4.0,', '\\\\":4.0}', ': 4.0,', '"', '\\', '\n"x":1.0,', 'x\\"y":2.0,', '\u0000#x', '\u0000#4.0', '\u0000', '\u0000#true', '\\u0000#4.0', '#4.0']) {
+      for (const text of [JSON.stringify({ s }), JSON.stringify({ [s]: s, s: [s] }), JSON.stringify({ [s]: 1, z: s }), JSON.stringify([s, { s: [s] }]), JSON.stringify({ a: s, b: 2 }, null, 2)]) {
         expect(JSON.stringify(parseExact(text)), text).toBe(JSON.stringify(JSON.parse(text)));
       }
-      // A key that ends as a string before a number is still a key, and its number is kept or plain, never a string.
-      const keyed = `{${JSON.stringify(s)}:4.0,"t":${JSON.stringify(s)}}`;
-      const v = parseExact(keyed) as Record<string, unknown>;
-      expect(Number(isExact(v[s]) ? v[s].rawJSON : v[s]), keyed).toBe(4);
-      if (s !== 't') expect(v.t, keyed).toBe(s);
+      // As a member's name and beside numbers that are kept, too.
+      const keyed = `{${JSON.stringify(s)}:4.0,"t":${JSON.stringify(s)},"u":[${JSON.stringify(s)},5.0]}`;
+      const v = parseExact(keyed) as Record<string, unknown> & { u: unknown[] };
+      expect(isExact(v[s]) && v[s].rawJSON, keyed).toBe('4.0');
+      expect(v.t, keyed).toBe(s);
+      expect(v.u[0], keyed).toBe(s);
+      expect(isExact(v.u[1]) && v.u[1].rawJSON, keyed).toBe('5.0');
     }
+  });
+
+  it('leaves the rest numbers beside a string with a NUL', () => {
+    const v = parseExact('{"s":"\\u0000#4.0","n":4,"m":4.0,"x":[4.1,4.10]}') as { s: string; n: unknown; m: unknown; x: unknown[] };
+    expect([v.s, v.n, v.x[0]]).toEqual(['\u0000#4.0', 4, 4.1]);
+    expect([v.m, v.x[1]].every(isExact)).toBe(true);
+  });
+
+  it('is a number to what reads it, never an object', () => {
+    const at = (text: string) => parseExact(text) as Json;
+    const money = (currency: string) => at(`{"amount":"10.00","currency":${currency}}`);
+    // serde_json's numbers are equal as they are written.
+    expect(moneyForTests.addMoney(money('4.0'), money('4.0'))).toMatchObject({ amount: '20.00' });
+    expect(moneyForTests.addMoney(money('4.0'), money('4.00'))).toBeUndefined();
+    expect(moneyForTests.addMoney(money('4.0'), money('4'))).toBeUndefined();
+    expect(moneyForTests.addMoney(money('4'), money('4.0'))).toBeUndefined();
+    expect(moneyForTests.addMoney(at('4.0'), at('4.0'))).toBeUndefined();
+    expect(valueText(at('{"value":4.0,"unit":"mg"}'))).toBe('4.0 mg');
+    expect(valueText(at('{"amount":4.10,"currency":"USD"}'))).toBe('4.10 USD');
+    expect(valueText(at('[1.0,{"value":2.0},"x"]'))).toBe('1.0; 2.0; x');
+    const claim = (text: string) => memberOwes(at(text) as Record<string, Json>);
+    expect(claim('{"total":[1.0,{"category":"memberliability","amount":4.10}]}')).toBe('4.10');
+    expect(claim('{"amounts":1.0,"total":[{"category":"memberliability","amount":"5"}]}')).toBe('5');
   });
 
   it('gives back any file it reads', () => {
     let seed = 7;
     const rnd = (n: number) => (seed = (seed * 1103515245 + 12345) % 2147483648) % n;
-    const strings = ['', 'a', 'a":4.0,', '\\', '"', '{"x":1.0}', 'é', '\u0001', ' : 2.50 ', 'mg/dL', '":'];
+    const strings = ['', 'a', 'a":4.0,', '\\', '"', '{"x":1.0}', 'é', '\u0001', ' : 2.50 ', 'mg/dL', '":', '\u0000#4.0', '\u0000#x', '\\"'];
     const numbers = [...KEPT, ...PLAIN];
     const make = (depth: number): string => {
       const k = rnd(depth > 3 ? 3 : 5);
@@ -56,9 +84,8 @@ describe('numbers as their file writes them', () => {
       if (k === 1) return numbers[rnd(numbers.length)]!;
       if (k === 2) return ['true', 'false', 'null'][rnd(3)]!;
       const n = rnd(4);
-      // A number straight in an array is not a member's: only the plain ones come back as they were.
-      if (k === 3) return `[${Array.from({ length: n }, () => (rnd(2) ? PLAIN[rnd(PLAIN.length)]! : `{"m":${make(depth + 1)}}`)).join(',')}]`;
-      return `{${Array.from({ length: n }, (_, i) => `"k${i}":${make(depth + 1)}`).join(',')}}`;
+      if (k === 3) return `[${Array.from({ length: n }, () => make(depth + 1)).join(',')}]`;
+      return `{${Array.from({ length: n }, (_, i) => `${JSON.stringify(`k${i}${strings[rnd(strings.length)]}`)}:${make(depth + 1)}`).join(',')}}`;
     };
     for (let i = 0; i < 2000; i++) {
       const text = `{"top":${make(0)}}`;
@@ -67,7 +94,7 @@ describe('numbers as their file writes them', () => {
   });
 
   it('refuses what is not JSON, as JSON.parse does', () => {
-    for (const text of ['', '{', '{"a":4.0', '{"a":04.0,}', '{"a":4.}']) expect(() => parseExact(text), text).toThrow();
+    for (const text of ['', '{', '{"a":4.0', '{"a":04.0,}', '{"a":04.0}', '{"a":4.}', '{"a":-}', '{"a":1e}', '{"a":1.0.0}', '{4.0:1}', '{ 4.0 : 1 }', '[4.0 5]', '[4.0"x"]', '{"a":"4.0', '{"a":4.0}"', '[4.0\\"', '4.0 x', '+4.0', '[.50]']) expect(() => parseExact(text), text).toThrow();
   });
 });
 

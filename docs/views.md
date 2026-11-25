@@ -149,7 +149,8 @@ JSON array of that kind's records, in the records tool's concise order:
 - then as `index.json` holds them.
 
 Every record keeps its `index.json` fields `id`, `kind`, `date`, `code`,
-`display`, `status` and `fields` as they are, when present. `provenance` is
+`display`, `status` and `fields` as they are, when present, each number in
+them as that file writes it (`4.10`, not `4.1`). `provenance` is
 cut to its first entry's `source`, keeping only `fhir_base`, `cli` and
 `organization_id` (`null` when it has none). A reader names the record's
 organization from them and `household.json`: its own sign-in's (the

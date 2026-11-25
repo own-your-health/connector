@@ -6,7 +6,7 @@
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { conditionKey } from './code-names';
-import { isExact } from './numbers';
+import { isExact, isObject } from './numbers';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
 
 /** Longest name or detail a summary line carries, in characters. */
@@ -118,7 +118,6 @@ function flatText(v: Json | undefined, out: string[]): void {
 }
 
 const nonEmpty = (s: string) => (s === '' ? undefined : s);
-const isObject = (v: Json | undefined): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v) && !isExact(v);
 
 // ---- money, as medrec's claims.rs adds it ----------------------------------------------------------
 
@@ -151,6 +150,7 @@ function decimal(u: bigint): string {
 /** serde_json's `Value` equality: objects whatever their key order. */
 function sameJson(a: Json | undefined, b: Json | undefined): boolean {
   if (a === b) return true;
+  if (isExact(a)) return isExact(b) && a.rawJSON === b.rawJSON;
   if (Array.isArray(a)) return Array.isArray(b) && a.length === b.length && a.every((x, i) => sameJson(x, b[i]));
   if (isObject(a) && isObject(b)) {
     const ka = Object.keys(a);
@@ -252,7 +252,7 @@ export function recordDetail(r: RecordEntry): string | undefined {
       // A claim imported by a medrec before 0.5.0, with no `amounts`.
       const total = f.total;
       const first = Array.isArray(total) ? total[0] : undefined;
-      const amount = first && typeof first === 'object' && !Array.isArray(first) ? first.amount : undefined;
+      const amount = isObject(first) ? first.amount : undefined;
       const billed = amount === undefined ? undefined : nonEmpty(valueText(amount));
       const paid = f.payment === undefined ? undefined : nonEmpty(valueText(f.payment));
       if (billed !== undefined && paid !== undefined) return `billed ${billed}, plan paid ${paid}`;
