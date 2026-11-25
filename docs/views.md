@@ -504,8 +504,9 @@ name, sorted and paged by what is left of it:
 - a search hit carries `not_shown`, whatever its kind.
 
 Claims of one day that are shown by one name are in the files' order. A shard has
-them by their own names, so a reader takes the order from their search items,
-whose numbers run the other way within a date.
+those with one name of their own in it, and search items' numbers, which run the
+other way, those of one date. Of two claims of one day, one with a time, that
+neither says the order of, a reader gives the later by its full date first.
 
 Places are those of the `index.json` and `text.json` the view was made from. A
 list they are not places of is left out, and a text they are not places of is

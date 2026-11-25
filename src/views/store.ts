@@ -670,23 +670,39 @@ export class ViewsStore implements Store {
   }
 
   /**
-   * Items in an order by what is shown of them. Those it finds equal are as the
-   * files have them, which a shard has them in by their own names: where a part
-   * names one for another, search items say it, whose numbers run the other way
-   * within a date.
+   * A shard's items in an order by what is shown of them. Those it finds equal
+   * are as the files have them, which two things say where a part names one for
+   * another: the shard, of those with one name of their own, and search items'
+   * numbers, of those of one date (the other way round). Of two that neither
+   * says it of, the later by its full date is first.
    */
   private async shownOrder<T extends { id: string }>(r: PersonReader, list: T[], order: (a: T, b: T) => number, parts: Parts): Promise<T[]> {
     const sorted = [...list].sort(order);
-    const equal = new Set<string>();
+    const runs: [number, number][] = [];
     for (let i = 0, end; i < sorted.length; i = end) {
       for (end = i + 1; end < sorted.length && order(sorted[i]!, sorted[end]!) === 0; ) end++;
-      const run = sorted.slice(i, end);
-      if (run.length > 1 && run.some((x) => parts.get(x.id)?.display !== undefined)) for (const x of run) equal.add(x.id);
+      if (end - i > 1 && sorted.slice(i, end).some((x) => parts.get(x.id)?.display !== undefined)) runs.push([i, end]);
     }
-    if (equal.size === 0) return sorted;
+    if (runs.length === 0) return sorted;
     const items = await this.items(r);
-    const at = new Map(items.find(equal).map((ord) => [items.meta(ord)[2], ord]));
-    return sorted.sort((a, b) => order(a, b) || (at.get(b.id) ?? 0) - (at.get(a.id) ?? 0));
+    const ids = new Set(runs.flatMap(([i, end]) => sorted.slice(i, end).map((x) => x.id)));
+    const found = new Map(items.find(ids).map((ord) => {
+      const [date, , id, name] = items.meta(ord);
+      return [id, { date: date ?? '', name, ord }];
+    }));
+    for (const [i, end] of runs) {
+      const run = sorted.slice(i, end).map((x) => ({ x, ...(found.get(x.id) ?? { date: '', name: '', ord: -1 }) }));
+      // `sort` is stable, so those of one name are in the run as the shard has them.
+      const byName = chains(run, (c) => c.name);
+      const byDate = chains([...run].sort((m, n) => n.ord - m.ord), (c) => c.date);
+      for (let at = i; at < end; at++) {
+        const heads = [...byDate.values()].flatMap((c) => c[0] ?? []).sort((m, n) => n.ord - m.ord);
+        const next = heads.find((c) => byName.get(c.name)![0] === c) ?? heads[0]!;
+        for (const c of [byDate.get(next.date)!, byName.get(next.name)!]) c.splice(c.indexOf(next), 1);
+        sorted[at] = next.x;
+      }
+    }
+    return sorted;
   }
 
   /** A person's search items (search-items.bin): their count, and each one's text and details. */
@@ -1083,3 +1099,14 @@ function preparing(p: Person): ToolError {
 }
 
 export type { ViewsCandidate };
+
+/** A list's items by a key, each key's in the list's order. */
+function chains<T>(list: readonly T[], key: (x: T) => string): Map<string, T[]> {
+  const out = new Map<string, T[]>();
+  for (const x of list) {
+    const of = out.get(key(x));
+    if (of) of.push(x);
+    else out.set(key(x), [x]);
+  }
+  return out;
+}

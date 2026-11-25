@@ -254,6 +254,22 @@ describe('claims of one day that are shown by one name', async () => {
     const hers = await items(store, 'medrec_records', { kind, ...more, person: 'Robin' });
     expect(visits(hers)).toEqual(['r_third', 'r_second', 'r_first', 'r_day']);
   });
+
+  it('when one of them has a time', async () => {
+    const timed = join(scratch, 'one-name-timed');
+    cpSync(root, timed, { recursive: true });
+    const of = JSON.parse(readFileSync(join(timed, h.people[0]!.folder, 'index.json'), 'utf8')) as { records: JsonObject[] };
+    // The later of two by the hour is the last of them in the files.
+    for (const r of of.records) if (r.id === 'r_third' || r.id === 'r_other') r.date = '2024-12-01T09:00:00Z';
+    for (const r of of.records) if (r.id === 'r_third') r.display = names.r_second;
+    writeFileSync(join(timed, h.people[0]!.folder, 'index.json'), JSON.stringify(of));
+    writeViewsAt(timed);
+    const p2: Privacy = { areas: new Map(), parts: new Map([['r_second', part('Visit · Example')], ['r_third', { ...part('Visit · Example'), date: '2024-12-01T09:00:00Z' }]]) };
+    const its = Object.assign(Object.create(new ViewsStore(folderAt(timed))), { privacy: async () => p2 }) as ViewsStore;
+    const visits = async (more: object) => (await items(its, 'medrec_records', { kind: 'claims', name: 'visit', ...more })).items.map((x) => x.id);
+    expect(await visits({})).toEqual(['r_first', 'r_second', 'r_third', 'r_day']);
+    expect(await visits({ response_format: 'detailed' })).toEqual(['r_third', 'r_first', 'r_second', 'r_day']);
+  });
 });
 
 describe('a place that is of a linked stay', async () => {
