@@ -60,6 +60,16 @@ export interface Provenance {
   filed_at?: string;
 }
 
+export interface Given {
+  display?: string;
+  code?: Coding;
+  fields?: JsonObject;
+}
+
+export interface GivenPaper {
+  title?: string;
+}
+
 export interface RecordEntry {
   id: string;
   kind: string;
@@ -70,6 +80,8 @@ export interface RecordEntry {
   fields?: JsonObject;
   documents?: string[];
   provenance?: Provenance[];
+  /** What a source gave and no item shows (medrec 0.9.9 and later). It is in no view or answer. */
+  given?: Given[];
   /** What each source says of one that a source says is entered in error (the views, medrec 0.9.9 and later). */
   says?: Json;
 }
@@ -103,7 +115,10 @@ export interface DocumentEntry {
   text?: { chars?: number } | null;
   statement?: Statement | null;
   same_statement_as?: string | null;
+  provenance?: Provenance;
+  also_from?: Provenance[];
   /** As a record's. */
+  given?: GivenPaper[];
   says?: Json;
 }
 
@@ -137,6 +152,8 @@ export interface PersonIndex {
   records?: RecordEntry[];
   studies?: Study[];
   imports?: ImportRun[];
+  /** The ids of what is about somebody else, and left out of it here (about.ts). */
+  about_another?: string[];
 }
 
 export interface PersonText {

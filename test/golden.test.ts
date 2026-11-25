@@ -62,20 +62,6 @@ beforeAll(() => {
 }, 120_000);
 afterAll(() => rmSync(scratch, { recursive: true, force: true }));
 
-/**
- * A recorded answer as this connector gives it: medrec 0.9.8 lists an open
- * event's private members in an answer that names no person, and medrec 0.9.9
- * counts them, as this connector does.
- */
-function counted({ folder, arguments: a, answer }: (typeof golden.results)[number]): Record<string, unknown> {
-  const want = answer.result!;
-  if (golden.medrec_version !== '0.9.8' || folder !== 'labels' || a?.kind !== 'events' || a.response_format !== 'detailed' || a.person !== undefined) return want;
-  const listed = (want.content as { text: string }[])[0]!.text;
-  const text = listed.replace(/,\{"document":"d_counselingaaaaaaaaaa"[^}]*\}\]/, '],"private_members":1');
-  expect(text).not.toBe(listed);
-  return { ...want, content: [{ type: 'text', text }], structuredContent: JSON.parse(text) };
-}
-
 describe(`parity with medrec ${golden.medrec_version}`, () => {
   it('lists the same tools', () => {
     expect(TOOLS).toEqual(golden.tools);
@@ -111,7 +97,7 @@ describe(`parity with medrec ${golden.medrec_version}`, () => {
             expect(g.answer.error).toEqual({ code: -32602, message: unknownTool(g.name) });
             return;
           }
-          const want = counted(g);
+          const want = g.answer.result!;
           expect(ours).not.toBeNull();
           if (over === 'files' && g.name === 'medrec_records' && g.arguments?.kind === 'events' && JSON.stringify(ours!.content) !== JSON.stringify(want.content)) {
             expect(ours!.isError).toBe(true);

@@ -42,6 +42,11 @@ first, and `private_members` counts such a document there too.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 
+What a chart holds about somebody else (a screening a parent answers of
+themselves in their child's chart, or a result its source says is of another) is
+in no answer. A list of that person's results, tests, timeline or documents says
+how many.
+
 A condition with a diagnosis code carries `plain_name` beside the source's
 own words when medrec 0.9.4 or later has the code's published name
 (`code-names.json`). Nothing is found, sorted or paged by it, and the source's

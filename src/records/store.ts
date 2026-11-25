@@ -178,6 +178,8 @@ export interface Store {
   standings(h: Household, p: Person, kind?: string): Promise<Standings | null>;
   /** The person's records and papers entered in error, which no list shows (medrec 0.9.9 and later); none when not known. */
   errors(h: Household, p: Person): Promise<ReadonlySet<string>>;
+  /** How many of their records and papers are about somebody else, and shown nowhere (medrec 0.9.9 and later). */
+  aboutAnother(h: Household, p: Person): Promise<number>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -307,6 +309,10 @@ export class RawStore implements Store {
 
   async errors(_h: Household, _p: Person): Promise<ReadonlySet<string>> {
     return NONE;
+  }
+
+  async aboutAnother(_h: Household, p: Person): Promise<number> {
+    return (await this.folder.index(p)).about_another?.length ?? 0;
   }
 
   household(): Promise<Household> {

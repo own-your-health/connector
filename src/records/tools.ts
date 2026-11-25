@@ -580,6 +580,14 @@ async function gateOf(ctx: Context, h: Household, people: Person[], household: b
   return () => new Gate(household, privacy, byPerson);
 }
 
+/** The lists that say how much of a person's chart is about somebody else. */
+const COUNTS_ASIDE: ReadonlySet<string> = new Set(['results', 'tests', 'timeline', 'documents']);
+
+async function aboutAnother(ctx: Context, h: Household, people: Person[]): Promise<Warning[]> {
+  const n = (await Promise.all(people.map((p) => ctx.store.aboutAnother(h, p)))).reduce((a, b) => a + b, 0);
+  return n > 0 ? [{ code: 'about-another', message: `${n} item${n === 1 ? '' : 's'} about another person, not shown` }] : [];
+}
+
 /** A page cut, with the items it left out counted, and its warnings: medrec's, then the connector's own. */
 function cutPage<T>(
   page: PageRequest,
@@ -781,6 +789,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const keep = (p: Person, it: Item, members?: string[], wrong?: Why) => gate.keep(p, it.id as string, () => name !== undefined && names(it.title as string, name), members, wrong);
   const marked = (p: Person, it: Item, members?: string[]) => item({ ...it, private: gate.area(p, it.id as string, members) });
   const extra: Warning[] = [];
+  const aside = household || page.offset > 0 || !COUNTS_ASIDE.has(kind) ? [] : await aboutAnother(ctx, h, chosen);
   if (kind === 'tests') {
     for (const p of chosen) {
       for (const row of await left.of(p, () => ctx.store.tests(h, p, filterOf(p), gate.records(p)), [])) {
@@ -812,7 +821,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       const { p, x } = top[i]!;
       return { p, printed: detailed ? printedOfRecord(x.fields) : x.kind === 'claim' ? printedOfClaim(x.fields) : [] };
     });
-    const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { notes, gaps });
+    const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { notes: [...notes, ...aside], gaps });
     if (kind === 'conditions') out.items = await withPlainNames(ctx, h, gate, household, top.slice(page.offset, page.offset + out.returned), out.items);
     return pageJson(out, warnings);
   } else if (kind === 'notes') {
@@ -839,7 +848,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       const { p, x: e } = top[i]!.x;
       return { p, printed: e.kind === 'document' ? printedOfDocument(e.source) : e.kind === 'claim' ? printedOfTitle(e.title) : [] };
     });
-    return gatedPage(page, gate, chosen, left, household, events, hint, { gaps });
+    return gatedPage(page, gate, chosen, left, household, events, hint, { notes: aside, gaps });
   } else {
     const bills = kind === 'bills';
     for (const p of chosen) {
@@ -868,7 +877,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     const { p, it } = kept[i]!;
     return { p, printed: it.kind === 'document' ? printedOfDocument(it.source as string | undefined) : [] };
   });
-  return gatedPage(page, gate, chosen, left, household, items, hint, { extra, gaps, bills: kind === 'bills' });
+  return gatedPage(page, gate, chosen, left, household, items, hint, { notes: aside, extra, gaps, bills: kind === 'bills' });
 }
 
 const NONE_IN_ERROR: ReadonlySet<string> = new Set();

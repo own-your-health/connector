@@ -140,6 +140,8 @@ export interface PersonViews {
   provider_state?: string | null;
   /** medrec 0.9.9 on: the ids of the person's records entered in error, by kind, as standing.json has them; absent when there are none. */
   in_error?: Json;
+  /** medrec 0.9.9 on: the ids of what is in the person's chart and about somebody else, which no view has; absent when there is none. */
+  about_another?: string[];
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */

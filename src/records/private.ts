@@ -33,7 +33,7 @@ export interface Privacy {
 
 export const NO_PRIVATE: Privacy = { areas: new Map() };
 
-/** medrec's: words that name no item on their own, as forms, units, kinds of record and visit, and the words between them. */
+/** medrec's: words that name no item on their own, as forms, units, kinds of record and visit, what questionnaires share, and the words between them. */
 const GENERIC = new Set([
   'tablet', 'tablets', 'capsule', 'capsules', 'oral', 'solution', 'suspension', 'injection', 'cream', 'patch',
   'extended', 'release', 'delayed', 'chewable', 'hcl', 'mg', 'mcg', 'ml', 'unit', 'units', 'dose', 'visit',
@@ -41,7 +41,9 @@ const GENERIC = new Set([
   'result', 'results', 'lab', 'labs', 'panel', 'screen', 'screening', 'report', 'note', 'notes', 'letter', 'bill',
   'statement', 'summary', 'record', 'records', 'document', 'total', 'serum', 'blood', 'urine', 'level', 'disorder',
   'unspecified', 'other', 'episode', 'single', 'recurrent', 'moderate', 'mild', 'severe', 'major', 'minor',
-  'history', 'chronic', 'acute', 'with', 'without', 'type', 'the', 'and', 'for', 'from',
+  'history', 'chronic', 'acute', 'score', 'scale', 'risk', 'use', 'status', 'survey', 'assessment', 'questionnaire',
+  'inventory', 'checklist', 'index', 'item', 'patient', 'health', 'doing', 'things', 'having', 'feeling', 'trouble',
+  'little', 'often', 'days', 'with', 'without', 'type', 'the', 'and', 'for', 'from',
 ]);
 
 /** The ids private.json can name: records, documents, events and studies. */

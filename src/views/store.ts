@@ -74,6 +74,8 @@ export const RAW_LIMIT = 300_000;
 
 const decoder = new TextDecoder();
 
+const aboutAnother = (v: PersonViews | undefined): string[] => (Array.isArray(v?.about_another) ? v.about_another.filter((id) => typeof id === 'string') : []);
+
 /** `matchesCode` over a name a kind's records carry. */
 function nameMatches(code: string | null, display: string, codeDisplay: string | null, q: string): boolean {
   return matchesCode({ id: '', kind: '', display, code: { code, display: codeDisplay } } as RecordEntry, q);
@@ -237,6 +239,8 @@ export class ViewsStore implements Store {
         h.people.map((p) => `${VIEWS_DIR}/${p.id}`),
         [...files, ...h.people.flatMap((p) => ['notes.md', ...Object.values(MADE_FROM)].map((f) => `${p.folder}/${f}`))],
       );
+      // What they name is left out of a person's files read whole too, though they changed since.
+      for (const p of h.people) this.folder.leaveOut(p, aboutAnother(index.people[p.id]));
       const md5 = await this.folder.md5(files);
       const fresh = new Set<string>();
       if (md5[0] === index.household) {
@@ -388,6 +392,11 @@ export class ViewsStore implements Store {
       throw e;
     }
     return view.schema === STANDING_SCHEMA ? standingsOf(view, p.id) : null;
+  }
+
+  async aboutAnother(h: Household, p: Person): Promise<number> {
+    const r = await this.views(h, p);
+    return r ? aboutAnother(r.v).length : this.raw.aboutAnother(h, p);
   }
 
   async errors(h: Household, p: Person): Promise<ReadonlySet<string>> {

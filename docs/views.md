@@ -560,6 +560,20 @@ how many decisions, payments and corrections are kept. For those alone it reads
 `events.json`, `bills.json` and `providers.json`, and leaves out what it cannot
 read. One its sources differ on says what each says.
 
+## What is about another person (medrec 0.9.9 and later)
+
+A person's chart can hold what is about somebody else: a screening a parent
+answers of themselves, or a result its source says is of another. medrec's views
+leave it out of everything, and `people.<id>.about_another` in `views.json` has
+the ids, records and documents, in order; it is absent when there is none. A
+reader says how many on the first page of that person's results, tests, timeline
+or documents (an `about-another` warning), and nothing else of it.
+
+The reference writer here does the same, by medrec's rule (medrec's
+`docs/data-contract.md`, "About another person"; `src/records/about.ts`). So does
+this connector where it reads a person's `index.json` whole, and it leaves out
+the ids `views.json` names there too, though the person's files changed since.
+
 ## Without a current `private.json` or `bills.json`
 
 A reader without a current `private.json` for a person (none yet, stale, or
