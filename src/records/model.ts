@@ -37,6 +37,7 @@ export interface SignIn {
   organization?: string | null;
   organization_name?: string | null;
   fhir_base?: string | null;
+  patient_id?: string | null;
 }
 
 export interface Household {
@@ -55,6 +56,8 @@ export interface Coding {
 
 export interface Provenance {
   source: { kind?: string; cli?: string | null; organization_id?: string | null; fhir_base?: string | null };
+  fetched_at?: string | null;
+  filed_at?: string;
 }
 
 export interface RecordEntry {
@@ -67,6 +70,12 @@ export interface RecordEntry {
   fields?: JsonObject;
   documents?: string[];
   provenance?: Provenance[];
+}
+
+/** A record as a list shows it. */
+export interface ListedRecord extends RecordEntry {
+  /** What it came through (sources.ts), as `medrec mcp` labels it. */
+  source: string | undefined;
 }
 
 export interface Amount {
@@ -111,6 +120,11 @@ export interface Study {
 
 export interface ImportRun {
   imported_at: string;
+  pulled_at?: string;
+  cli?: string;
+  /** The organization's id as the CLI names it: a record's `organization_id`. */
+  organization?: string;
+  patient_id?: string;
 }
 
 export interface PersonIndex {

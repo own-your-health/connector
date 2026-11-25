@@ -174,14 +174,13 @@ At the limits:
   two results of one date and name. When one of them cannot be found there,
   that person's tests are left out of an answer about everyone with a
   `person-unavailable` warning, and an answer about them says to ask again.
-- **Two practices on one address.** athenahealth serves many practices from
-  one FHIR base, and the views medrec 0.9.3 and earlier write do not say
-  which a record came from. For someone with several sign-ins there, a list
-  of records or tests names only the CLI (`athena`). The timeline and the
-  summary name an organization: the right one when medrec 0.9.3 wrote the
-  views, and possibly another of those practices' before that. Views from
-  medrec 0.9.4 and later, or from `npm run views`, keep `organization_id`
-  and name the practice everywhere.
+- **Several practices behind one sign-in.** One CLI, organization and FHIR
+  base can serve several practices and several people, as athenahealth's
+  does. Views from medrec 0.9.6 and later label each record with the practice
+  it came through, or with the CLI (`athena`) when none is known. In earlier
+  views, a list of records or tests names the practice only where the person
+  has no other under that sign-in. The timeline, the summary and events keep
+  the name their writer gave, which can be another practice's.
 - **Plain names.** Each person with a coded condition on the page costs one
   more request to Google, and one for a summary with any. When that request
   fails, or would pass the limit, the answer comes without the names.

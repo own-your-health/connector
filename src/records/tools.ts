@@ -9,7 +9,7 @@ import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names'
 import { LeftOut, type Warning } from './partial';
 import { Gate, names, type Privacy } from './private';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Standing, type Store } from './store';
-import type { DocumentEntry, Household, Json, JsonObject, Note, Person, RecordEntry } from './model';
+import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { isObject } from './numbers';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
@@ -21,7 +21,6 @@ import {
   isDocType,
   label,
   recordDetail,
-  recordSource,
   resolvePerson,
   resultRow,
   selected,
@@ -586,7 +585,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     const order = recordOrder(detailed);
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.records(h, p, recordKind, filter, detailed))));
     const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted(), ({ p, x }) => keep(p, { id: x.id, title: clip(x.display, CLIP) }));
-    const items = top.map(({ p, x }) => marked(p, recordItem(h, p.name, x, detailed)));
+    const items = top.map(({ p, x }) => marked(p, recordItem(p.name, x, detailed)));
     const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint);
     if (kind === 'conditions') out.items = await withPlainNames(ctx, h, gate, household, top.slice(page.offset, page.offset + out.returned), out.items);
     return pageJson(out, warnings);
@@ -760,7 +759,7 @@ function documentItem(person: string, d: DocumentEntry, title: string, today: st
   };
 }
 
-function recordItem(h: Household, person: string, r: RecordEntry, detailed: boolean): Item {
+function recordItem(person: string, r: ListedRecord, detailed: boolean): Item {
   const detail = recordDetail(r);
   const it: Item = {
     kind: r.kind,
@@ -769,12 +768,12 @@ function recordItem(h: Household, person: string, r: RecordEntry, detailed: bool
     title: clip(r.display, CLIP),
     detail: detail !== undefined && detail !== (r.status ?? undefined) ? clip(detail, CLIP) : undefined,
     status: r.status ?? undefined,
-    source: recordSource(h, r),
+    source: r.source,
     code: r.code?.code ?? undefined,
     fields: detailed ? (r.fields ?? {}) : undefined,
   };
   if (r.kind === 'result') {
-    const row = resultRow(h, r);
+    const row = resultRow(r, r.source);
     it.value = row.value;
     it.unit = row.unit;
     it.range = row.range;

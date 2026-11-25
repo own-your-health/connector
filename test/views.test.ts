@@ -15,7 +15,7 @@ import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, hex, paths, personDir, prefixOf, storedName, type ViewsIndex } from '../src/views/format';
 import { fold } from '../src/records/text';
 import { names } from '../src/records/private';
-import { newestFirst, recordSource, seriesKey } from '../src/records/views';
+import { newestFirst, seriesKey } from '../src/records/views';
 import type { Household, RecordEntry } from '../src/records/model';
 import { ToolError } from '../src/mcp/errors';
 import { writeViewsAt } from '../src/views/local';
@@ -536,35 +536,7 @@ describe('events from the views (medrec 0.9.0)', () => {
 });
 
 describe('the practice a record came from (medrec 0.9.3)', () => {
-  const BASE = 'https://api.example.net/fhir/r4';
   const FAMILY = 'example-family-medicine';
-
-  it('is its own sign-in\'s, else the organization at its FHIR base, else its CLI', () => {
-    const h = {
-      schema: '',
-      format: 1,
-      people: [],
-      organizations: [{ id: 'g_1', name: 'Example Base', fhir_base: `${BASE}/` }],
-      sources: [
-        { cli: 'athena', organization: 'a', organization_name: '  ', fhir_base: BASE },
-        { cli: 'athena', organization: 'a', organization_name: ' Example A ', fhir_base: `${BASE}//` },
-        { cli: 'athena', organization: 'b', organization_name: 'Example B', fhir_base: BASE },
-        { cli: 'uhc', organization: 'plan', organization_name: 'Example Plan', fhir_base: BASE },
-        { cli: 'labcorp', organization: 'lab' },
-      ],
-    } satisfies Household;
-    const from = (source: Record<string, string | null>) => recordSource(h, { id: 'r_1', kind: 'result', display: 'x', provenance: [{ source }] });
-    expect(from({ cli: 'athena', organization_id: 'a', fhir_base: BASE })).toBe('Example A');
-    expect(from({ cli: 'athena', organization_id: 'b', fhir_base: `${BASE}/` })).toBe('Example B');
-    // No such sign-in, or not at that base: the organization at the base.
-    expect(from({ cli: 'athena', organization_id: 'c', fhir_base: BASE })).toBe('Example Base');
-    expect(from({ cli: 'athena', organization_id: null, fhir_base: BASE })).toBe('Example Base');
-    expect(from({ cli: 'athena', organization_id: 'a', fhir_base: 'https://other.example.net' })).toBe('athena');
-    // With no base, the CLI and organization say it; a sign-in with no name says nothing.
-    expect(from({ cli: 'uhc', organization_id: 'plan' })).toBe('Example Plan');
-    expect(from({ cli: 'labcorp', organization_id: 'lab' })).toBe('labcorp');
-    expect(recordSource(h, { id: 'r_1', kind: 'result', display: 'x' })).toBeUndefined();
-  });
 
   /** A copy of the demo whose Alex has a second practice at the same FHIR base, with every other record from it. */
   function twoPractices(name: string): string {
@@ -576,18 +548,20 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
     h.sources.push({ ...first, id: 's_qqqqqqqqqqqqqqqqqqqq', organization: FAMILY, organization_name: 'Example Family Medicine' });
     writeFileSync(at, JSON.stringify(h));
     const path = join(root, 'Alex Example/index.json');
-    const index = JSON.parse(readFileSync(path, 'utf8')) as { records: { provenance: { source: { organization_id?: string } }[] }[] };
-    index.records.forEach((r, i) => {
-      if (i % 2 === 1) r.provenance[0]!.source.organization_id = FAMILY;
-    });
+    const index = JSON.parse(readFileSync(path, 'utf8')) as { records: { provenance: { source: { cli: string; organization_id?: string } }[] }[] };
+    index.records
+      .filter((r) => r.provenance[0]!.source.cli === 'athena')
+      .forEach((r, i) => {
+        if (i % 2 === 1) r.provenance[0]!.source.organization_id = FAMILY;
+      });
     writeFileSync(path, JSON.stringify(index));
     writeViewsAt(root);
     addDerived(root, 'records');
     return root;
   }
 
-  /** Takes `organization_id` out of every record of the views, as medrec 0.9.3 and earlier write them. */
-  function withoutOrganizations(root: string): void {
+  /** Takes these keys out of the source of every record of the views, as an earlier medrec wrote them. */
+  function withoutKeys(root: string, ...keys: string[]): void {
     const at = join(root, VIEWS_INDEX);
     const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
     let n = 0;
@@ -597,8 +571,10 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
         const recs = JSON.parse(readFileSync(join(root, personDir(pid) + storedName(view, sum)), 'utf8')) as { provenance?: { source: Record<string, unknown> }[] }[];
         for (const r of recs) {
           for (const p of r.provenance ?? []) {
-            if ('organization_id' in p.source) n++;
-            delete p.source.organization_id;
+            for (const k of keys) {
+              if (k in p.source) n++;
+              delete p.source[k];
+            }
           }
         }
         const text = JSON.stringify(recs);
@@ -610,6 +586,10 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
     expect(n).toBeGreaterThan(0);
     writeFileSync(at, JSON.stringify(index));
   }
+  /** As medrec 0.9.3 and earlier write them. */
+  const withoutOrganizations = (root: string) => withoutKeys(root, 'organization_id', 'label');
+  /** As medrec 0.9.4 and 0.9.5 write them. */
+  const withoutLabels = (root: string) => withoutKeys(root, 'label');
 
   type Page = { items: { id: string; source?: string }[] };
   const sources = async (root: string, args: Record<string, unknown>) => ((await ask(root, 'medrec_records', { limit: 200, ...args })).r.structuredContent as Page).items.map((x) => [x.id, x.source] as const);
@@ -625,6 +605,103 @@ describe('the practice a record came from (medrec 0.9.3)', () => {
       for (const [, s] of await sources(root, args)) seen.add(s);
     }
     expect([...seen].sort()).toEqual(['Example Family Medicine', 'Example Pediatrics']);
+  });
+
+  describe('of one key for two people, and two practices of one of them (medrec 0.9.6)', () => {
+    type Source = { id: string; person: string; cli: string; organization: string; fhir_base: string; organization_name: string; patient_id: string };
+    const SOUTH = 'pat-south1';
+    /**
+     * A copy of the demo whose Jamie is at another practice under Alex's key,
+     * that source first, and whose Alex is at two under it, every other
+     * record filed by the second's import run when `runs`, or by no run.
+     */
+    function sharedKey(name: string, runs: boolean): string {
+      const root = copy(demo, name);
+      const path = join(root, 'household.json');
+      const h = JSON.parse(readFileSync(path, 'utf8')) as { sources: Source[] };
+      const at = (who: string) => h.sources.find((s) => s.person === personId(root, who) && s.cli === 'athena')!;
+      const [alex, jamie] = [at('Alex Example'), at('Jamie Example')];
+      expect([jamie.cli, jamie.organization, jamie.fhir_base]).toEqual([alex.cli, alex.organization, alex.fhir_base]);
+      jamie.organization_name = 'Example Newborn Center';
+      h.sources = [jamie, ...h.sources.filter((s) => s !== jamie), { ...alex, id: 's_qqqqqqqqqqqqqqqqqqqq', organization_name: 'Example Family Medicine', patient_id: SOUTH }];
+      writeFileSync(path, JSON.stringify(h));
+      const file = join(root, 'Alex Example/index.json');
+      const index = JSON.parse(readFileSync(file, 'utf8')) as { imports: Record<string, unknown>[]; records: { provenance: { source: { cli: string }; filed_at: string }[] }[] };
+      const run = index.imports.find((x) => x.cli === 'athena')!;
+      const times = ['2026-11-01T10:00:30Z', '2026-11-02T10:00:30Z'];
+      index.imports = index.imports.filter((x) => x !== run);
+      if (runs) index.imports.push({ ...run, patient_id: alex.patient_id, imported_at: times[0] }, { ...run, patient_id: SOUTH, imported_at: times[1] });
+      let n = 0;
+      for (const r of index.records) if (r.provenance[0]!.source.cli === 'athena') r.provenance[0]!.filed_at = times[n++ % 2]!;
+      writeFileSync(file, JSON.stringify(index));
+      writeViewsAt(root);
+      addDerived(root, 'records');
+      return root;
+    }
+
+    type Given = Record<string, (readonly [string | undefined, string | undefined])[]>;
+    type Summary = { summary: { sources: { source: string }[]; sections: { items: { id?: string; source?: string }[] }[] } };
+    /** Every record's source in each list, the timeline and the summary. */
+    async function given(call: typeof raw, root: string, person: string): Promise<Given> {
+      const out: Given = {};
+      for (const kind of [...KINDS, 'timeline']) {
+        const { items } = (await call(root, 'medrec_records', { kind, person, limit: 200 })).structuredContent as Page;
+        out[kind] = items.filter((x) => x.id.startsWith('r_')).map((x) => [x.id, x.source] as const);
+      }
+      const { summary } = (await call(root, 'medrec_summary', { person })).structuredContent as Summary;
+      out.summary = [...summary.sources.map((x) => [undefined, x.source] as const), ...summary.sections.flatMap((x) => x.items.filter((i) => i.id?.startsWith('r_'))).map((x) => [x.id, x.source] as const)];
+      return out;
+    }
+    const fromViews: typeof raw = async (root, name, args) => (await ask(root, name, args)).r;
+    const called = (g: Given, ...lists: string[]) => [...new Set(Object.entries(g).flatMap(([k, v]) => (lists.length === 0 || lists.includes(k) ? v.map(([, s]) => s) : [])))].sort();
+
+    it('names each record by the patient it was imported as, from the views as from the files', async () => {
+      const root = sharedKey('shared-key', true);
+      const alex = await given(fromViews, root, 'Alex');
+      expect(await given(raw, root, 'Alex')).toEqual(alex);
+      expect(called(alex)).toEqual(['Example Care Plan', 'Example Family Medicine', 'Example Pediatrics']);
+      const jamie = await given(fromViews, root, 'Jamie');
+      expect(await given(raw, root, 'Jamie')).toEqual(jamie);
+      expect(called(jamie)).toEqual(['Example Health Plan', 'Example Newborn Center']);
+    });
+
+    it('names none of them where no run says which, and never by the other person\'s', async () => {
+      const root = sharedKey('shared-key-unknown', false);
+      const alex = await given(fromViews, root, 'Alex');
+      expect(await given(raw, root, 'Alex')).toEqual(alex);
+      expect(called(alex)).toEqual(['Example Care Plan', 'athena']);
+      expect(called(await given(fromViews, root, 'Jamie'))).toEqual(['Example Health Plan', 'Example Newborn Center']);
+    });
+
+    it('of views with no label, names none of two practices in a list or of tests', async () => {
+      const root = sharedKey('shared-key-no-label', true);
+      const [alex, jamie] = [await given(fromViews, root, 'Alex'), await given(fromViews, root, 'Jamie')];
+      withoutLabels(root);
+      const [before, jamieBefore] = [await given(fromViews, root, 'Alex'), await given(fromViews, root, 'Jamie')];
+      expect(called(before, ...KINDS)).toEqual(['athena']);
+      expect(jamieBefore).toEqual(jamie);
+      // The timeline and the summary keep the names their writer gave.
+      for (const k of ['timeline', 'summary']) expect(before[k], k).toEqual(alex[k]);
+    });
+
+    it('shows the label a view gives, whatever the household says, and none for null', async () => {
+      const root = sharedKey('shared-key-label', true);
+      const pid = personId(root, 'Alex Example');
+      const at = join(root, VIEWS_INDEX);
+      const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+      const files = index.people[pid]!.files;
+      for (const [view, sum] of Object.entries(files)) {
+        if (!view.startsWith('records-')) continue;
+        const recs = JSON.parse(readFileSync(join(root, personDir(pid) + storedName(view, sum)), 'utf8')) as { provenance: { source: Record<string, unknown> }[] }[];
+        recs.forEach((r, i) => (r.provenance[0]!.source.label = [null, 'Example Label'][i % 2]));
+        const text = JSON.stringify(recs);
+        const next = createHash('md5').update(text).digest('hex');
+        writeFileSync(join(root, personDir(pid) + storedName(view, next)), text);
+        files[view] = next;
+      }
+      writeFileSync(at, JSON.stringify(index));
+      expect(called(await given(fromViews, root, 'Alex'), ...KINDS).map((x) => x ?? 'none')).toEqual(['Example Label', 'none']);
+    });
   });
 
   it('of views that leave the organization out, names a person\'s only practice on a base, and of two, only the CLI', async () => {

@@ -16,7 +16,8 @@ import { NO_NAMES, type CodeNames } from './code-names';
 import type { Folder } from './folder';
 import type { Privacy } from './private';
 import { ToolError } from '../mcp/errors';
-import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from './model';
+import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
+import { sourcesOf } from './sources';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
 import {
   CLIP,
@@ -98,7 +99,7 @@ export interface Store {
   people(h: Household): Promise<PersonRow[]>;
   summary(h: Household, p: Person, today: string, perList: number): Promise<Summary>;
   /** A person's records of one kind that pass the filter, ordered as the records tool lists them in that format. */
-  records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry>;
+  records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<ListedRecord>;
   /** `latestResults` over the person's results that pass the filter. */
   /**
    * The person's test series, each by its latest result. `look` names ids to
@@ -264,15 +265,18 @@ export class RawStore implements Store {
     return summarize(h, p, await this.folder.index(p), (await this.folder.notes(p)).length, today, perList);
   }
 
-  async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<RecordEntry> {
-    const rs = ((await this.folder.index(p)).records ?? []).filter((r) => passes(r, kind, filter));
-    yield* rs.sort(recordOrder(detailed));
+  async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<ListedRecord> {
+    const idx = await this.folder.index(p);
+    const from = sourcesOf(h, p.id, idx.imports);
+    const rs = (idx.records ?? []).filter((r) => passes(r, kind, filter));
+    for (const r of rs.sort(recordOrder(detailed))) yield { ...r, source: from(r) };
   }
 
   async tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]> {
-    const rs = ((await this.folder.index(p)).records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && (filter.name === undefined || matchesCode(r, filter.name)));
+    const idx = await this.folder.index(p);
+    const rs = (idx.records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && (filter.name === undefined || matchesCode(r, filter.name)));
     const sorted = newestFirst(rs);
-    const rows = latestResults(h, sorted);
+    const rows = latestResults(sorted, sourcesOf(h, p.id, idx.imports));
     if (!look || look.size === 0) return rows;
     const keyOf = new Map(sorted.map((r) => [r.id, seriesKey(r)]));
     const found = new Map<string, string[]>();
