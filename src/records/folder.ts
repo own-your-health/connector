@@ -7,7 +7,6 @@
 // only while that version is still what the folder holds. Nothing is written
 // anywhere: no KV, no cache API, no disk.
 
-import { shownIndex } from './about';
 import { FORMAT, type Household, type Note, type Person, type PersonIndex, type PersonText } from './model';
 import { parseNotes } from './notes';
 import { parseExact } from './numbers';
@@ -86,16 +85,12 @@ export class ParsedCache {
   }
 }
 
-/** A parsed index as its person's birth date, and what is left out, show it: made once for each the cache holds. */
-const shownAs = new WeakMap<PersonIndex, { key: string; shown: PersonIndex }>();
-
 const HOUSEHOLD = 'household.json';
 const HOUSEHOLD_SCHEMA = 'medrec-household/v1';
 
 /** One call's view of the folder. */
 export class Folder {
   private household_: Promise<Household> | null = null;
-  private readonly aside = new Map<string, readonly string[]>();
 
   constructor(
     private readonly source: FileSource,
@@ -176,10 +171,11 @@ export class Folder {
 
   /**
    * A value computed from files, kept in the cache for as long as none of
-   * them changes: each person's search text, folded once.
+   * them changes: each person's search text, folded once. `from` is what else
+   * it was made from.
    */
-  async derived<T>(name: string, paths: string[], build: () => Promise<{ value: T; size: number }>): Promise<T> {
-    const version = (await Promise.all(paths.map((p) => this.source.version(p)))).map((v) => v ?? '-').join('\u0001');
+  async derived<T>(name: string, paths: string[], build: () => Promise<{ value: T; size: number }>, from = ''): Promise<T> {
+    const version = [...(await Promise.all(paths.map((p) => this.source.version(p)))).map((v) => v ?? '-'), from].join('\u0001');
     const key = `${this.scope}\u0000derived\u0000${name}`;
     const hit = this.cache.get(key, version);
     if (hit !== undefined) return hit as T;
@@ -199,26 +195,12 @@ export class Folder {
     return this.household_;
   }
 
+  /** The person's index.json as it is: what an answer shows of it is the store's (RawStore). */
   async index(p: Person): Promise<PersonIndex> {
     const path = `${p.folder}/index.json`;
     const idx = (await this.json<PersonIndex & { person?: string }>(path, parseExact)) ?? { schema: 'medrec-index/v1', person: p.id };
     if (idx.person !== p.id) throw ToolError.other(`${path} names another person`);
-    return this.shown(p, idx);
-  }
-
-  /** Ids medrec's views say are about somebody else, for `index` to leave out too. */
-  leaveOut(p: Person, ids: readonly string[]): void {
-    this.aside.set(p.id, ids);
-  }
-
-  private shown(p: Person, idx: PersonIndex): PersonIndex {
-    const also = this.aside.get(p.id);
-    const key = JSON.stringify([p.birth_date, also]);
-    const had = shownAs.get(idx);
-    if (had?.key === key) return had.shown;
-    const shown = shownIndex(p, idx, also);
-    shownAs.set(idx, { key, shown });
-    return shown;
+    return idx;
   }
 
   async text(p: Person): Promise<PersonText> {

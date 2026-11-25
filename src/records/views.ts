@@ -6,6 +6,7 @@
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { conditionKey } from './code-names';
+import { withoutPapers } from './papers';
 import { isExact, isObject } from './numbers';
 import { sourcesOf, type SourceOf } from './sources';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
@@ -377,7 +378,7 @@ export interface Vaccine {
 function vaccines(records: RecordEntry[], from: SourceOf): Vaccine[] {
   const by = new Map<string, Vaccine>();
   for (const r of records) {
-    if (r.kind !== 'immunization' || r.status === 'not-done' || r.status === 'entered-in-error') continue;
+    if (r.kind !== 'immunization' || r.status === 'not-done') continue;
     const key = seriesKey(r);
     const v = by.get(key);
     if (v) v.doses += 1;
@@ -537,12 +538,14 @@ export interface Summary {
   standing?: Record<'medications' | 'conditions' | 'allergies', SummaryLine[]>;
 }
 
-export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number): Summary {
-  const records = newestFirst(idx.records ?? []);
+/** `gone`: what is entered in error, which the lists leave out and the counts do not. */
+export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number, gone: ReadonlySet<string>): Summary {
+  const all = newestFirst(idx.records ?? []);
+  const records = all.filter((r) => !gone.has(r.id));
   const from = sourcesOf(h, p.id, idx.imports);
   const counts = new Map<string, number>();
   const sources = new Map<string, SourceRow>();
-  for (const r of records) {
+  for (const r of all) {
     counts.set(r.kind, (counts.get(r.kind) ?? 0) + 1);
     const s = from(r);
     if (s !== undefined) {
@@ -580,7 +583,7 @@ export function summarize(h: Household, p: Person, idx: PersonIndex, notes: numb
       records.filter((r) => r.kind === 'encounter').map((r) => line(r, from(r))),
       perList,
     ),
-    bills: cut(bills(idx.documents ?? [], today), perList),
+    bills: cut(bills(withoutPapers(idx.documents ?? [], gone), today), perList),
   };
 }
 

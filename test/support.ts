@@ -9,7 +9,7 @@ import { HAY_ITEMS, ITEMS_HEADER, VIEWS_INDEX, personDir, storedName, type SlimS
 import type { Household, JsonObject, Person, PersonIndex } from '../src/records/model';
 import { sourcesOf } from '../src/records/sources';
 import { fold, wordStarts } from '../src/records/text';
-import { allOf, errorsOf, standingsOf, type StandingView, type Standings } from '../src/records/standing';
+import { standingsOf, type StandingView, type Standings } from '../src/records/standing';
 import { line, type Summary } from '../src/records/views';
 import type { Privacy } from '../src/records/private';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
@@ -254,14 +254,10 @@ export class RawWithDerived extends RawStore {
     return v ? standingsOf(v, p.id) : null;
   }
 
-  override async errors(_h: Household, p: Person): Promise<ReadonlySet<string>> {
-    return allOf(errorsOf(this.fixture<StandingView>('standing', p)?.in_error));
-  }
-
   override async summary(h: Household, p: Person, today: string, perList: number): Promise<Summary> {
     const s = await super.summary(h, p, today, perList);
     const v = this.fixture<StandingView>('standing', p);
-    return v ? { ...s, standing: standingLines(h, p, await this.folder.index(p), v) } : s;
+    return v ? { ...s, standing: standingLines(h, p, await this.index(h, p), v) } : s;
   }
 }
 

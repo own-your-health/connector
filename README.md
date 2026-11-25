@@ -10,7 +10,8 @@ from the records, with no computer left on to serve them.
 It offers the four tools of `medrec mcp` 0.9.9 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
 same too: `test/golden.test.ts` holds 674 recorded calls of `medrec mcp` to
-this connector's answers, to the character.
+this connector's answers, to the character. What some of them need is in
+medrec's views alone, and without those an answer differs as said below.
 
 | Tool | What it answers |
 |---|---|
@@ -36,7 +37,9 @@ join: `links` or `could_join` is absent when nothing is left of it.
 `fields.private_members`, a number, says how many members were left out. It is
 absent when none were. An answer about one person lists all of that person's
 own. Another person's private document or event is in no answer about the
-first, and `private_members` counts such a document there too. The place of
+first, and `private_members` counts such a document there too. An event asked
+for by its id gives, as medrec 0.9.9 does, the id of each of its items that is
+entered in error, private ones too (`in_error`, `not_applied`). The place of
 another person's stay, as of a birth, is an event's place only when that stay
 holds nothing private.
 A claim, a bill or an event can be open with a private part: a service among
@@ -44,14 +47,18 @@ others, a diagnosis, a line of the text. When medrec 0.9.9 or later has marked
 those, an answer that names no person leaves them out, lists and finds the item
 by what is left, and says how much it left out: `not_shown`, or a text's `(1 line
 not shown)` and its `hint`. `medrec_document` gives all of the text with
-`person`, whose document it is. What an item cost stays.
+`person`, whose document it is. Where that person's private items are not known
+it gives all of it without `person` too, and its `hint` says so. What an item
+cost stays.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 
 What a chart holds about somebody else (a screening a parent answers of
 themselves in their child's chart, or a result its source says is of another) is
 in no answer. A list of that person's results, tests, timeline or documents says
-how many.
+how many. For someone too large to read from their files this needs views from
+medrec 0.9.9 or later, or from this version's `npm run views`: earlier views
+list it, and nothing counts it.
 
 A condition with a diagnosis code carries `plain_name` beside the source's
 own words when medrec 0.9.4 or later has the code's published name
@@ -66,8 +73,9 @@ knows who that is (`providers.json`): a name, practice, role and phone, how
 sure it is (`household`, `sure` or `likely`) and why, and where the phone is
 from. They stand beside the source's own words. Nothing is found, sorted or
 paged by one, and `medrec_search` and `medrec_summary` have none. An answer
-about the whole household, or a document's text, gives none to a private item,
-even one it names, and no reason that names one. Labels that are missing or
+about the whole household, and a document's text asked for without `person`,
+give none to a private item, even one they name, and no reason that names one.
+Labels that are missing or
 older than the records are left out, with no warning. An item's labels that do
 not fit a page beside it are left out with a `provider-labels-left-out`
 warning, and those of a person whose file one answer has no room to read with a
@@ -75,16 +83,25 @@ warning, and those of a person whose file one answer has no room to read with a
 
 A condition, allergy or medicine carries `standing`, what all of its sources
 make of it today, and `says`, each source's word with the day it was read, when
-medrec 0.9.9 or later has prepared them (`standing.json`). `active` lists what
+medrec 0.9.9 or later has prepared them (`standing.json`). They replace `status`
+on it, and the `(status)` in a summary line's `detail`. `active` lists what
 any source says is current, one line for each condition or allergy, then
-medicines on hold and those whose end date has passed. Where sources differ, the
-line says so and gives each word; none wins. What is entered in error by
-every source that has it is in no list, event, bill or total, and an
-`entered-in-error` warning says how many; a paper or an event of it opens by its
-id, and says so. Any other item its sources differ on says `sources differ` and
-each word. A `no-problem-list`
-warning names the sources that send only diagnoses from visits. Views from an
-earlier medrec are listed by each record's own status.
+medicines on hold and those whose end date has passed, and a person's summary
+has those two as sections of their own, `medications_on_hold` and
+`medications_ended_by_date`. Where sources differ, the line says so and gives
+each word; none wins. A `no-problem-list` warning names the sources that send
+only diagnoses from visits. Without a current `standing.json` (views from an
+earlier medrec or from `npm run views`, or a person read from their files) they
+are listed by each record's own `status`, which they keep, and nothing is said
+of sources that differ.
+
+What is entered in error by every source that has it is in no list, event, bill
+or total, and an `entered-in-error` warning says how many. A paper or an event
+of it opens by its id, and says so. A record or paper that only some of its
+sources say it of says `sources differ` and each word, from medrec's views.
+Views from before medrec 0.9.9 list what is entered in error, and nothing
+counts it. Everyone else's is told from their files, or from what medrec's or
+this version's views name.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -435,7 +452,9 @@ npm run dev         # the Worker on 127.0.0.1:8787
 
 The views a tool reads are in `src/views` (the reference writer, and the
 store that reads them); docs/views.md is their layout, for medrec's writer.
-The goldens run twice, over the files and over the views.
+The goldens run twice, over the files and over the views. The calls of the six
+folders in `scripts/own-folder.mjs`, about what medrec's views alone hold, run
+over medrec's own views of them, and not over their files.
 
 Every record in the tests is invented. `test/fixtures/records` is the web
 app's demo folder; `scripts/synth.mjs` grows it to a large family's size.

@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { ownFolder } from '../scripts/own-folder.mjs';
 import { shownIndex } from '../src/records/about';
+import { ParsedCache } from '../src/records/folder';
 import type { DocumentEntry, Person, PersonIndex, RecordEntry } from '../src/records/model';
 import { grownAnswers } from '../src/records/questionnaires';
 import { callTool } from '../src/records/tools';
@@ -174,5 +175,50 @@ describe("a child's chart", () => {
     const r = await ask(stale, 'medrec_records', { kind: 'results', person: 'Robin', limit: 100 });
     expect(JSON.stringify(r.structuredContent)).not.toMatch(new RegExp(IDS.join('|')));
     expect(JSON.stringify(r.structuredContent)).toContain(LINE);
+  });
+
+  /** Every list and search of a folder's files, with what earlier calls left in the cache. */
+  const answers = async (root: string, cache?: ParsedCache) => {
+    const store = () => new ViewsStore(folderAt(root, cache));
+    const out: unknown[] = [];
+    for (const kind of ['results', 'tests', 'timeline', 'documents', 'claims', 'visits']) out.push((await callTool('medrec_records', { kind, person: 'Robin', limit: 100 }, { store: store(), today: '2026-11-25' }))!);
+    for (const query of ['depression', 'score', 'alcohol', 'labs', 'example', 'sample']) out.push((await callTool('medrec_search', { query, person: 'Robin', limit: 50 }, { store: store(), today: '2026-11-25' }))!);
+    out.push((await callTool('medrec_summary', { person: 'Robin' }, { store: store(), today: '2026-11-25' }))!);
+    return JSON.stringify(out);
+  };
+  const edit = (root: string, file: string, f: (v: any) => void) => {
+    const v = JSON.parse(readFileSync(join(root, file), 'utf8'));
+    f(v);
+    writeFileSync(join(root, file), JSON.stringify(v));
+  };
+
+  it('is answered by the birth date it has now, whatever the cache holds', async () => {
+    const root = ownFolder('child', join(scratch, 'born'));
+    const cache = new ParsedCache();
+    const born = (day: string) => edit(root, 'household.json', (h) => h.people.forEach((p: Person) => (p.birth_date = day)));
+    const seen = new Set<string>();
+    for (const day of ['1984-05-06', '2015-02-03', '1984-05-06', '2015-02-03']) {
+      born(day);
+      const got = await answers(root, cache);
+      expect(got).toBe(await answers(root));
+      expect(IDS.some((id) => got.includes(id)), day).toBe(day.startsWith('1984'));
+      seen.add(got);
+    }
+    expect(seen.size).toBe(2);
+  });
+
+  it("is answered by what medrec's views name now, whatever the cache holds", async () => {
+    const root = ownFolder('child', join(scratch, 'named'), { views: true });
+    // Of a grown person in views of before: only what they name is left out.
+    edit(root, 'household.json', (h) => h.people.forEach((p: Person) => (p.birth_date = '1984-05-06')));
+    const cache = new ParsedCache();
+    const ONE = 'r_lowmoodaaaaaaaaaaaaa';
+    for (const ids of [IDS, [ONE], [], IDS.filter((id) => id !== ONE), IDS]) {
+      edit(root, 'views/views.json', (v) => Object.values(v.people as Record<string, { about_another?: string[] }>).forEach((p) => (p.about_another = ids)));
+      const got = await answers(root, cache);
+      expect(got).toBe(await answers(root));
+      for (const id of ids) expect(got).not.toContain(id);
+      expect(IDS.filter((id) => !ids.includes(id)).some((id) => got.includes(id))).toBe(ids.length < IDS.length);
+    }
   });
 });

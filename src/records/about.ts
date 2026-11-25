@@ -3,10 +3,11 @@
 // (medrec-cli docs/data-contract.md, "About another person"). medrec's views
 // leave it out and name its ids; here it is left out of an index read whole.
 
+import { canWrite } from './errors';
 import type { DocumentEntry, Given, GivenPaper, Json, JsonObject, Person, PersonIndex, Provenance, RecordEntry } from './model';
 import { isObject, removed } from './numbers';
 import { grownAnswers } from './questionnaires';
-import { saysInError } from './standing';
+import { withoutPapers } from './papers';
 import { cmpStr } from './text';
 
 /** The age from which a person answers a screening of themselves. */
@@ -71,22 +72,9 @@ function saidAbout(r: RecordEntry): boolean {
 function wrote(r: RecordEntry): string | undefined {
   const from = list<Provenance>(r.provenance);
   if (from.length === 1) return from[0]!.raw_path ?? undefined;
-  const may = from.filter((v) => canWrite(r, from, v));
+  const may = from.filter((v) => canWrite(r, v));
   const named = r.fields_from != null && may.some((v) => v.raw_path === r.fields_from) ? r.fields_from : may[0]?.raw_path;
   return named ?? undefined;
-}
-
-/** Import lets the first resource of a source on the record write its fields, and of those with no id the first of its type; one that says it is entered in error after the others. */
-function canWrite(r: RecordEntry, from: readonly Provenance[], v: Provenance): boolean {
-  const isError = (q: Provenance) => {
-    const word = q.raw_path == null ? undefined : list(r.words).find((w) => w.raw_path === q.raw_path);
-    return word !== undefined && saysInError(word);
-  };
-  const same = (a: string | null | undefined, b: string | null | undefined) => (a ?? undefined) === (b ?? undefined);
-  const source = (q: Provenance) => same(q.source.fhir_base, v.source.fhir_base) && same(q.source.cli, v.source.cli) && same(q.source.organization_id, v.source.organization_id);
-  const idless = (q: Provenance) => !q.source_resource?.id;
-  const like = from.filter((q) => source(q) && (!idless(v) || (idless(q) && same(q.source_resource?.type, v.source_resource?.type))));
-  return (like.find((q) => !isError(q)) ?? like[0]) === v;
 }
 
 const papers = (d: DocumentEntry): readonly Provenance[] => [...(d.provenance ? [d.provenance] : []), ...list<Provenance>(d.also_from)];
@@ -116,8 +104,6 @@ function dayOf(v: string | null | undefined): string | undefined {
 /** The index without these, and without what it says of them. */
 function without(idx: PersonIndex, gone: ReadonlySet<string>): PersonIndex {
   const keep = (ids: readonly string[]) => ids.filter((id) => !gone.has(id));
-  // A statement whose first paper is one is its next copy's.
-  const first = new Map<string, string>();
   return {
     ...idx,
     about_another: [...gone].sort(cmpStr),
@@ -127,15 +113,7 @@ function without(idx: PersonIndex, gone: ReadonlySet<string>): PersonIndex {
         const out = r.documents ? { ...r, documents: keep(r.documents) } : r;
         return r.kind === 'claim' && r.fields ? { ...out, fields: claimFields(r.fields, gone) } : out;
       }),
-    documents: idx.documents
-      ?.filter((d) => !gone.has(d.id))
-      .map((d) => {
-        const of = d.same_statement_as;
-        if (of == null || !gone.has(of)) return d;
-        const copy = first.get(of);
-        if (copy === undefined) first.set(of, d.id);
-        return { ...d, same_statement_as: copy };
-      }),
+    documents: idx.documents && withoutPapers(idx.documents, gone),
   };
 }
 

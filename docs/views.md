@@ -248,17 +248,20 @@ against the day they answer, so its value here does not matter.
 
 ## `documents.json` and `text-<n>.bin`
 
-`documents.json` is `index.json`'s `documents`, each with these fields added:
+`documents.json` is `index.json`'s `documents`, each without its `given` (what
+a source gave and no item shows, which is in no view) and with these fields
+added:
 - `text_at`: where its text is, as `[pack, byte offset, byte length,
   characters]`. Absent when the document has no text.
 - `linked`: the names (`display`) of the first 20 records that list it in
   their `documents`, in `index.json` order, but those entered in error (medrec
   0.9.9 and later). Absent when none do.
 - `linked_ids`: the same records' ids, in the same order (medrec 0.9.9 and
-  later). `medrec_document` names no person, so unless the document is private
-  it leaves out the names whose record the person's `private.json` holds back,
-  and all of them when there are no ids and any record of theirs is private or
-  may be.
+  later). `medrec_document` without `person` is an answer about the whole
+  household: unless the document is private it leaves out the names whose record
+  the person's `private.json` holds back, and all of them when there are no ids
+  and any record of theirs is private or may be. With `person`, whose document
+  it is, it is an answer about them and has every name.
 
 `text-<n>.bin` holds the documents' texts as UTF-8, one after another, in
 document order. A pack closes before a text would take it past 1,000,000
@@ -567,9 +570,10 @@ An answer about the whole household uses nothing of `private`. It gives no
 label to a private item, even one it names, to one whose person's private items
 are not known, or to anything an event prints when that event is such an item.
 It leaves out a reason or a phone from such an item's paper, and one from what
-the household said of private items only. `medrec_document` names no person, so
-it answers by the same rule. An answer about one person looks a private item up
-in `private` alone, and takes its label from `private.labels`, then `labels`.
+the household said of private items only. An answer about one person looks a
+private item up in `private` alone, and takes its label from `private.labels`,
+then `labels`. `medrec_document` answers by the first rule without `person`, and
+by the second with it.
 
 Missing, stale or unreadable, it changes nothing else and gives no warning.
 This connector reads at most 256,000 bytes of them for one answer, since the
@@ -594,8 +598,8 @@ current whenever the person's views are. Two other views come with it:
 
 - **`views.json`** has `people.<id>.in_error`, the same object as
   `standing.json`'s: the ids of the person's records entered in error, by kind,
-  and of their papers, as `document`. A reader that leaves them out of an answer
-  opens no other view for it.
+  and of their papers, as `document`; it is absent when there are none. A reader
+  that leaves them out of an answer opens no other view for it.
 - **`summary.json`** has `standing`: each medicine, condition and allergy that
   is current or on hold, uncut, for a reader to make the summary's lists of.
   `medications`, `conditions` and `allergies` beside it are by each record's
@@ -637,6 +641,14 @@ applied while it is. These views say what they leave out, by id:
   stays, and an answer shows it with `sources differ` and those words. A
   condition, allergy or medicine has its words in `standing.json` instead.
 
+The reference writer here judges the same from `index.json` alone, by medrec's
+rule (medrec's `docs/data-contract.md`, "Entered in error";
+`src/records/errors.ts`). It writes `people.<id>.in_error` and leaves those out
+of `tests.json`, the summary's lists and documents' `linked`. It writes no
+`says`, and none of the views above that it does not write. This connector
+judges so where it reads a person's `index.json` whole. Views from before medrec
+0.9.9 name none: what they list, it lists, and counts none.
+
 `medrec_document` of a paper entered in error says so first in its `hint`, with
 how many decisions, payments and corrections are kept. For those alone it reads
 `events.json`, `bills.json` and `providers.json`, and leaves out what it cannot
@@ -655,6 +667,7 @@ The reference writer here does the same, by medrec's rule (medrec's
 `docs/data-contract.md`, "About another person"; `src/records/about.ts`). So does
 this connector where it reads a person's `index.json` whole, and it leaves out
 the ids `views.json` names there too, though the person's files changed since.
+Views from before medrec 0.9.9 leave out nothing.
 
 ## Without a current `private.json` or `bills.json`
 

@@ -62,6 +62,13 @@ export interface Provenance {
   raw_path?: string | null;
 }
 
+/** What one source says of an item. */
+export interface SourceWord {
+  raw_path: string;
+  status?: string | null;
+  verification?: string | null;
+}
+
 export interface Given {
   raw_path?: string | null;
   display?: string;
@@ -88,7 +95,7 @@ export interface RecordEntry {
   /** The raw file its values are of, when several have it (medrec 0.9.9 and later). */
   fields_from?: string | null;
   /** What each source says of it (medrec 0.9.9 and later). */
-  words?: { raw_path: string; status?: string | null; verification?: string | null }[];
+  words?: SourceWord[];
   /** What each source says of one that a source says is entered in error (the views, medrec 0.9.9 and later). */
   says?: Json;
 }
@@ -127,6 +134,7 @@ export interface DocumentEntry {
   provenance?: Provenance;
   also_from?: Provenance[];
   /** As a record's. */
+  words?: SourceWord[];
   given?: GivenPaper[];
   says?: Json;
 }

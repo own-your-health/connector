@@ -6,6 +6,7 @@
 
 import { createHash } from 'node:crypto';
 import { shownIndex } from '../records/about';
+import { allOf, enteredInError } from '../records/errors';
 import type { Household, Person, PersonIndex, RecordEntry } from '../records/model';
 import { sourcesOf, type SourceOf } from '../records/sources';
 import { recordOrder, eventOrder } from '../records/store';
@@ -194,11 +195,13 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   const idx = shownIndex(p, f.index);
   const pid = p.id;
   const records = idx.records ?? [];
+  const errors = enteredInError(idx);
+  const gone = allOf(errors);
   const from = sourcesOf(h, pid, idx.imports);
   const row = personRow(p, idx, 0);
 
   // ---- summary ----
-  const s = summarize(h, p, idx, 0, '0000-00-00', SUMMARY_LINES);
+  const s = summarize(h, p, idx, 0, '0000-00-00', SUMMARY_LINES, gone);
   const sv: SummaryView = {
     counts: s.counts,
     sources: s.sources,
@@ -241,7 +244,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   }
 
   // ---- tests: each result series, newest first ----
-  const results = newestFirst(records.filter((r) => r.kind === 'result'));
+  const results = newestFirst(records.filter((r) => r.kind === 'result' && !gone.has(r.id)));
   const series = new Map<string, TestSeries>();
   results.forEach((r, rank) => {
     const key = seriesKey(r);
@@ -276,7 +279,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
     const { given: _given, ...v }: DocumentView = d;
     const at = located.get(d.id);
     if (at) v.text_at = [...at, Array.from(texts[d.id]!).length];
-    const linked = records.filter((r) => (r.documents ?? []).includes(d.id)).slice(0, 20);
+    const linked = records.filter((r) => (r.documents ?? []).includes(d.id) && !gone.has(r.id)).slice(0, 20);
     if (linked.length > 0) {
       v.linked = linked.map((r) => r.display);
       v.linked_ids = linked.map((r) => r.id);
@@ -349,6 +352,7 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
     index: f.indexBytes ? md5(f.indexBytes) : null,
     text: f.textBytes ? md5(f.textBytes) : null,
     ...(idx.about_another ? { about_another: idx.about_another } : {}),
+    ...(errors.size > 0 ? { in_error: Object.fromEntries([...errors].map(([kind, ids]) => [kind, [...ids]])) } : {}),
     row: {
       documents: row.documents,
       records: row.records,

@@ -10,6 +10,7 @@ import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
+import { NO_ERRORS, type Errors } from '../records/errors';
 import type { Folder } from '../records/folder';
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
 import { isObject, parseExact } from '../records/numbers';
@@ -18,7 +19,7 @@ import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Bills, type Candidate, type Events, type RecordFilter, type Skip, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
 import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
-import { STANDING_SCHEMA, allOf, errorsOf, standingsOf, type StandingView, type Standings } from '../records/standing';
+import { STANDING_SCHEMA, errorsOf, standingsOf, type StandingView, type Standings } from '../records/standing';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -219,7 +220,8 @@ export class ViewsStore implements Store {
   private windows = new Map<string, { start: number; bytes: Uint8Array }[]>();
 
   constructor(private readonly folder: Folder) {
-    this.raw = new RawStore(folder);
+    // What views.json names is left out of a person's files read whole too, though they changed since.
+    this.raw = new RawStore(folder, async (h, p) => aboutAnother((await this.state(h)).index?.people[p.id]));
   }
 
   household(): Promise<Household> {
@@ -243,8 +245,6 @@ export class ViewsStore implements Store {
         h.people.map((p) => `${VIEWS_DIR}/${p.id}`),
         [...files, ...h.people.flatMap((p) => ['notes.md', ...Object.values(MADE_FROM)].map((f) => `${p.folder}/${f}`))],
       );
-      // What they name is left out of a person's files read whole too, though they changed since.
-      for (const p of h.people) this.folder.leaveOut(p, aboutAnother(index.people[p.id]));
       const md5 = await this.folder.md5(files);
       const fresh = new Set<string>();
       if (md5[0] === index.household) {
@@ -404,17 +404,24 @@ export class ViewsStore implements Store {
     return r ? aboutAnother(r.v).length : this.raw.aboutAnother(h, p);
   }
 
-  async errors(h: Household, p: Person): Promise<ReadonlySet<string>> {
+  async errors(h: Household, p: Person): Promise<Errors> {
     const st = await this.state(h);
-    return st.fresh.has(p.id) ? allOf(errorsOf(st.index!.people[p.id]!.in_error)) : new Set();
+    if (st.fresh.has(p.id)) return errorsOf(st.index!.people[p.id]!.in_error);
+    // Nothing is shown of someone too large to read whole.
+    return (await this.small(p)) ? this.raw.errors(h, p) : NO_ERRORS;
+  }
+
+  /** Whether the person's files are few enough bytes to read whole. */
+  private async small(p: Person): Promise<boolean> {
+    const sizes = await Promise.all([this.folder.size(`${p.folder}/index.json`), this.folder.size(`${p.folder}/text.json`)]);
+    return (sizes[0] ?? 0) + (sizes[1] ?? 0) <= RAW_LIMIT;
   }
 
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */
   private async views(h: Household, p: Person): Promise<PersonReader | null> {
     const st = await this.state(h);
     if (st.fresh.has(p.id)) return new PersonReader(this.folder, p, st.index!.people[p.id]!);
-    const sizes = await Promise.all([this.folder.size(`${p.folder}/index.json`), this.folder.size(`${p.folder}/text.json`)]);
-    if ((sizes[0] ?? 0) + (sizes[1] ?? 0) <= RAW_LIMIT) return null;
+    if (await this.small(p)) return null;
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads, and they are too large to read here without it`).withFix(
         "Tell the user the connector needs updating: its README's Updating section has the steps",

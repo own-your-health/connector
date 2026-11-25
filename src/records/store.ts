@@ -12,14 +12,16 @@
 // Lists are async iterables in their final order, so a tool reads only as
 // many items as the page it answers needs.
 
+import { shownIndex } from './about';
 import { NO_NAMES, type CodeNames } from './code-names';
+import { allOf, enteredInError, type Errors } from './errors';
 import type { Folder } from './folder';
 import type { Parts } from './parts';
 import type { Privacy } from './private';
 import type { LabelsFile } from './provider-labels';
 import type { Standings } from './standing';
 import { ToolError } from '../mcp/errors';
-import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
+import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, PersonIndex, RecordEntry } from './model';
 import { sourcesOf } from './sources';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
 import {
@@ -139,7 +141,11 @@ export interface Store {
    * find among each series' results: a row's `members` lists those it holds.
    */
   tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]>;
-  /** A person's documents, records, studies and notes as timeline events in the range, ordered as the records tool lists them. */
+  /**
+   * A person's documents, records, studies and notes as timeline events in the
+   * range, ordered as the records tool lists them. Here and below, `parts` is
+   * what the person's `privacy` gave: a store that knows none of it is given none.
+   */
   timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event>;
   documents(h: Household, p: Person): Promise<DocumentEntry[]>;
   /** The document with this id, and whose it is; null when no one has it. */
@@ -182,8 +188,11 @@ export interface Store {
    * `kind`, null too when the person has no record of it.
    */
   standings(h: Household, p: Person, kind?: string): Promise<Standings | null>;
-  /** The person's records and papers entered in error, which no list shows (medrec 0.9.9 and later); none when not known. */
-  errors(h: Household, p: Person): Promise<ReadonlySet<string>>;
+  /**
+   * The person's records and papers entered in error, by kind, which no list
+   * shows; none in views from before medrec 0.9.9, which list them.
+   */
+  errors(h: Household, p: Person): Promise<Errors>;
   /** How many of their records and papers are about somebody else, and shown nowhere (medrec 0.9.9 and later). */
   aboutAnother(h: Household, p: Person): Promise<number>;
 }
@@ -278,11 +287,48 @@ export function searchTerms(query: string): { terms: string[]; labs: boolean } {
   return { terms, labs: LAB_QUERIES.includes(terms.join(' ')) };
 }
 
-const NONE: ReadonlySet<string> = new Set();
+/**
+ * What of an open claim or paper is private is known from the views alone
+ * (`privacy`), so a store of files is asked to leave none of it out. An
+ * event's part is the tools' own to leave out.
+ */
+function noParts(parts: Parts | undefined): void {
+  for (const id of parts?.keys() ?? []) if (!id.startsWith('e_')) throw new Error('private parts are of views, and this store reads files');
+}
 
 /** The store over the records folder's own files, read whole. */
 export class RawStore implements Store {
-  constructor(readonly folder: Folder) {}
+  private readonly shown_ = new Map<string, Promise<{ idx: PersonIndex; from: string }>>();
+
+  constructor(
+    readonly folder: Folder,
+    /** The ids medrec's views say are about somebody else, to leave out of a person's files too. */
+    private readonly aside: (h: Household, p: Person) => Promise<readonly string[]> = async () => [],
+  ) {}
+
+  /** A person's index as answers show it, without what is about somebody else, and what that was told from: one for a call's several readers. */
+  private shown(h: Household, p: Person): Promise<{ idx: PersonIndex; from: string }> {
+    let s = this.shown_.get(p.id);
+    if (!s) this.shown_.set(p.id, (s = this.show(h, p)));
+    return s;
+  }
+
+  private async show(h: Household, p: Person): Promise<{ idx: PersonIndex; from: string }> {
+    const also = await this.aside(h, p);
+    const from = JSON.stringify([p.birth_date ?? null, also]);
+    const path = `${p.folder}/index.json`;
+    const made = async () => ({ value: shownIndex(p, await this.folder.index(p), also), size: (await this.folder.size(path)) ?? 0 });
+    return { idx: await this.folder.derived(`shown:${p.id}`, [path], made, from), from };
+  }
+
+  protected async index(h: Household, p: Person): Promise<PersonIndex> {
+    return (await this.shown(h, p)).idx;
+  }
+
+  /** The ids entered in error, of any kind. */
+  private async errorsIn(h: Household, p: Person): Promise<ReadonlySet<string>> {
+    return allOf(await this.errors(h, p));
+  }
 
   /** Events are medrec's alone, in its views, which this store does not read. */
   async events(_h: Household, p: Person): Promise<Events> {
@@ -309,17 +355,17 @@ export class RawStore implements Store {
     return null;
   }
 
-  /** And what each source says, and what is entered in error. */
+  /** And what each source says. */
   async standings(_h: Household, _p: Person, _kind?: string): Promise<Standings | null> {
     return null;
   }
 
-  async errors(_h: Household, _p: Person): Promise<ReadonlySet<string>> {
-    return NONE;
+  async errors(h: Household, p: Person): Promise<Errors> {
+    return enteredInError(await this.index(h, p));
   }
 
-  async aboutAnother(_h: Household, p: Person): Promise<number> {
-    return (await this.folder.index(p)).about_another?.length ?? 0;
+  async aboutAnother(h: Household, p: Person): Promise<number> {
+    return (await this.index(h, p)).about_another?.length ?? 0;
   }
 
   household(): Promise<Household> {
@@ -327,23 +373,26 @@ export class RawStore implements Store {
   }
 
   people(h: Household): Promise<PersonRow[]> {
-    return Promise.all(h.people.map(async (p) => personRow(p, await this.folder.index(p), (await this.folder.notes(p)).length)));
+    return Promise.all(h.people.map(async (p) => personRow(p, await this.index(h, p), (await this.folder.notes(p)).length)));
   }
 
   async summary(h: Household, p: Person, today: string, perList: number): Promise<Summary> {
-    return summarize(h, p, await this.folder.index(p), (await this.folder.notes(p)).length, today, perList);
+    return summarize(h, p, await this.index(h, p), (await this.folder.notes(p)).length, today, perList, await this.errorsIn(h, p));
   }
 
   async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<ListedRecord> {
-    const idx = await this.folder.index(p);
+    noParts(filter.parts);
+    const idx = await this.index(h, p);
     const from = sourcesOf(h, p.id, idx.imports);
     const rs = (idx.records ?? []).filter((r) => passes(r, kind, filter));
     for (const r of rs.sort(recordOrder(detailed))) yield { ...r, source: from(r) };
   }
 
   async tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]> {
-    const idx = await this.folder.index(p);
-    const rs = (idx.records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && (filter.name === undefined || matchesCode(r, filter.name)));
+    const idx = await this.index(h, p);
+    const rs = (idx.records ?? []).filter(
+      (r) => r.kind === 'result' && holds(filter.range, r.date) && !filter.errors?.has(r.id) && (filter.name === undefined || matchesCode(r, filter.name)),
+    );
     const sorted = newestFirst(rs);
     const rows = latestResults(sorted, sourcesOf(h, p.id, idx.imports));
     if (!look || look.size === 0) return rows;
@@ -356,12 +405,13 @@ export class RawStore implements Store {
     });
   }
 
-  async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {
-    yield* timelineEvents(h, p, await this.folder.index(p), await this.folder.notes(p), range).sort(eventOrder);
+  async *timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event> {
+    noParts(parts);
+    yield* timelineEvents(h, p, await this.index(h, p), await this.folder.notes(p), range).sort(eventOrder);
   }
 
-  async documents(_h: Household, p: Person): Promise<DocumentEntry[]> {
-    return (await this.folder.index(p)).documents ?? [];
+  async documents(h: Household, p: Person): Promise<DocumentEntry[]> {
+    return (await this.index(h, p)).documents ?? [];
   }
 
   async findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null> {
@@ -376,12 +426,20 @@ export class RawStore implements Store {
     return this.folder.notes(p);
   }
 
-  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]> {
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip, parts?: Parts): Promise<Candidate[]> {
+    noParts(parts);
     const labs = LAB_QUERIES.includes(terms.join(' '));
-    const items = await this.folder.derived(`search:${p.id}`, this.folder.personFiles(p), async () => {
-      const list = searchables(await this.folder.index(p), (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p));
-      return { value: list, size: list.reduce((n, x) => n + x.folded.length, 0) };
-    });
+    const { idx, from } = await this.shown(h, p);
+    // Its items are of the index as shown, by their places in it.
+    const items = await this.folder.derived(
+      `search:${p.id}`,
+      this.folder.personFiles(p),
+      async () => {
+        const list = searchables(idx, (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p));
+        return { value: list, size: list.reduce((n, x) => n + x.folded.length, 0) };
+      },
+      from,
+    );
     const found: Candidate[] = [];
     for (const item of items) {
       if (!holds(range, item.date)) continue;
@@ -395,7 +453,6 @@ export class RawStore implements Store {
         title: item.title,
         score: m.score,
         snippet: async () => {
-          const idx = await this.folder.index(p);
           if (m.first === -1) return item.lab!(idx);
           return snippetAt(item.hay(idx, (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p)), m.first);
         },
@@ -412,9 +469,10 @@ export class RawStore implements Store {
     return (await this.folder.text(p)).texts?.[d.id] ?? '';
   }
 
-  async documentRecords(_h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]> {
-    return ((await this.folder.index(p)).records ?? [])
-      .filter((r) => (r.documents ?? []).includes(d.id))
+  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]> {
+    const gone = await this.errorsIn(h, p);
+    return ((await this.index(h, p)).records ?? [])
+      .filter((r) => (r.documents ?? []).includes(d.id) && !gone.has(r.id))
       .slice(0, 20)
       .map((r) => ({ id: r.id, name: clip(r.display, CLIP) }));
   }

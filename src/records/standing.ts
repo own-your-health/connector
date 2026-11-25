@@ -133,20 +133,6 @@ export function paperNote(v: Json | undefined, entered: boolean, kept: { decisio
   return all.length === 0 ? note : `${note} Kept and not applied: ${all.join(', ')}.`;
 }
 
-/** A person's papers without those entered in error, a statement as the next of its copies where its first is. */
-export function papersStanding<T extends { id: string; same_statement_as?: string | null }>(papers: readonly T[], errors: ReadonlySet<string>): T[] {
-  const first = new Map<string, string>();
-  return papers
-    .filter((d) => !errors.has(d.id))
-    .map((d) => {
-      const of = d.same_statement_as ?? undefined;
-      if (of === undefined || !errors.has(of)) return d;
-      const now = first.get(of);
-      if (now === undefined) first.set(of, d.id);
-      return { ...d, same_statement_as: now ?? null };
-    });
-}
-
 const noProblemList = (source: string) => `No problem list from ${source}; diagnoses from visits are listed under All`;
 
 /** A row of a list of conditions, allergies or medicines: `standing` and `says` are none of a fill. */
@@ -265,11 +251,6 @@ export class Standings {
     return out;
   }
 
-  /** How many of a kind are entered in error. */
-  inError(kind: string): number {
-    return this.errors.get(kind)?.size ?? 0;
-  }
-
   /** What a list says of the sources that send no problem list. */
   notes(l: Lists): string[] {
     return l.without_problem_list.map((n) => noProblemList(this.name(n)));
@@ -362,9 +343,6 @@ function standingOf(v: JsonObject): Standing {
 export function errorsOf(v: Json | undefined): Map<string, ReadonlySet<string>> {
   return new Map(entries(v).map(([kind, ids]) => [kind, new Set(texts(ids))]));
 }
-
-/** The ids of every kind. */
-export const allOf = (errors: ReadonlyMap<string, ReadonlySet<string>>): ReadonlySet<string> => new Set([...errors.values()].flatMap((ids) => [...ids]));
 
 /** A person's standings; null when the view is another person's. */
 export function standingsOf(view: StandingView, person: string): Standings | null {

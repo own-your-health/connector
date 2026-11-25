@@ -11,6 +11,7 @@ import type { Json, JsonObject } from '../src/records/model';
 import { removed } from '../src/records/numbers';
 import { OpenText, shownClaim, shownEvent, shownText } from '../src/records/parts';
 import type { Privacy } from '../src/records/private';
+import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
@@ -200,6 +201,54 @@ describe('answers over private parts', async () => {
     writeFileSync(at, JSON.stringify(h));
     const r = await ask(two, 'medrec_document', { id: 'd_accountaaaaaaaaaaaaa', person: 'Sam' });
     expect([r.isError, r.content[0]!.text]).toEqual([true, 'usage: d_accountaaaaaaaaaaaaa is a document of Robin Example. Fix the arguments as described and call the tool again.']);
+  });
+
+  /** A folder with no current private.json: none, one still arriving, or views of before. */
+  const unknown = (name: string): string => {
+    const to = join(scratch, name);
+    cpSync(root, to, { recursive: true });
+    const edit = (file: string, f: (v: any) => void) => {
+      const v = JSON.parse(readFileSync(join(to, file), 'utf8'));
+      f(v);
+      writeFileSync(join(to, file), JSON.stringify(v));
+    };
+    if (name === 'files') rmSync(join(to, 'views'), { recursive: true });
+    if (name === 'arriving') for (const f of readdirSync(join(to, 'views', PERSON)).filter((x) => x.startsWith('private.'))) rmSync(join(to, 'views', PERSON, f));
+    if (name === 'earlier') edit('household.json', (h) => (h.rev += 1));
+    return to;
+  };
+
+  it.each(['files', 'arriving', 'earlier'])('say of a bill whose private lines are not known that it is whole: %s', async (name) => {
+    const at = unknown(name);
+    const open = async (args: object) => (await ask(at, 'medrec_document', { id: 'd_accountaaaaaaaaaaaaa', ...args })).structuredContent as { text: string; hint?: string };
+    const r = await open({});
+    expect(r.text).toMatch(HELD);
+    expect(r.hint).toBe('Which of its lines are private is not known, so it is given whole: keep it out of anything shared.');
+    expect((await open({ person: 'Robin' })).hint).toBeUndefined();
+  });
+
+  it('never ask files for less than the whole of an item', async () => {
+    const store = new RawStore(folderAt(root));
+    const h = await store.household();
+    const p = h.people[0]!;
+    const of = (id: string) => new Map([[id, {}]]);
+    const all = async (xs: AsyncIterable<unknown>) => {
+      for await (const _ of xs);
+    };
+    const asked = (parts: Map<string, JsonObject>) => [
+      all(store.records(h, p, 'claim', { range: {}, active: false, parts }, false)),
+      all(store.timeline(h, p, {}, parts)),
+      store.search(h, p, ['sample'], {}, 5, undefined, parts),
+    ];
+    for (const id of ['r_claimaaaaaaaaaaaaaaa', 'd_accountaaaaaaaaaaaaa']) for (const x of asked(of(id))) await expect(x).rejects.toThrow('this store reads files');
+    // An event's is the tools' own to leave out.
+    for (const x of asked(of('e_stayaaaaaaaaaaaaaaaa'))) await x;
+    // Whoever is read from files has none.
+    for (const name of ['files', 'earlier']) {
+      const views = new ViewsStore(folderAt(unknown(name)));
+      expect((await views.privacy(await views.household(), p)).parts).toBeUndefined();
+      for (const kind of KINDS.filter((k) => k !== 'events')) expect((await ask(views, 'medrec_records', { kind })).isError, kind).toBeFalsy();
+    }
   });
 
   it('hold back a hit whose part they cannot search', async () => {

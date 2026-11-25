@@ -9,7 +9,10 @@ import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names'
 import { LeftOut, type Warning } from './partial';
 import { nameOf, notShown, shownEvent, shownText } from './parts';
 import { Gate, names, type Privacy } from './private';
-import { STANDING_KINDS, billsInError, differ, inError, paperNote, papersStanding, type Line as StandingLine, type Row, type Standings } from './standing';
+import { allOf, type Errors } from './errors';
+import { withoutPapers } from './papers';
+import { STANDING_KINDS, billsInError, differ, inError, paperNote, type Line as StandingLine, type Standings } from './standing';
+import { each, mapped, standingRows, type ListRows } from './standing-rows';
 import { NO_EVENTS, eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Bills, type RecordFilter, type Standing, type Store, type Why } from './store';
 import { printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, type LabelsFile, type Printed, type ProviderLabels } from './provider-labels';
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
@@ -309,12 +312,19 @@ interface Part {
   note?: string;
 }
 
-/** The summary's lists of medicines, conditions and allergies: by each source's words on the day, else as the summary has them. */
-function currentParts(s: Summary, st: Standings | null, today: string): Part[] {
-  const part = (section: string, l: Listed<SummaryLine>): Part => ({ section, list: { items: l.items.map(fromSummaryLine), more: l.more } });
+/** The summary's lists of what is current, and the kind each is of. */
+const CURRENT = [['medications', 'medication'], ['conditions', 'condition'], ['allergies', 'allergy']] as const;
+
+/**
+ * The summary's lists of medicines, conditions and allergies: by each source's
+ * words on the day, else as the summary has them, which medrec's views give
+ * with what is entered in error.
+ */
+function currentParts(s: Summary, st: Standings | null, errors: ReadonlySet<string>, today: string): Part[] {
+  const part = (section: string, l: Listed<SummaryLine>): Part => ({ section, list: { items: l.items.filter((x) => x.id === undefined || !errors.has(x.id)).map(fromSummaryLine), more: l.more } });
   if (!st || !s.standing) return [part('medications', s.medications), part('conditions', s.conditions), part('allergies', s.allergies)];
   const out: Part[] = [];
-  for (const [section, kind] of [['medications', 'medication'], ['conditions', 'condition'], ['allergies', 'allergy']] as const) {
+  for (const [section, kind] of CURRENT) {
     const by = new Map(s.standing[section].map((l) => [l.id, l]));
     const lists = st.lists(kind, () => true, today);
     const lines = (of: StandingLine[]): Listed<Line> =>
@@ -345,11 +355,11 @@ function resultText(r: ResultRow): string {
   return trim(s);
 }
 
-/** What the other lists of a summary say of those entered in error, by section. */
-function errorNotes(st: Standings | null, bills: Bills | null): ReadonlyMap<string, string> {
+/** What the lists of a summary that are not by each source's words say of those entered in error, by section. */
+function errorNotes(errors: Errors, bills: Bills | null): ReadonlyMap<string, string> {
   const out = new Map<string, string>();
-  for (const [section, kind] of [['immunizations', 'immunization'], ['latest_results', 'result'], ['recent_visits', 'encounter']] as const) {
-    const n = st?.inError(kind) ?? 0;
+  for (const [section, kind] of [...CURRENT, ['immunizations', 'immunization'], ['latest_results', 'result'], ['recent_visits', 'encounter']] as const) {
+    const n = errors.get(kind)?.size ?? 0;
     if (n > 0) out.set(section, inError(n));
   }
   const lost = [...(bills?.lost.values() ?? [])];
@@ -400,12 +410,18 @@ async function summaryTool(a: Args, ctx: Context): Promise<Record<string, unknow
   } catch (e) {
     throw personError(e);
   }
-  const [s, privacy, bills, words] = await Promise.all([ctx.store.summary(h, p, ctx.today, SUMMARY_LINES), ctx.store.privacy(h, p), ctx.store.bills(h, p), ctx.store.standings(h, p)]);
+  const [s, privacy, bills, words, errors] = await Promise.all([
+    ctx.store.summary(h, p, ctx.today, SUMMARY_LINES),
+    ctx.store.privacy(h, p),
+    ctx.store.bills(h, p),
+    ctx.store.standings(h, p),
+    ctx.store.errors(h, p),
+  ]);
   if (bills) s.bills = await unsettled(ctx, h, p, s.bills, bills);
-  const current = currentParts(s, words, ctx.today);
+  const current = currentParts(s, words, allOf(errors), ctx.today);
   // Last, so a request the labels take is never one the answer needs.
   const plain = current.some((x) => x.list.items.some((l) => l.name_key !== undefined)) ? await codeNames(ctx, h, p) : NO_NAMES;
-  return { people: rows, summary: sections(s, current, errorNotes(words, bills), (id) => privacy.areas.get(id), plain) };
+  return { people: rows, summary: sections(s, current, errorNotes(errors, bills), (id) => privacy.areas.get(id), plain) };
 }
 
 /**
@@ -417,7 +433,7 @@ async function unsettled(ctx: Context, h: Household, p: Person, b: Summary['bill
   const settled = new Set([...standing].filter(([, x]) => x.settled).map(([id]) => id));
   if (settled.size === 0) return b;
   if (b.more === 0) return { items: b.items.filter((x) => !settled.has(x.document)), more: 0 };
-  const papers = papersStanding(await ctx.store.documents(h, p), await ctx.store.errors(h, p));
+  const papers = withoutPapers(await ctx.store.documents(h, p), allOf(await ctx.store.errors(h, p)));
   return cut(billsOf(papers, ctx.today, settled), SUMMARY_LINES);
 }
 
@@ -574,9 +590,10 @@ async function privacyOfOthers(ctx: Context, h: Household, people: Person[]): Pr
   return new Map(await Promise.all(people.map(async (p) => [p.id, await one(p)] as const)));
 }
 
-/** The private items and the records entered in error of the people an answer covers. */
-async function gateOf(ctx: Context, h: Household, people: Person[], household: boolean): Promise<() => Gate> {
-  const [privacy, errors] = await Promise.all([privacyOf(ctx, h, people), Promise.all(people.map(async (p) => [p.id, await ctx.store.errors(h, p)] as const))]);
+/** The private items of the people an answer covers, and their records and papers entered in error where it has those (`kind`). */
+async function gateOf(ctx: Context, h: Household, people: Person[], household: boolean, kind?: string): Promise<() => Gate> {
+  const has = kind !== 'events' && kind !== 'notes';
+  const [privacy, errors] = await Promise.all([privacyOf(ctx, h, people), Promise.all((has ? people : []).map(async (p) => [p.id, allOf(await ctx.store.errors(h, p))] as const))]);
   const byPerson = new Map(errors);
   return () => new Gate(household, privacy, byPerson);
 }
@@ -784,7 +801,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const household = person === undefined;
   const left = new LeftOut(household);
   const hint = 'person, since/until, active or name';
-  const gate = (await gateOf(ctx, h, chosen, household))();
+  const gate = (await gateOf(ctx, h, chosen, household, kind))();
   const filterOf = (p: Person): RecordFilter => ({ range: r, active, name, errors: gate.errorsOf(p), parts: gate.parts(p) });
   // A question about everyone holds back the private items it does not name; each one an answer includes carries its area.
   // A test series is private when any of its results is (medrec 0.9.3): `members` are those of its results that are.
@@ -801,8 +818,12 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   } else if (recordKind) {
     // Each person's records come in the tool's order: merge them, reading only what fills the page.
     const order = recordOrder(detailed);
-    const said = new Map<string, string[]>();
-    const tagged = chosen.map((p) => tag(p, left.rows(p, listRows(ctx, h, p, recordKind, filterOf(p), detailed, household ? gate : undefined, said))));
+    const lists = await Promise.all(
+      chosen.map((p) =>
+        left.of(p, () => listRows(ctx, h, p, recordKind, filterOf(p), detailed, household ? (id) => gate.heldBack(p, id) : undefined), { rows: each([]), notes: [] }),
+      ),
+    );
+    const tagged = chosen.map((p, i) => tag(p, left.rows(p, lists[i]!.rows)));
     const found = await takeMerged(
       tagged,
       (a, b) => a.x.group - b.x.group || order(a.x.record, b.x.record),
@@ -818,7 +839,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     );
     const top = found.map(({ x: { p, x } }) => ({ p, x: x.record }));
     const items = found.map((f) => f.item);
-    const notes = chosen.flatMap((p) => (said.get(p.id) ?? []).map((n): Warning => ({ code: 'no-problem-list', message: household ? `${p.name}: ${n}` : n })));
+    const notes = chosen.flatMap((p, i) => lists[i]!.notes.map((n): Warning => ({ code: 'no-problem-list', message: household ? `${p.name}: ${n}` : n })));
     const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => {
       const { p, x } = top[i]!;
       return { p, printed: detailed ? printedOfRecord(x.fields) : x.kind === 'claim' ? printedOfClaim(x.fields) : [] };
@@ -860,7 +881,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       const of = bills ? await ctx.store.bills(h, p) : undefined;
       if (of === null) extra.push(billsNotPrepared(p));
       const errors = gate.errorsOf(p) ?? NONE_IN_ERROR;
-      const unpaid = of === null ? new Set(papersStanding(docs, errors).filter(isBill).map((d) => d.id)) : undefined;
+      const unpaid = of === null ? new Set(withoutPapers(docs, errors).filter(isBill).map((d) => d.id)) : undefined;
       for (const d of docs) {
         // A bill is there by the first of its papers that stands, else to be counted.
         const listed = !bills || (of ? of.standing.has(d.id) || of.lost.has(d.id) : unpaid!.has(d.id) || (isBill(d) && errors.has(d.id)));
@@ -890,49 +911,14 @@ const isBill = (d: DocumentEntry) => d.doc_type === 'bill' && (d.same_statement_
 /**
  * A person's records of one kind as the list has them: conditions, allergies
  * and medicines with what each source says of them, and `active` as the lines
- * of what is current by that (standing.ts); else the records themselves.
- * `whole` is the gate of an answer about the whole household. What the list
- * says of sources with no problem list goes to `said`.
+ * of what is current by that (standing-rows.ts); else the records themselves.
+ * `heldBack` is of an answer about the whole household.
  */
-async function* listRows(
-  ctx: Context,
-  h: Household,
-  p: Person,
-  kind: string,
-  filter: RecordFilter,
-  detailed: boolean,
-  whole: Gate | undefined,
-  said: Map<string, string[]>,
-): AsyncIterable<Row<ListedRecord>> {
+async function listRows(ctx: Context, h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean, heldBack?: (id: string) => boolean): Promise<ListRows> {
   const read = (f: RecordFilter) => ctx.store.records(h, p, kind, f, detailed);
   const st = STANDING_KINDS.has(kind) ? await ctx.store.standings(h, p, kind) : null;
-  if (!st) {
-    for await (const record of read(filter)) yield { record, group: 0 };
-    return;
-  }
-  const { range, name } = filter;
-  const asked = (x: RecordEntry) => holdsRange(range, x.date) && (name === undefined || matchesCode(x, name));
-  // A private one counts on a line of an answer about the whole household only where the answer lists it.
-  const listed = (x: RecordEntry) => name !== undefined && asked(x) && names(clip(x.display, CLIP), name);
-  const shows = (x: RecordEntry) => !whole?.heldBack(p, x.id) || listed(x);
-  if (filter.active) {
-    const { rows, notes } = st.active(await all(read({ range: {}, active: false })), kind, ctx.today, asked, shows);
-    said.set(p.id, notes);
-    const order = recordOrder(detailed);
-    yield* rows.sort((a, b) => a.group - b.group || order(a.record, b.record));
-    return;
-  }
-  // A fill beside a medicine may be one the question names.
-  const found = whole && name !== undefined ? await all(read(filter)) : undefined;
-  const open = new Set(found?.filter(listed).map((x) => x.id));
-  const mayShow = (id: string) => !whole?.heldBack(p, id) || open.has(id);
-  for await (const x of found ?? read(filter)) yield st.row(x, mayShow, ctx.today);
-}
-
-async function all<T>(xs: AsyncIterable<T>): Promise<T[]> {
-  const out: T[] = [];
-  for await (const x of xs) out.push(x);
-  return out;
+  if (!st) return { rows: mapped(read(filter), (record) => ({ record, group: 0 })), notes: [] };
+  return standingRows(st, read, { kind, today: ctx.today, filter, detailed, ...(heldBack ? { heldBack } : {}) });
 }
 
 /** The warning for a person whose bills.json this connector cannot read now. */
@@ -960,7 +946,7 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   }
   const household = person === undefined;
   const left = new LeftOut(household);
-  const gate = (await gateOf(ctx, h, chosen, household))();
+  const gate = (await gateOf(ctx, h, chosen, household, 'events'))();
   const rows: { p: Person; e: JsonObject; lost: boolean }[] = [];
   for (const p of chosen) {
     const { events, lost } = await left.of(p, () => ctx.store.events(h, p), NO_EVENTS);
@@ -1298,7 +1284,12 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   const printed = printedOfDocument(d.organization);
   const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).read.get(p.id)?.shown(d.id, printed, asked(gate, p, household)) ?? []) : [];
   const note = await noteOf(ctx, h, p, d);
-  const more = notShown(part) === undefined ? undefined : `${notShown(part)}: pass ${p.name} as person for all of it.`;
+  const more =
+    notShown(part) !== undefined
+      ? `${notShown(part)}: pass ${p.name} as person for all of it.`
+      : household && privacy.unknown !== undefined && cs.length > 0
+        ? 'Which of its lines are private is not known, so it is given whole: keep it out of anything shared.'
+        : undefined;
   const hint = (text?: string) => [note, more, text].filter((x) => x !== undefined).join(' ') || undefined;
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
@@ -1343,7 +1334,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
 
 /** What is said first of a paper that a source says is entered in error. */
 async function noteOf(ctx: Context, h: Household, p: Person, d: DocumentEntry): Promise<string | undefined> {
-  const entered = (await ctx.store.errors(h, p)).has(d.id);
+  const entered = allOf(await ctx.store.errors(h, p)).has(d.id);
   const nothing = { decisions: 0, payments: 0, corrections: 0 };
   if (!entered) return paperNote(d.says, false, nothing);
   // What the household decided of it is said where it is known.
