@@ -133,6 +133,19 @@ export class PageRequest {
   }
 
   /**
+   * Told each matching row in turn, whether this page is full: it has no room
+   * for the last row told, nor for any after it, whatever a row may gain.
+   */
+  full(): (row: unknown) => boolean {
+    let at = 0;
+    let used = 2;
+    return (row) => {
+      if (at++ >= this.offset) used += chars(JSON.stringify(row)) + 1;
+      return used > this.budget - ENVELOPE_RESERVE;
+    };
+  }
+
+  /**
    * `leftOut`: the ids of people this answer leaves out (partial.ts). The
    * rows are counted over the list without them, so a cursor binds them: a
    * later page that leaves out anyone else counts over another list, and

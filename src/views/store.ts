@@ -165,6 +165,9 @@ const DEPENDS = {
   'providers.json': ['marks', 'provider_state'],
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
 
+/** The largest providers.json read, in bytes: a label is never worth the CPU an answer needs. 1,500 claims of 150 providers take about 150,000. */
+export const LABELS_LIMIT = 256_000;
+
 /** private.json as a reader needs it (medrec-private/v1). */
 export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
 
@@ -339,6 +342,9 @@ export class ViewsStore implements Store {
   }
 
   async providerLabels(h: Household, p: Person): Promise<ProviderLabels> {
+    const sum = (await this.state(h)).index?.people[p.id]?.files?.['providers.json'];
+    // The survey has its size, so a look costs no request.
+    if (sum !== undefined && ((await this.folder.size(personDir(p.id) + storedName('providers.json', sum))) ?? 0) > LABELS_LIMIT) return NO_LABELS;
     const got = await this.derived<ProvidersView>(h, p, 'providers.json', PROVIDERS_SCHEMA);
     return 'not' in got ? NO_LABELS : providerLabelsOf(got.view, p.id);
   }

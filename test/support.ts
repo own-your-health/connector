@@ -252,6 +252,54 @@ export function editSources(root: string, edit: (s: SlimSource) => void): void {
 }
 
 /**
+ * Gives every claim of each person a label in their providers.json, and the
+ * file `others` labels no claim has, as medrec would for a household whose
+ * providers a directory knows, for measuring what labels cost. A private
+ * claim's are the private part's. Returns the size of the largest file.
+ */
+export function labelClaims(root: string, others: number): number {
+  const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string }[] };
+  const at = join(root, VIEWS_INDEX);
+  const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+  let largest = 0;
+  const id = (n: number) => `v_${createHash('md5').update(String(n)).digest('hex').slice(0, 20)}`;
+  const label = (n: number) => ({
+    name: `Sample Person ${n}, MD`,
+    practice: `Example Practice ${n}`,
+    role: 'family doctor',
+    phone: '555-010-0101',
+    phone_from: { from: 'directory', date: '2026-03-08' },
+    confidence: 'likely',
+    evidence: [{ from: 'only_match', state: 'FL' }],
+  });
+  for (const p of h.people) {
+    const v = index.people[p.id]!;
+    const records = (JSON.parse(readFileSync(join(root, p.folder, 'index.json'), 'utf8')) as { records?: { id: string; kind: string; fields?: { provider?: string } }[] }).records ?? [];
+    const priv = (JSON.parse(readFileSync(join(root, personDir(p.id) + storedName('private.json', v.files['private.json']!)), 'utf8')) as PrivateView).records ?? {};
+    const part = (claims: { id: string; fields?: { provider?: string } }[], from: number, more: number) => {
+      const names = [...new Set(claims.flatMap((r) => (r.fields?.provider === undefined ? [] : [r.fields.provider])))];
+      const all = [...names, ...Array.from({ length: more }, (_, n) => `SAMPLE PERSON ${from + names.length + n}`)];
+      return {
+        labels: Object.fromEntries(all.map((_, n) => [id(from + n), label(from + n)])),
+        by_name: Object.fromEntries(all.map((name, n) => [name, id(from + n)])),
+        by_item: {},
+        claims: Object.fromEntries(claims.flatMap((r) => (r.fields?.provider === undefined ? [] : [[r.id, id(from + names.indexOf(r.fields.provider))]]))),
+        overrides: [],
+      };
+    };
+    const claims = records.filter((r) => r.kind === 'claim');
+    if (claims.length === 0) continue;
+    const body = JSON.stringify({ schema: 'medrec-providers/v1', person: p.id, ...part(claims.filter((r) => !priv[r.id]), 0, others), private: part(claims.filter((r) => priv[r.id]), 100_000, 0) });
+    const sum = createHash('md5').update(body).digest('hex');
+    writeFileSync(join(root, personDir(p.id) + storedName('providers.json', sum)), body);
+    v.files['providers.json'] = sum;
+    largest = Math.max(largest, body.length);
+  }
+  writeFileSync(at, JSON.stringify(index));
+  return largest;
+}
+
+/**
  * Marks every `every`-th record of each person private in their private.json,
  * as medrec would list them, for measuring a household with private items.
  */

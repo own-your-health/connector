@@ -13,12 +13,13 @@ Each view is derived from `household.json` and a person's `index.json` and
 `text.json`. `notes.md` has no view. It is small, and the app may change it,
 so readers read it as it is.
 
-The reference writer is `src/views/write.ts`. Its output for the demo folder
-and the large synthetic folder, with the `events.json` medrec wrote for them
-(`test/fixtures/events`; the reference writer does not write it), answers all
-268 recorded calls exactly as `medrec mcp` does (`test/golden.test.ts`, "from
-the views"). Another writer (medrec's) is right when its views pass the same
-calls:
+The reference writer is `src/views/write.ts`. Its output for the demo folder,
+the large synthetic folder and medrec's own folder for provider labels, with
+the views only medrec makes as it wrote them for each (`events.json`,
+`bills.json`, `private.json`, `code-names.json` and `providers.json`, in
+`test/fixtures`), answers all 305 recorded calls exactly as `medrec mcp` does
+(`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
+when its views pass the same calls:
 
 ```sh
 VIEWS_WRITER='medrec views write --folder {folder}' npx vitest run test/golden.test.ts
@@ -457,7 +458,8 @@ it answers by the same rule. An answer about one person looks a private item up
 in `private` alone, and takes its label from `private.labels`, then `labels`.
 
 Missing, stale or unreadable, it changes nothing else and gives no warning.
-This connector reads it before the page is cut, for the people with a printed
+This connector leaves out one of more than 256,000 bytes the same way, since
+its CPU could cost the answer. It reads it before the page is cut, for the people with a printed
 provider among the items the page can hold: claims, documents, bills and events,
 and any record in detail. The labels count in the page's size. An item keeps
 the first of its labels that fit a page beside it, and the

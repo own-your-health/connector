@@ -94,6 +94,17 @@ describe('the views store', () => {
     });
   }
 
+  it('reads a list only until its page is full', async () => {
+    const args = { kind: 'claims', person: 'Sam', limit: 200 };
+    const { r, read } = await ask(large, 'medrec_records', args);
+    expect(r).toEqual(await raw(large, 'medrec_records', args));
+    const of = (xs: string[]) => new Set(xs.filter((x) => x.includes('/records-claim-'))).size;
+    const index = JSON.parse(readFileSync(join(large, VIEWS_INDEX), 'utf8')) as ViewsIndex;
+    expect(of(read)).toBeLessThan(of(Object.keys(index.people[personId(large, 'Sam Example')]!.files).map((f) => `/${f}`)));
+    const page = r.structuredContent as { items: { date: string }[]; truncated?: boolean };
+    expect([page.truncated, page.items.length < 200]).toEqual([true, true]);
+  });
+
   it("reads a document's text with one range of one pack", async () => {
     const docs = await raw(large, 'medrec_records', { kind: 'documents', person: 'Sam', limit: 1 });
     const id = (docs.structuredContent as { items: { id: string }[] }).items[0]!.id;

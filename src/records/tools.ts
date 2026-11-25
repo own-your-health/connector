@@ -412,23 +412,26 @@ const asked = (gate: Gate, p: Person, whole: boolean) => ({ whole, isPrivate: (i
 /** Characters of JSON one item of a page may have: the page's, less its brackets and the item's comma. */
 const ITEM_ROOM = SIZE_BUDGET - ENVELOPE_RESERVE - 3;
 
-/** How many of an item's labels, the first ones, fit a page beside it: a label yields to the record. */
-function fitting(it: Record<string, unknown>, labels: JsonObject[]): number {
-  let size = chars(JSON.stringify(it)) + ',"provider_labels":[]'.length - 1;
+/** How many of an item's labels, the first ones, fit a page beside it: a label yields to the record. And the item's size with those. */
+function fitting(it: Record<string, unknown>, labels: JsonObject[]): { n: number; size: number } {
+  let size = chars(JSON.stringify(it));
+  let next = size + ',"provider_labels":[]'.length - 1;
   let n = 0;
   for (const l of labels) {
-    size += chars(JSON.stringify(l)) + 1;
-    if (size > ITEM_ROOM) break;
+    next += chars(JSON.stringify(l)) + 1;
+    if (next > ITEM_ROOM) break;
+    size = next;
     n++;
   }
-  return n;
+  return { n, size };
 }
 
 /**
  * Adds to the items a page can have the labels of what they print (`printed`),
  * before it is cut, so that they count in its size. Labels are read only for
- * the people who print something there. Returns which items did not have room
- * for all of theirs.
+ * the people who print something there, and looked up only until the labelled
+ * items fill a page by themselves: no later one can be on it. Returns which
+ * items did not have room for all of theirs.
  */
 async function addLabels(ctx: Context, h: Household, gate: Gate, household: boolean, page: PageRequest, items: Record<string, unknown>[], printed: (i: number) => { p: Person; printed: readonly Printed[] }): Promise<ReadonlySet<number>> {
   const cut = new Set<number>();
@@ -439,13 +442,16 @@ async function addLabels(ctx: Context, h: Household, gate: Gate, household: bool
   }
   const people = [...new Set(rows.map(({ p }) => p))];
   const labels = new Map(await Promise.all(people.map(async (p) => [p.id, await providerLabels(ctx, h, p)] as const)));
+  let used = 2;
   for (const { i, p, printed } of rows) {
     const it = items[i]!;
     const shown = labels.get(p.id)!.shown(it.id as string, printed, asked(gate, p, household));
     if (shown.length === 0) continue;
-    const n = fitting(it, shown);
+    const { n, size } = fitting(it, shown);
     if (n < shown.length) cut.add(i);
     if (n > 0) items[i] = item({ ...it, provider_labels: shown.slice(0, n) });
+    used += size + 1;
+    if (used > SIZE_BUDGET - ENVELOPE_RESERVE) break;
   }
   return cut;
 }
@@ -654,11 +660,19 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       }
     }
   } else if (recordKind) {
-    // Each person's records come in the tool's order: merge them, reading only what the page needs.
+    // Each person's records come in the tool's order: merge them, reading only what fills the page.
     const order = recordOrder(detailed);
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.records(h, p, recordKind, filter, detailed))));
-    const top = await takeMerged(tagged, (a, b) => order(a.x, b.x), page.wanted(), ({ p, x }) => keep(p, { id: x.id, title: clip(x.display, CLIP) }));
-    const items = top.map(({ p, x }) => marked(p, recordItem(p.name, x, detailed)));
+    const found = await takeMerged(
+      tagged,
+      (a, b) => order(a.x, b.x),
+      page.wanted(),
+      ({ p, x }) => keep(p, { id: x.id, title: clip(x.display, CLIP) }),
+      ({ p, x }) => marked(p, recordItem(p.name, x, detailed)),
+      page.full(),
+    );
+    const top = found.map(({ x }) => x);
+    const items = found.map((f) => f.item);
     const cut = await addLabels(ctx, h, gate, household, page, items, (i) => {
       const { p, x } = top[i]!;
       return { p, printed: detailed ? printedOfRecord(x.fields) : x.kind === 'claim' ? printedOfClaim(x.fields) : [] };
@@ -677,10 +691,17 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     }
   } else if (kind === 'timeline') {
     const tagged = chosen.map((p) => tag(p, left.rows(p, ctx.store.timeline(h, p, r))));
-    const top = await takeMerged(tagged, (a, b) => eventOrder(a.x, b.x), page.wanted(), ({ p, x }) => named(x.title) && keep(p, { id: x.id, title: clip(x.title, CLIP) }));
-    const events = top.map(({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
+    const top = await takeMerged(
+      tagged,
+      (a, b) => eventOrder(a.x, b.x),
+      page.wanted(),
+      ({ p, x }) => named(x.title) && keep(p, { id: x.id, title: clip(x.title, CLIP) }),
+      ({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }),
+      page.full(),
+    );
+    const events = top.map((t) => t.item);
     const cut = await addLabels(ctx, h, gate, household, page, events, (i) => {
-      const { p, x: e } = top[i]!;
+      const { p, x: e } = top[i]!.x;
       return { p, printed: e.kind === 'document' ? printedOfDocument(e.source) : e.kind === 'claim' ? printedOfTitle(e.title) : [] };
     });
     return gatedPage(page, gate, chosen, left, household, events, hint, { cut });

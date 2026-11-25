@@ -161,15 +161,17 @@ export function passes(r: RecordEntry, kind: string, f: RecordFilter): boolean {
 
 /**
  * The first `want` items of several ordered lists merged, ties to the earlier
- * list: what a stable sort of their concatenation puts first.
+ * list: what a stable sort of their concatenation puts first. Of those `keep`
+ * keeps, as many as `item` makes one of before it says no more are needed.
  */
-export async function takeMerged<T>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) => number, want: number, keep: (x: T) => boolean = () => true): Promise<T[]> {
-  const out: T[] = [];
+export async function takeMerged<T, I>(lists: AsyncIterable<T>[], cmp: (a: T, b: T) => number, want: number, keep: (x: T) => boolean, item: (x: T) => I, full: (x: I) => boolean): Promise<{ x: T; item: I }[]> {
+  const out: { x: T; item: I }[] = [];
   if (want <= 0) return out;
   for await (const x of merged(lists, cmp)) {
     if (!keep(x)) continue;
-    out.push(x);
-    if (out.length >= want) break;
+    const it = item(x);
+    out.push({ x, item: it });
+    if (out.length >= want || full(it)) break;
   }
   return out;
 }

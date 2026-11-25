@@ -17,7 +17,7 @@ import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
-import { ViewsStore } from '../src/views/store';
+import { LABELS_LIMIT, ViewsStore } from '../src/views/store';
 import reader from './fixtures/labels/reader.json';
 import { LocalSource, addDerived, folderAt } from './support';
 
@@ -457,6 +457,21 @@ describe("over medrec's own folder", () => {
     expect(errors).toEqual(['provider labels failed: TypeError', 'provider labels failed: TypeError']);
   });
 
+  it('a providers.json that could cost the answer is not read', async () => {
+    const v = JSON.parse(readFileSync(join(import.meta.dirname, `fixtures/providers/labels/${PERSON}.json`), 'utf8'));
+    const bare = JSON.stringify({ ...v, more: '' }).length;
+    for (const [size, labels] of [
+      [LABELS_LIMIT, 1],
+      [LABELS_LIMIT + 1, undefined],
+    ] as const) {
+      const at = folder();
+      put(at, { ...v, more: 'x'.repeat(size - bare) });
+      const { out, read } = await ask(at, 'medrec_records', { kind: 'claims', limit: 100 });
+      expect([of(out, SAMPLE)?.length, read.some((x) => x.includes('providers'))]).toEqual([labels, labels !== undefined]);
+      expect(out.warnings ?? []).toEqual((await list(root, { kind: 'claims' })).warnings ?? []);
+    }
+  });
+
   it('answers from the files have none', async () => {
     const r = await callTool('medrec_records', { kind: 'claims', person: 'Robin' }, { store: new RawStore(folderAt(root)), today: '2026-11-25' });
     expect(JSON.stringify(r!.structuredContent)).not.toContain('provider_labels');
@@ -489,6 +504,25 @@ describe("over medrec's own folder", () => {
       }
       expect(seen.filter((id) => id.startsWith('r_many'))).toHaveLength(190);
       expect(new Set(seen).size).toBe(seen.length);
+    });
+
+    it('they are looked up only until they fill it', async () => {
+      const at = many(190, () => 'J SAMPLE');
+      let looked = 0;
+      const counting = (s: ViewsStore) =>
+        Object.assign(Object.create(s), {
+          providerLabels: async (...a: Parameters<ViewsStore['providerLabels']>) => {
+            const labels = await s.providerLabels(...a);
+            const { shown } = labels;
+            labels.shown = (...b) => (looked++, shown.apply(labels, b));
+            return labels;
+          },
+        }) as ViewsStore;
+      const { out } = await ask(at, 'medrec_records', { kind: 'claims', person: 'Robin', limit: 200 }, counting);
+      expect(out.truncated).toBe(true);
+      // Claims with no label are looked up too, and take no room a label could fill.
+      expect([looked > out.items.length, looked < 200]).toEqual([true, true]);
+      expect((await list(at, { kind: 'claims', person: 'Robin', limit: 200 })).items).toEqual(out.items);
     });
 
     it('a label yields to a record it does not fit beside, and the page says so', async () => {
