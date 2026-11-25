@@ -213,7 +213,8 @@ At the limits:
   records, in a layout this connector does not read, or from medrec 0.9.4 or
   earlier (which says nothing about studies, or of documents a private record
   links), has all their records, documents, events and studies held back from
-  answers about everyone. Their notes stay.
+  answers about everyone. Their notes stay, and a document asked for by its id is
+  given whole, private lines included.
   A `private-not-prepared` warning names them and says why. An answer about
   that person includes everything, with the same warning, marked only as far
   as a `private.json` from medrec 0.9.1 to 0.9.4 says. A person
@@ -226,11 +227,12 @@ At the limits:
   ends it. Each person with any private
   item costs one more request to Google, and so does each other person whose
   document or event the events on a detailed page about one person name, or
-  whose stay an event found has its place from. An answer that names no person
-  costs one more for each person with a private part among what a search finds,
-  or with two claims of one day that it shows by one name. When
+  whose stay an event found has its place from. When
   that request fails, or that person's private items are not known, the page
-  leaves out theirs with one of those warnings. A series of tests is private when
+  leaves out theirs with one of those warnings. An answer that names no person
+  costs one more for each person with a private part among what a search finds,
+  or with two claims of one day that it shows by one name; when that fails, the
+  person is left out with a `person-unavailable` warning. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds
   two results of one date and name. When one of them cannot be found there,
