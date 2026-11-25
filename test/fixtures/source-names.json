@@ -1,0 +1,122 @@
+{
+  "about": "Made-up sample data: every person, organization, CLI, address, id and date in it is invented.",
+  "household": {
+    "schema": "medrec-household/v1",
+    "format": 1,
+    "people": [
+      { "id": "p_robinrobinrobinrobin", "name": "Robin Example", "folder": "robin", "adult": true },
+      { "id": "p_samsamsamsamsamsam22", "name": "Sam Example", "folder": "sam", "adult": true },
+      { "id": "p_kimkimkimkimkimkim22", "name": "Kim Example", "folder": "kim", "adult": true },
+      { "id": "p_leeleeleeleeleelee22", "name": "Lee Example", "folder": "lee", "adult": true }
+    ],
+    "organizations": [{ "id": "link-1", "name": "Example Records Link", "fhir_base": "https://one.example.test/fhir" }],
+    "sources": [
+      { "id": "s_robinhillclinic22222", "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+      { "id": "s_samvalleyclinic22222", "person": "p_samsamsamsamsamsam22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Valley Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-4" },
+      { "id": "s_robinlakeclinic22222", "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+      { "id": "s_kimgroveclinic222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Grove Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-5" },
+      { "id": "s_samvalleyagain222222", "person": "p_samsamsamsamsamsam22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Valley Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-6" },
+      { "id": "s_leefieldclinic222222", "person": "p_leeleeleeleeleelee22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Field Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-7" },
+      { "id": "s_robinmoorclinic22222", "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" },
+      { "id": "s_samquaylab2222222222", "person": "p_samsamsamsamsamsam22", "cli": "portal-c", "organization": "lab-4", "organization_name": "Example Quay Lab", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-8" },
+      { "id": "s_kimshorelab222222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-c", "organization": "lab-1", "organization_name": "Example Shore Lab", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-9" },
+      { "id": "s_kimsandlab2222222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-c", "organization_name": "Example Sand Lab", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-10" },
+      { "id": "s_kimfarlab22222222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-c", "organization": "lab-1", "organization_name": "Example Far Lab", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-11" },
+      { "id": "s_kimcovelab2222222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-c", "organization": "lab-2", "organization_name": "Example Cove Lab", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-12" },
+      { "id": "s_kimdunelab2222222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-c", "organization": "lab-5", "organization_name": "Example Dune Lab", "patient_id": "pat-13" },
+      { "id": "s_kimtidelab2222222222", "person": "p_kimkimkimkimkimkim22", "cli": "portal-d", "organization": "lab-3", "organization_name": "Example Tide Lab", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-14" }
+    ]
+  },
+  "people": {
+    "robin": {
+      "index": {
+        "schema": "medrec-index/v1",
+        "person": "p_robinrobinrobinrobin",
+        "imports": [
+          { "id": "i_robinrunone222222222", "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+          { "id": "i_robinruntwo222222222", "imported_at": "2026-04-01T10:00:00Z", "pulled_at": "2026-04-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" },
+          { "id": "i_robinrunthree2222222", "imported_at": "2026-05-01T10:00:00Z", "pulled_at": "2026-05-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-3" }
+        ],
+        "records": [
+          { "id": "r_robinmedicationone22", "kind": "medication", "date": "2026-01-01", "display": "Example tablet", "status": "active", "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }] },
+          { "id": "r_robinmedicationtwo22", "kind": "medication", "date": "2026-02-01", "display": "Example syrup", "status": "active", "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-04-01T09:00:00Z", "filed_at": "2026-04-01T10:00:00Z" }] },
+          { "id": "r_robinconditionone222", "kind": "condition", "date": null, "display": "Example ache", "status": "active", "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-05-01T10:00:00Z" }] },
+          { "id": "r_robinconditiontwo222", "kind": "condition", "date": "2026-02-01", "display": "Example itch", "status": "active", "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-06-01T09:00:00Z", "filed_at": "2026-06-01T10:00:00Z" }] },
+          { "id": "r_robinvaccinationone2", "kind": "immunization", "date": "2026-01-01", "display": "Example vaccine", "status": "completed", "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }] },
+          { "id": "r_robinresultone222222", "kind": "result", "date": "2026-01-01", "display": "Example level", "status": "final", "fields": { "value": "low" }, "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }] },
+          { "id": "r_robinresulttwo222222", "kind": "result", "date": "2026-02-01", "display": "Example level", "status": "final", "fields": { "value": "high" }, "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-04-01T09:00:00Z", "filed_at": "2026-04-01T10:00:00Z" }] },
+          { "id": "r_robinvisitone2222222", "kind": "encounter", "date": "2026-01-01", "display": "Example visit", "status": "finished", "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-05-01T10:00:00Z" }] },
+          { "id": "r_robinvisittwo2222222", "kind": "encounter", "date": "2026-02-01", "display": "Example call", "status": "finished", "provenance": [{ "source": { "cli": null, "organization_id": null }, "filed_at": "2026-06-01T10:00:00Z" }] }
+        ]
+      }
+    },
+    "sam": {
+      "index": {
+        "schema": "medrec-index/v1",
+        "person": "p_samsamsamsamsamsam22",
+        "imports": [{ "id": "i_samrunone22222222222", "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-b", "organization": "link-2", "patient_id": "pat-4" }],
+        "records": [
+          { "id": "r_sammedicationone2222", "kind": "medication", "date": "2026-01-01", "display": "Example drops", "status": "active", "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" }, "fetched_at": "2026-06-01T09:00:00Z", "filed_at": "2026-06-01T10:00:00Z" }] },
+          { "id": "r_samresultone22222222", "kind": "result", "date": "2026-01-01", "display": "Example level", "status": "final", "fields": { "value": "low" }, "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }, { "source": { "cli": "portal-c", "organization_id": "lab-4", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-06-01T09:00:00Z", "filed_at": "2026-06-01T10:00:00Z" }] }
+        ]
+      }
+    },
+    "kim": {
+      "index": {
+        "schema": "medrec-index/v1",
+        "person": "p_kimkimkimkimkimkim22",
+        "records": [
+          { "id": "r_kimmedicationone2222", "kind": "medication", "date": "2026-01-01", "display": "Example cream", "status": "active", "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" } }] },
+          { "id": "r_kimresultone22222222", "kind": "result", "date": "2026-01-01", "display": "Example level 1", "provenance": [{ "source": { "cli": "portal-c", "organization_id": "lab-1", "fhir_base": "https://one.example.test/fhir" } }] },
+          { "id": "r_kimresulttwo22222222", "kind": "result", "date": "2026-01-01", "display": "Example level 2", "provenance": [{ "source": { "cli": "portal-c", "organization_id": "lab-2", "fhir_base": "https://three.example.test/fhir" } }] },
+          { "id": "r_kimresultthree222222", "kind": "result", "date": "2026-01-01", "display": "Example level 3", "provenance": [{ "source": { "cli": "portal-c", "organization_id": "lab-2" } }] },
+          { "id": "r_kimresultfour2222222", "kind": "result", "date": "2026-01-01", "display": "Example level 4", "provenance": [{ "source": { "cli": "portal-d", "organization_id": "lab-3", "fhir_base": "https://one.example.test/fhir/" } }] },
+          { "id": "r_kimresultfive2222222", "kind": "result", "date": "2026-02-01", "display": "Example level 5", "provenance": [{ "source": { "cli": "portal-e", "organization_id": "lab-3", "fhir_base": "https://one.example.test/fhir" } }] },
+          { "id": "r_kimresultsix22222222", "kind": "result", "date": "2026-02-01", "display": "Example level 6", "provenance": [{ "source": { "cli": "portal-d", "fhir_base": "https://one.example.test/fhir" } }] },
+          { "id": "r_kimresultseven222222", "kind": "result", "date": "2026-02-01", "display": "Example level 7", "provenance": [{ "source": { "organization_id": "lab-3", "fhir_base": "https://one.example.test/fhir" } }] },
+          { "id": "r_kimresulteight222222", "kind": "result", "date": "2026-02-01", "display": "Example level 8" },
+          { "id": "r_kimresultnine2222222", "kind": "result", "date": "2026-02-01", "display": "Example level 9", "provenance": [{ "source": { "cli": "portal-d", "organization_id": "lab-3" } }] }
+        ]
+      }
+    },
+    "lee": {
+      "index": {
+        "schema": "medrec-index/v1",
+        "person": "p_leeleeleeleeleelee22",
+        "records": [{ "id": "r_leeresultone22222222", "kind": "result", "date": "2026-01-01", "display": "Example level", "status": "final", "fields": { "value": "high" }, "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" } }] }]
+      }
+    }
+  },
+  "superseded": ["r_robinresultone222222"],
+  "shown": {
+    "r_robinmedicationone22": { "now": "Example Hill Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinmedicationtwo22": { "now": "Example Lake Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinconditionone222": { "now": "Example Moor Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinconditiontwo222": { "now": "portal-a", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinvaccinationone2": { "now": "Example Hill Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinresultone222222": { "now": "Example Hill Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinresulttwo222222": { "now": "Example Lake Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinvisitone2222222": { "now": "Example Moor Clinic", "no_label": "portal-a", "no_organization": "portal-a" },
+    "r_robinvisittwo2222222": { "now": null, "no_label": null, "no_organization": null },
+    "r_sammedicationone2222": { "now": "Example Valley Clinic", "no_label": "Example Valley Clinic", "no_organization": "Example Valley Clinic" },
+    "r_samresultone22222222": { "now": "Example Valley Clinic", "no_label": "Example Valley Clinic", "no_organization": "Example Valley Clinic" },
+    "r_kimmedicationone2222": { "now": "Example Grove Clinic", "no_label": "Example Grove Clinic", "no_organization": "Example Grove Clinic" },
+    "r_kimresultone22222222": { "now": "Example Shore Lab", "no_label": "Example Shore Lab", "no_organization": "Example Shore Lab" },
+    "r_kimresulttwo22222222": { "now": "Example Cove Lab", "no_label": "Example Cove Lab", "no_organization": "portal-c" },
+    "r_kimresultthree222222": { "now": "Example Cove Lab", "no_label": "Example Cove Lab", "no_organization": "portal-c" },
+    "r_kimresultfour2222222": { "now": "Example Tide Lab", "no_label": "Example Tide Lab", "no_organization": "Example Tide Lab" },
+    "r_kimresultfive2222222": { "now": "portal-e", "no_label": "portal-e", "no_organization": "portal-e" },
+    "r_kimresultsix22222222": { "now": "portal-d", "no_label": "portal-d", "no_organization": "Example Tide Lab" },
+    "r_kimresultseven222222": { "now": null, "no_label": null, "no_organization": null },
+    "r_kimresulteight222222": { "now": null, "no_label": null, "no_organization": null },
+    "r_kimresultnine2222222": { "now": "Example Tide Lab", "no_label": "Example Tide Lab", "no_organization": "Example Tide Lab" },
+    "r_leeresultone22222222": { "now": "Example Field Clinic", "no_label": "Example Field Clinic", "no_organization": "Example Field Clinic" }
+  },
+  "robin_by_source": [
+    { "source": "Example Hill Clinic", "records": 3, "newest": "2026-01-01" },
+    { "source": "Example Lake Clinic", "records": 2, "newest": "2026-02-01" },
+    { "source": "Example Moor Clinic", "records": 2, "newest": "2026-01-01" },
+    { "source": "portal-a", "records": 1, "newest": "2026-02-01" }
+  ],
+  "another_label": "Example Other Label"
+}
