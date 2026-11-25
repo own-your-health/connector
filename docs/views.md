@@ -425,6 +425,31 @@ unreadable, it changes nothing else and gives no warning. This connector reads
 it for `kind: "conditions"` and a person's summary, after the page is cut, for
 the people with a coded condition on it.
 
+## An event's members, links and `could_join`
+
+An event in `events.json` is private with a private claim or portal visit, or
+when all its own members are private. One that is not can still have a private
+member, and any event can name another person's document (a member with
+`person`) or event (a link with `person`). A reader judges each by its own
+person's `private.json`:
+
+| Named in an event | Answer about the whole household | Answer about the event's person |
+|---|---|---|
+| the person's own private member | left out, unless the event is private and the question names it | listed |
+| another person's private document | left out | left out |
+| a private event in `links` or `could_join` | left out | left out when it is another person's |
+
+`private_members` (a number, absent when zero) counts the members left out, and
+`members` stays, empty or not. `links` or `could_join` is absent when nothing is
+left of it.
+
+Items of someone whose private items are not known, or who is no longer in the
+household, are left out the same way. In an answer about the event's person the
+reader reads the other's `private.json` only to decide this: when it cannot, it
+leaves theirs out, answers the rest, and names them in a warning
+(`private-not-prepared`, `private-marks-unreadable` or
+`private-labels-unreadable`).
+
 ## `providers.json` (medrec 0.9.7 and later)
 
 Who the providers a person's items print are, in medrec's layout

@@ -507,6 +507,25 @@ async function privacyOf(ctx: Context, h: Household, people: Person[]): Promise<
   return new Map(await Promise.all(people.map(async (p) => [p.id, await ctx.store.privacy(h, p)] as const)));
 }
 
+/**
+ * The same of people an answer names beside those it is about. Theirs decides
+ * only which of their items are left out, so one that cannot be read leaves
+ * them all out, and the rest of the answer stands.
+ */
+async function privacyOfOthers(ctx: Context, h: Household, people: Person[]): Promise<Map<string, Privacy>> {
+  const one = async (p: Person): Promise<Privacy> => {
+    try {
+      return await ctx.store.privacy(h, p);
+    } catch (e) {
+      if (e instanceof ToolError && e.kind === 'auth') throw e;
+      // As for plain names: only the error's class is logged.
+      if (!(e instanceof ToolError)) console.error(`another person's privacy failed: ${e instanceof Error ? e.name : typeof e}`);
+      return { areas: new Map(), unknown: { why: 'not-prepared', detail: 'their private.json could not be read just now' } };
+    }
+  };
+  return new Map(await Promise.all(people.map(async (p) => [p.id, await one(p)] as const)));
+}
+
 /** A page cut, with the private items it left out counted, and its warnings: medrec's, then the connector's own. */
 function cutPage<T>(
   page: PageRequest,
@@ -810,7 +829,8 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   }
   const household = person === undefined;
   const left = new LeftOut(household);
-  const gate = new Gate(household, await privacyOf(ctx, h, chosen));
+  const privacy = await privacyOf(ctx, h, chosen);
+  const gate = new Gate(household, privacy);
   const rows: { p: Person; e: JsonObject }[] = [];
   for (const p of chosen) {
     for (const e of await left.of(p, () => ctx.store.events(h, p), [])) {
@@ -839,13 +859,63 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   // An event asked for by id is named; one whose title, detail or place the question names is too.
   const opens = (it: Item) => id !== undefined || (name !== undefined && [it.title, it.detail, it.source].some((t) => typeof t === 'string' && names(t, name)));
   const kept = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it)));
-  const items = kept.map(({ p, it }) => item({ ...it, private: gate.area(p, it.id as string) }));
+  const onPage = (i: number) => i >= page.offset && i < page.offset + page.limit;
+  const others = full ? othersNamed(h, kept.filter((_, i) => onPage(i))).filter((q) => !chosen.includes(q)) : [];
+  const judge = new Gate(true, new Map([...privacy, ...(await privacyOfOthers(ctx, h, others))]));
+  const items = kept.map(({ p, it }, i) => {
+    const area = gate.area(p, it.id as string);
+    return item({ ...it, private: area, fields: full && onPage(i) ? shownFields(h, judge, p, it.fields as JsonObject, household, area === undefined) : it.fields });
+  });
   const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
-  return gatedPage(page, gate, chosen, left, household, items, hint, { gaps });
+  const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { gaps });
+  const named = new Set(othersNamed(h, kept.slice(page.offset, page.offset + out.returned)));
+  return pageJson(out, [...warnings, ...judge.warningsOfOthers(others.filter((q) => named.has(q)))]);
 }
 
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
 const strings = (v: Json | undefined): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+
+/** The other people whose papers or events these events name. */
+function othersNamed(h: Household, rows: readonly { p: Person; e: JsonObject }[]): Person[] {
+  const ids = new Set(rows.flatMap(({ p, e }) => [...objects(e.members), ...objects(e.links)].flatMap((x) => str(x.person) ?? []).filter((id) => id !== p.id)));
+  return h.people.filter((q) => ids.has(q.id));
+}
+
+const objects = (v: Json | undefined): JsonObject[] => (Array.isArray(v) ? v.filter(isObject) : []);
+
+/**
+ * An event's `fields` without what the answer holds back. An event is private
+ * with a private claim or portal visit, so one that is not (`open`) can have
+ * another private item: an answer about the whole household leaves it out of
+ * `members`, and the ids of events held back out of `links` and `could_join`.
+ * Any answer leaves out another person's paper or event that is private, or
+ * cannot be judged. `private_members` counts the members left out, where any
+ * are.
+ */
+function shownFields(h: Household, judge: Gate, p: Person, fields: JsonObject, household: boolean, open: boolean): JsonObject {
+  const held = (whose: string | undefined, id: string | undefined, own: boolean): boolean => {
+    if (whose === undefined || whose === p.id) return own && id !== undefined && judge.heldBack(p, id);
+    const other = h.people.find((q) => q.id === whose);
+    return other === undefined || (id !== undefined && judge.heldBack(other, id));
+  };
+  const hides: Record<string, (x: Json) => boolean> = {
+    members: (m) => isObject(m) && held(str(m.person), str(m.record) ?? str(m.document), household && open),
+    links: (l) => isObject(l) && held(str(l.person), str(l.event), household),
+    could_join: (id) => household && typeof id === 'string' && held(undefined, id, true),
+  };
+  const out: [string, Json][] = [];
+  for (const [k, v] of Object.entries(fields)) {
+    const hidden = hides[k];
+    if (hidden === undefined || !Array.isArray(v) || !v.some(hidden)) {
+      out.push([k, v]);
+      continue;
+    }
+    const left = v.filter((x) => !hidden(x));
+    if (k === 'members') out.push([k, left], ['private_members', v.length - left.length]);
+    else if (left.length > 0) out.push([k, left]);
+  }
+  return Object.fromEntries(out);
+}
 
 const EXPECTED: Record<string, string> = { doctor_claims: "doctors' claims", facility_claim: "the facility's claim", claim: 'a claim', bill: 'a bill' };
 const EVENT_FIELDS = ['confidence', 'money', 'members', 'expected', 'differences', 'links', 'could_join'] as const;

@@ -184,6 +184,17 @@ export class Gate {
     return out;
   }
 
+  /** Of people the answer is not about, whose items on the page it left out for not knowing which are private. */
+  warningsOfOthers(people: Person[]): Warning[] {
+    return people.flatMap((p) => {
+      const u = this.people.get(p.id)?.unknown;
+      if (!u) return [];
+      const detail = u.why === 'not-prepared' ? u.detail : `their ${u.why === 'marks-unreadable' ? 'marks.json' : 'provider-state.json'} does not read`;
+      const code = u.why === 'not-prepared' ? 'private-not-prepared' : `private-${u.why}`;
+      return [{ code, message: `Which of ${p.name}'s items are private is not known (${detail}): the events on this page leave out ${p.name}'s documents and events. Ask about ${p.name} for them` }];
+    });
+  }
+
   /**
    * The people held back for want of a current private.json, for a cursor to
    * bind: a later page asked once they have one would not line up. Those whose
