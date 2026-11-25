@@ -1,0 +1,1 @@
+[{"id":"r_doseerroraaaaaaaaaaa","kind":"immunization","date":"2024-03-08","display":"Example vaccine","status":"entered-in-error","says":[{"source":"Sample Clinic East","read":"2024-07-03","status":"entered-in-error"}],"provenance":[{"source":{"fhir_base":"https://east.example.test/fhir","cli":"fakeprov","organization_id":"east","label":"Sample Clinic East"}}]}]

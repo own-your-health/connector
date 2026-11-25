@@ -9,7 +9,7 @@
         "properties": {
           "person": {
             "type": "string",
-            "description": "A name, alias or id; omit for the people only."
+            "description": "Name, alias or id; omit for the people."
           }
         }
       },
@@ -184,7 +184,7 @@
     {
       "name": "medrec_search",
       "title": "Search records",
-      "description": "Documents, records, studies and notes with every word of query, best first. For a named doctor, test, medicine or clinic. labs or blood tests finds every lab result.",
+      "description": "What has every word of query, best first. A doctor, test, medicine or clinic. labs or blood tests finds every lab result.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -253,6 +253,9 @@
                 "snippet": {
                   "type": "string"
                 },
+                "not_shown": {
+                  "type": "string"
+                },
                 "private": {
                   "type": "string"
                 }
@@ -314,7 +317,7 @@
     {
       "name": "medrec_records",
       "title": "List records",
-      "description": "One kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time, with range and flag.",
+      "description": "One kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -358,7 +361,7 @@
           },
           "name": {
             "type": "string",
-            "description": "A code (`4548-4`) or words (`a1c`)."
+            "description": "A code (`4548-4`) or words."
           },
           "doc_type": {
             "type": "string",
@@ -418,6 +421,9 @@
                   "type": "string"
                 },
                 "detail": {
+                  "type": "string"
+                },
+                "not_shown": {
                   "type": "string"
                 },
                 "status": {
@@ -539,7 +545,7 @@
     {
       "name": "medrec_document",
       "title": "Read a document",
-      "description": "A filed document's text, with its title, date, type and organization. Read a visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset, or page.",
+      "description": "A filed document's text. A visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -547,9 +553,13 @@
             "type": "string",
             "description": "The document's id."
           },
+          "person": {
+            "type": "string",
+            "description": "Its owner, for its private lines too."
+          },
           "page": {
             "type": "integer",
-            "description": "Start at this page.",
+            "description": "First page.",
             "minimum": 0
           },
           "offset": {
