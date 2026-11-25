@@ -30,8 +30,9 @@ that names the item ("sertraline", not "tablets"). Each one it includes
 carries `private`, its area. A study with no report is left out, counted and
 included the same way, but carries no area: nothing says what it is about.
 An event that is not private can have a private record or document: an answer
-about the whole household gives its other `members`, and `private_members` says
-how many it left out.
+about the whole household gives its other `members`, says how many it left out
+in `private_members`, and names no private event it is linked to or could join.
+Another person's private document or event is in no answer about the first.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 

@@ -1,5 +1,5 @@
-// An open event's private members (src/records/tools.ts openMembers), over
-// medrec's own folder: an answer that names no person counts them.
+// What an event's members, links and could_join hold back (src/records/tools.ts
+// shownFields), over medrec's own folder.
 
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -60,20 +60,51 @@ describe("an open event's private members", async () => {
     expect([it.private !== undefined, it.fields!.members, it.fields!.private_members]).toEqual([true, closed.members, undefined]);
   });
 
-  it("another person's is judged as that person's, and held back when nobody can judge it", async () => {
+  describe("another person's paper or event", () => {
     const sam = { ...robin, id: 'p_samaaaaaaaaaaaaaaaa', name: 'Sam Example', folder: 'Sam Example' };
+    const gone = 'p_nobodyaaaaaaaaaaaaa';
     const paper = (n: string, person: string) => ({ document: `d_${n}`, kind: 'bill', title: 'Bill', role: 'paper', person });
-    const members = [...own, paper('closed', sam.id), paper('open', sam.id), paper('nobody', 'p_nobodyaaaaaaaaaaaaa')];
-    const over = (privacy: Privacy) =>
+    const link = (n: string, person?: string) => ({ event: `e_${n}`, ...(person ? { person } : {}), relation: 'newborn' });
+    const over = (privacy: Privacy, event: JsonObject) =>
       instead({
         household: async () => ({ ...h, people: [robin, sam] }),
-        events: async (_h: unknown, p: typeof robin) => (p.id === robin.id ? [{ ...open, members }] : []),
+        events: async (_h: unknown, p: typeof robin) => (p.id === robin.id ? [event] : []),
         privacy: async (_h: unknown, p: typeof robin) => (p.id === robin.id ? { areas } : privacy),
         providerLabels: async () => null,
       });
-    const of = async (privacy: Privacy) => (await one({ id: open.id }, over(privacy))).fields!;
-    expect(await of({ areas: new Map([['d_closed', 'mental_health']]) })).toMatchObject({ members: [...own, paper('open', sam.id)], private_members: 2 });
-    expect(await of({ areas: new Map(), unknown: { why: 'marks-unreadable' } })).toMatchObject({ members: own, private_members: 3 });
+    const known: Privacy = { areas: new Map([['d_closed', 'mental_health'], ['e_closed', 'mental_health']]) };
+    const unknown: Privacy = { areas: new Map(), unknown: { why: 'marks-unreadable' } };
+    const fields = async (args: object, privacy: Privacy, event: JsonObject) => (await one(args, over(privacy, event))).fields as JsonObject;
+
+    it("is judged as that person's, in an answer about the first too, and held back when nobody can judge it", async () => {
+      const event = { ...open, members: [...open.members, paper('closed', sam.id), paper('open', sam.id), paper('nobody', gone)] };
+      expect(await fields({ id: open.id }, known, event)).toMatchObject({ members: [...own, paper('open', sam.id)], private_members: hidden + 2 });
+      expect(await fields({ id: open.id }, unknown, event)).toMatchObject({ members: own, private_members: hidden + 3 });
+      const about = { person: 'Robin', response_format: 'detailed' };
+      expect(await fields(about, known, event)).toMatchObject({ members: [...open.members, paper('open', sam.id)], private_members: 2 });
+      expect(await fields(about, unknown, event)).toMatchObject({ members: open.members, private_members: 3 });
+      // A private event the question names keeps its own.
+      const named = { ...closed, members: [...closed.members, paper('closed', sam.id)] };
+      expect(await fields({ id: closed.id }, known, named)).toMatchObject({ members: closed.members, private_members: 1 });
+    });
+
+    it('is linked only where that person has it shown', async () => {
+      const links = [link('closed', sam.id), link('open', sam.id), link('nobody', gone)];
+      for (const args of [{ id: open.id }, { person: 'Robin', response_format: 'detailed' }]) {
+        expect((await fields(args, known, { ...open, links })).links).toEqual([link('open', sam.id)]);
+        // Nothing left is nothing said.
+        expect(Object.keys(await fields(args, unknown, { ...open, links }))).not.toContain('links');
+      }
+    });
+
+    it("the person's own are named only in an answer about them, where they are private", async () => {
+      const event = { ...open, links: [link('x'), { ...link('x'), event: closed.id }], could_join: ['e_x', closed.id] };
+      const all = await fields({ person: 'Robin', response_format: 'detailed' }, known, event);
+      expect([all.links, all.could_join]).toEqual([event.links, event.could_join]);
+      const some = await fields({ id: open.id }, known, event);
+      expect([some.links, some.could_join]).toEqual([[link('x')], ['e_x']]);
+      expect(Object.keys(await fields({ id: open.id }, known, { ...open, could_join: [closed.id] }))).not.toContain('could_join');
+    });
   });
 
   it('are all of them when which are private is not known', async () => {

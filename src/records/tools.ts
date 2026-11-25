@@ -810,7 +810,8 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   }
   const household = person === undefined;
   const left = new LeftOut(household);
-  const gate = new Gate(household, await privacyOf(ctx, h, chosen));
+  const privacy = await privacyOf(ctx, h, chosen);
+  const gate = new Gate(household, privacy);
   const rows: { p: Person; e: JsonObject }[] = [];
   for (const p of chosen) {
     for (const e of await left.of(p, () => ctx.store.events(h, p), [])) {
@@ -839,9 +840,12 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
   // An event asked for by id is named; one whose title, detail or place the question names is too.
   const opens = (it: Item) => id !== undefined || (name !== undefined && [it.title, it.detail, it.source].some((t) => typeof t === 'string' && names(t, name)));
   const kept = found.filter(({ p, it }) => gate.keep(p, it.id as string, () => opens(it)));
-  const items = kept.map(({ p, it }) => {
+  const onPage = (i: number) => i >= page.offset && i < page.offset + page.limit;
+  const others = full ? othersNamed(h, kept.filter((_, i) => onPage(i))).filter((q) => !chosen.includes(q)) : [];
+  const judge = new Gate(true, new Map([...privacy, ...(await privacyOf(ctx, h, others))]));
+  const items = kept.map(({ p, it }, i) => {
     const area = gate.area(p, it.id as string);
-    return item({ ...it, private: area, fields: household && full && area === undefined ? openMembers(h, gate, p, it.fields as JsonObject) : it.fields });
+    return item({ ...it, private: area, fields: full && onPage(i) ? shownFields(h, judge, p, it.fields as JsonObject, household, area === undefined) : it.fields });
   });
   const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => ({ p: kept[i]!.p, printed: printedOfEvent(kept[i]!.e, full) }));
   return gatedPage(page, gate, chosen, left, household, items, hint, { gaps });
@@ -850,23 +854,45 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
 const str = (v: Json | undefined): string | undefined => (typeof v === 'string' ? v : undefined);
 const strings = (v: Json | undefined): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 
+/** The other people whose papers or events these events name. */
+function othersNamed(h: Household, rows: readonly { p: Person; e: JsonObject }[]): Person[] {
+  const ids = new Set(rows.flatMap(({ p, e }) => [...objects(e.members), ...objects(e.links)].flatMap((x) => str(x.person) ?? []).filter((id) => id !== p.id)));
+  return h.people.filter((q) => ids.has(q.id));
+}
+
+const objects = (v: Json | undefined): JsonObject[] => (Array.isArray(v) ? v.filter(isObject) : []);
+
 /**
- * An open event's `fields` in an answer about the whole household: an event is
- * private with a private claim or portal visit, and one with another private
- * item is not, so its `members` are without those, and `private_members` counts them.
+ * An event's `fields` without what the answer holds back. An event is private
+ * with a private claim or portal visit, so one that is not (`open`) can have
+ * another private item: an answer about the whole household leaves it out of
+ * `members`, and the ids of events held back out of `links` and `could_join`.
+ * Any answer leaves out another person's paper or event that person's own
+ * would not show. `private_members` counts the members left out.
  */
-function openMembers(h: Household, gate: Gate, p: Person, fields: JsonObject): JsonObject {
-  const members = Array.isArray(fields.members) ? fields.members : [];
-  const held = (m: Json): boolean => {
-    if (!isObject(m)) return false;
-    const whose = str(m.person);
-    const owner = whose === undefined ? p : h.people.find((q) => q.id === whose);
-    const id = str(m.record) ?? str(m.document);
-    return owner === undefined || (id !== undefined && gate.heldBack(owner, id));
+function shownFields(h: Household, judge: Gate, p: Person, fields: JsonObject, household: boolean, open: boolean): JsonObject {
+  const held = (whose: string | undefined, id: string | undefined, own: boolean): boolean => {
+    if (whose === undefined || whose === p.id) return own && id !== undefined && judge.heldBack(p, id);
+    const other = h.people.find((q) => q.id === whose);
+    return other === undefined || (id !== undefined && judge.heldBack(other, id));
   };
-  const shown = members.filter((m) => !held(m));
-  if (shown.length === members.length) return fields;
-  return Object.fromEntries(Object.entries(fields).flatMap(([k, v]): [string, Json][] => (k === 'members' ? [[k, shown], ['private_members', members.length - shown.length]] : [[k, v]])));
+  const hides: Record<string, (x: Json) => boolean> = {
+    members: (m) => isObject(m) && held(str(m.person), str(m.record) ?? str(m.document), household && open),
+    links: (l) => isObject(l) && held(str(l.person), str(l.event), household),
+    could_join: (id) => household && typeof id === 'string' && held(undefined, id, true),
+  };
+  const out: [string, Json][] = [];
+  for (const [k, v] of Object.entries(fields)) {
+    const hidden = hides[k];
+    if (hidden === undefined || !Array.isArray(v) || !v.some(hidden)) {
+      out.push([k, v]);
+      continue;
+    }
+    const left = v.filter((x) => !hidden(x));
+    if (k === 'members') out.push([k, left], ['private_members', v.length - left.length]);
+    else if (left.length > 0) out.push([k, left]);
+  }
+  return Object.fromEntries(out);
 }
 
 const EXPECTED: Record<string, string> = { doctor_claims: "doctors' claims", facility_claim: "the facility's claim", claim: 'a claim', bill: 'a bill' };
