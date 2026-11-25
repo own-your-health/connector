@@ -10,6 +10,7 @@ import { LeftOut, type Warning } from './partial';
 import { Gate, names, type Privacy } from './private';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Standing, type Store } from './store';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, RecordEntry } from './model';
+import { isObject } from './numbers';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
   CLIP,
@@ -702,13 +703,13 @@ function eventItem(person: string, e: JsonObject, detailed: boolean): Item {
   const confidence = str(e.confidence);
   if (confidence !== undefined && confidence !== 'sure') parts.push(`grouping ${confidence}`);
   const expected = (Array.isArray(e.expected) ? e.expected : [])
-    .map((x) => (x && typeof x === 'object' && !Array.isArray(x) ? str(x.what) : undefined))
+    .map((x) => (isObject(x) ? str(x.what) : undefined))
     .filter((w): w is string => w !== undefined)
     .map((w) => EXPECTED[w] ?? w);
   if (expected.length > 0) parts.push(`still expected: ${expected.join(', ')}`);
   const m = e.money;
-  const owe = m && typeof m === 'object' && !Array.isArray(m) ? str(m.you_owe) : undefined;
-  const currency = m && typeof m === 'object' && !Array.isArray(m) ? (str(m.currency) ?? 'USD') : 'USD';
+  const owe = isObject(m) ? str(m.you_owe) : undefined;
+  const currency = isObject(m) ? (str(m.currency) ?? 'USD') : 'USD';
   const start = str(e.start);
   const end = str(e.end);
   const fields: JsonObject = {};
@@ -794,15 +795,15 @@ function recordItem(h: Household, person: string, r: RecordEntry, detailed: bool
  */
 export function memberOwes(fields: JsonObject): string | undefined {
   const a = fields.amounts;
-  if (a && typeof a === 'object' && !Array.isArray(a) && Object.keys(a).length > 0) return undefined;
+  if (isObject(a) && Object.keys(a).length > 0) return undefined;
   const total = fields.total;
   if (!Array.isArray(total)) return undefined;
   const t = total.find((t) => {
-    const category = t && typeof t === 'object' && !Array.isArray(t) ? t.category : undefined;
+    const category = isObject(t) ? t.category : undefined;
     const cat = [...(category === undefined ? '' : valueText(category)).toLowerCase()].filter((c) => /[\p{Alphabetic}\p{N}]/u.test(c)).join('');
     return ['memberliability', 'patientpay', 'patientresponsibility'].some((w) => cat.includes(w));
   });
-  if (!t || typeof t !== 'object' || Array.isArray(t) || t.amount === undefined) return undefined;
+  if (!isObject(t) || t.amount === undefined) return undefined;
   const s = valueText(t.amount);
   return s === '' ? undefined : s;
 }

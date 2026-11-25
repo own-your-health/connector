@@ -9,6 +9,7 @@
 
 import { FORMAT, type Household, type Note, type Person, type PersonIndex, type PersonText } from './model';
 import { parseNotes } from './notes';
+import { parseExact } from './numbers';
 import { ToolError } from '../mcp/errors';
 
 /** Where the folder's files come from: Drive in the Worker, a directory in tests. */
@@ -111,9 +112,9 @@ export class Folder {
     return value;
   }
 
-  /** A JSON file parsed, from the cache while its version holds. */
-  parsed<T>(path: string): Promise<T | null> {
-    return this.json<T>(path);
+  /** A JSON file parsed, from the cache while its version holds. One path is always read with one `parse`. */
+  parsed<T>(path: string, parse?: (text: string) => unknown): Promise<T | null> {
+    return this.json<T>(path, parse);
   }
 
   bytes(path: string, start: number, end: number): Promise<Uint8Array | null> {
@@ -152,10 +153,10 @@ export class Folder {
     return this.source.size(path);
   }
 
-  private json<T>(path: string): Promise<T | null> {
+  private json<T>(path: string, parse: (text: string) => unknown = JSON.parse): Promise<T | null> {
     return this.cached(path, (text) => {
       try {
-        return JSON.parse(text) as T;
+        return parse(text) as T;
       } catch {
         // The parser's message can quote the file's text: never pass it on.
         throw ToolError.other(`${path} is not valid JSON`);
@@ -195,7 +196,7 @@ export class Folder {
 
   async index(p: Person): Promise<PersonIndex> {
     const path = `${p.folder}/index.json`;
-    const idx = (await this.json<PersonIndex & { person?: string }>(path)) ?? { schema: 'medrec-index/v1', person: p.id };
+    const idx = (await this.json<PersonIndex & { person?: string }>(path, parseExact)) ?? { schema: 'medrec-index/v1', person: p.id };
     if (idx.person !== p.id) throw ToolError.other(`${path} names another person`);
     return idx;
   }

@@ -317,7 +317,9 @@ The connector's address is `https://records-connector.<subdomain>.workers.dev/mc
 A fork updates from this repository: on GitHub, **Sync fork** on your
 fork's main page, or `git pull` from this repository and push to your
 `main`. Each push to `main` deploys. Settings and connections stay as they
-are. A release's notes say when it reads a newer medrec's views.
+are. A release's notes say when it reads a newer medrec's views. A folder
+prepared by `npm run views` needs one more run after an update that changes
+what the script writes: the release's notes say so.
 
 ## Renewing the deploy token
 

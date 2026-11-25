@@ -12,6 +12,7 @@ import { ToolError } from '../mcp/errors';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
 import type { Folder } from '../records/folder';
 import type { DocumentEntry, Household, JsonObject, Note, Person, RecordEntry } from '../records/model';
+import { parseExact } from '../records/numbers';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
@@ -128,10 +129,15 @@ class PersonReader {
     return stored;
   }
 
-  async json<T>(path: string): Promise<T> {
-    const x = await this.folder.parsed<T>(await this.check(path));
+  async json<T>(path: string, parse?: (text: string) => unknown): Promise<T> {
+    const x = await this.folder.parsed<T>(await this.check(path), parse);
     if (x === null) throw preparing(this.p);
     return x;
+  }
+
+  /** A shard of a kind's records, with their numbers as index.json writes them. */
+  records(kind: string, shard: number): Promise<SlimRecord[]> {
+    return this.json<SlimRecord[]>(paths.records(this.p.id, kind, shard), parseExact);
   }
 
   async binary(path: string): Promise<Uint8Array> {
@@ -393,7 +399,7 @@ export class ViewsStore implements Store {
     }
     for (const i of shardsFor(run, filter.range)) {
       if (only && !only.has(i)) continue;
-      const shard = (await r.json<SlimRecord[]>(paths.records(p.id, kind, i))) as RecordEntry[];
+      const shard = (await r.records(kind, i)) as RecordEntry[];
       const pass = shard.filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them.
       if (detailed) pass.sort(recordOrder(true));
@@ -432,7 +438,7 @@ export class ViewsStore implements Store {
     rows.sort((a, b) => a.rank - b.rank);
     const out: ResultRow[] = [];
     for (const r of rows) {
-      const shard = (await reader.json<SlimRecord[]>(paths.records(p.id, 'result', r.shard))) as RecordEntry[];
+      const shard = (await reader.records('result', r.shard)) as RecordEntry[];
       const rec = shard[r.pos];
       if (!rec) throw preparing(p);
       out.push({ ...resultRow(h, signedIn(h, p, rec)), results: r.results, first_date: r.first, ...(r.members.length > 0 ? { members: r.members } : {}) });
@@ -470,7 +476,7 @@ export class ViewsStore implements Store {
       if (at.length > 1) {
         for (const [si, ei] of asked) {
           const [, , shard, pos] = series[si]!.entries[ei]!;
-          const recs = await r.json<SlimRecord[]>(paths.records(r.p.id, 'result', shard));
+          const recs = await r.records('result', shard);
           if (recs[pos]?.id !== id) continue;
           place = [si, ei];
           break;

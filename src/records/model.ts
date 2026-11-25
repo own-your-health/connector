@@ -3,7 +3,14 @@
 // text.json and notes.md. Only the fields the tools read are typed; the rest
 // pass through untouched.
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+declare const exact: unique symbol;
+/** A number kept as its file writes it, as JSON.rawJSON holds it (numbers.ts). */
+export interface ExactNumber {
+  readonly [exact]: true;
+  readonly rawJSON: string;
+}
+
+export type Json = null | boolean | number | string | ExactNumber | Json[] | { [key: string]: Json };
 export type JsonObject = { [key: string]: Json };
 
 export interface Person {
