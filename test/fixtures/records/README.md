@@ -2,7 +2,7 @@
 
 A synthetic medrec records folder for the app’s demo mode and tests. Every person, organization and value in it is invented.
 
-The base is [own-your-health/app](https://github.com/own-your-health/app) `public/demo` at d8a914c, without its views and manifest. Added for medrec 0.9.0's events:
+The base is [own-your-health/app](https://github.com/own-your-health/app) `public/demo` at 27111fd, without its views and manifest. Added for medrec 0.9.0's events:
 
 - Robin: an ER trip with only the hospital's claim (2025-11-06), a pharmacy claim (2026-07-21), and two office visits and a lab claim on one day (2026-05-12), the lab fitting either visit;
 - Sam: a hospital stay (2026-07-27 to 07-30) with the hospital's, a doctor's and an anesthesiologist's claims, Jamie's birth among it;
