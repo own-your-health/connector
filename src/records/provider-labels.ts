@@ -94,6 +94,7 @@ class Part {
   private readonly claims: Record<string, unknown>;
   /** The ids of what the household said. */
   readonly said: ReadonlySet<unknown>;
+  private named?: Map<unknown, string[]>;
 
   constructor(v: PartView) {
     this.labels = object(v.labels);
@@ -111,11 +112,23 @@ class Part {
   /** What a claim that has this label prints, by its title; undefined when the title does not say which of several it is. */
   text(item: string, id: string, title: string): string | undefined {
     const its = object(own(this.byItem, item));
-    const of = (by: Record<string, unknown>) => Object.keys(by).filter((n) => by[n] === id);
-    const names = [...of(its), ...of(this.byName).filter((n) => !Object.hasOwn(its, n))];
+    const names = [...Object.keys(its).filter((n) => its[n] === id), ...this.namesOf(id).filter((n) => !Object.hasOwn(its, n))];
     if (names.length === 1) return names[0];
     const said = names.filter((n) => title === trim(n) || title.endsWith(` · ${trim(n)}`));
     return said.length === 1 ? said[0] : undefined;
+  }
+
+  /** The texts of `by_name` that have a label. Read once, since a page can ask for each of its claims. */
+  private namesOf(id: string): readonly string[] {
+    if (!this.named) {
+      this.named = new Map();
+      for (const [name, at] of Object.entries(this.byName)) {
+        const names = this.named.get(at);
+        if (names) names.push(name);
+        else this.named.set(at, [name]);
+      }
+    }
+    return this.named.get(id) ?? [];
   }
 
   label(id: string): Record<string, unknown> | undefined {
