@@ -36,11 +36,12 @@ function rng(seed) {
 }
 
 const B32 = 'abcdefghijklmnopqrstuvwxyz234567';
-// An id with "key" in it can read as an API key to a secret scanner: another is drawn.
+// An id with one of these in it can read as a secret to a scanner: another is drawn.
+const SECRET_WORD = /access|api|auth|cred|key|passw|secret|token/;
 const id = (r, prefix) => {
   for (;;) {
     const x = Array.from({ length: 20 }, () => B32[Math.floor(r() * 32)]).join('');
-    if (!x.includes('key')) return prefix + x;
+    if (!SECRET_WORD.test(x)) return prefix + x;
   }
 };
 const pick = (r, xs) => xs[Math.floor(r() * xs.length)];

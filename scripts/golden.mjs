@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Records what `medrec mcp` answers to test/golden/calls.json, over the demo
-// folder, the large synthetic one (scripts/synth.mjs) and medrec's own for
-// provider labels (scripts/labels-folder.mjs), into
-// test/golden/medrec-<version>.json. test/golden.test.ts then holds this
+// folder, the large synthetic one (scripts/synth.mjs) and medrec's own, for
+// provider labels (scripts/labels-folder.mjs), and for what sources say, what is
+// entered in error, what a source gave and what a questionnaire asks, of a grown
+// person and in a child's chart (scripts/own-folder.mjs), into
+// test/golden/medrec.json, a call a line. test/golden.test.ts then holds this
 // connector's answers to the same calls equal to medrec's.
 //
 //   node scripts/golden.mjs        (needs `medrec` on PATH)
@@ -20,6 +22,7 @@ import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { parseExact } from '../src/records/numbers.ts';
 import { labelsFolder } from './labels-folder.mjs';
+import { OWN, ownFolder } from './own-folder.mjs';
 import { synth } from './synth.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -40,13 +43,14 @@ const folders = { demo: join(scratch, 'demo'), large: join(scratch, 'large'), la
 cpSync(join(ROOT, 'test/fixtures/records'), folders.demo, { recursive: true });
 synth(folders.large);
 labelsFolder(folders.labels);
+for (const name of OWN) folders[name] = ownFolder(name, join(scratch, name));
 for (const [name, path] of Object.entries(folders)) {
   medrec('profiles', 'add', name);
   medrec('--profile', name, 'config', 'set', 'folder', path);
   // medrec reads a code's plain name from the folder's views. The recorded
   // views stand in for a machine with the published table.
   medrec('--profile', name, 'views', 'write', '--json');
-  if (name !== 'labels') codeNames(path, join(ROOT, 'test/fixtures/code-names', name === 'demo' ? 'records' : name));
+  if (name === 'demo' || name === 'large') codeNames(path, join(ROOT, 'test/fixtures/code-names', name === 'demo' ? 'records' : name));
 }
 
 /** Puts the recorded code-names.json files in a folder's views. */
@@ -107,21 +111,18 @@ for (const c of calls) {
 }
 for (const s of Object.values(servers)) s.child.stdin.end();
 
-const out = join(ROOT, `test/golden/medrec-${version}.json`);
+const out = join(ROOT, 'test/golden/medrec.json');
+/** A list with each of its items on a line. */
+const lines = (list) => `[\n${list.map((x) => JSON.stringify(x)).join(',\n')}\n]`;
+const head = {
+  about: 'What `medrec mcp` answered, written by scripts/golden.mjs. Every record in these folders is invented.',
+  medrec_version: version,
+  as_of: today,
+  instructions: init.demo.result.instructions,
+};
 writeFileSync(
   out,
-  `${JSON.stringify(
-    {
-      about: 'What `medrec mcp` answered, written by scripts/golden.mjs. Every record in these folders is invented.',
-      medrec_version: version,
-      as_of: today,
-      instructions: init.demo.result.instructions,
-      tools: tools.result.tools,
-      results,
-    },
-    null,
-    1,
-  )}\n`,
+  `{\n${Object.entries(head).map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)},\n`).join('')}"tools": ${lines(tools.result.tools)},\n"results": ${lines(results)}\n}\n`,
 );
 rmSync(scratch, { recursive: true, force: true });
 console.log(`${results.length} calls to medrec ${version} (as of ${today}) written to ${out}`);

@@ -20,30 +20,30 @@ describe('per-page private-left-out counts', () => {
   const order = 'hkhhkkhkkh';
 
   it('counts from the start to its last item on the first page, and to the end on the last', () => {
-    expect(seen(order).leftOut(0, 2, false)).toBe(3);
-    expect(seen(order).leftOut(2, 2, false)).toBe(1);
-    expect(seen(order).leftOut(4, 1, true)).toBe(1);
-    expect(seen(order).leftOut(0, 5, true)).toBe(5);
+    expect(seen(order).leftOut('private', 0, 2, false)).toBe(3);
+    expect(seen(order).leftOut('private', 2, 2, false)).toBe(1);
+    expect(seen(order).leftOut('private', 4, 1, true)).toBe(1);
+    expect(seen(order).leftOut('private', 0, 5, true)).toBe(5);
   });
 
   it('adds up to the whole count whatever the page size', () => {
     for (const limit of [1, 2, 3, 4, 5]) {
       let total = 0;
-      for (let offset = 0; offset < 5; offset += limit) total += seen(order).leftOut(offset, Math.min(limit, 5 - offset), offset + limit >= 5);
+      for (let offset = 0; offset < 5; offset += limit) total += seen(order).leftOut('private', offset, Math.min(limit, 5 - offset), offset + limit >= 5);
       expect(total, `limit ${limit}`).toBe(5);
     }
   });
 
   it('counts 0 on a page past the kept items, as a stale cursor reaches', () => {
-    expect(seen(order).leftOut(5, 0, true)).toBe(0);
-    expect(seen(order).leftOut(9, 0, true)).toBe(0);
+    expect(seen(order).leftOut('private', 5, 0, true)).toBe(0);
+    expect(seen(order).leftOut('private', 9, 0, true)).toBe(0);
   });
 
   it('counts nothing past the previous item on an empty page that is not the last', () => {
-    expect(seen(order).leftOut(2, 0, false)).toBe(0);
+    expect(seen(order).leftOut('private', 2, 0, false)).toBe(0);
   });
 
   it('counts everything held back when nothing is kept', () => {
-    expect(seen('hhh').leftOut(0, 0, true)).toBe(3);
+    expect(seen('hhh').leftOut('private', 0, 0, true)).toBe(3);
   });
 });

@@ -7,12 +7,11 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.8 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.9 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 305 recorded calls of `medrec mcp` to
-this connector's answers, to the character. One thing differs until medrec
-0.9.9: what an event's `fields` leave out (`private_members`, below). The tools'
-descriptions and schemas do not mention it.
+same too: `test/golden.test.ts` holds 674 recorded calls of `medrec mcp` to
+this connector's answers, to the character. What some of them need is in
+medrec's views alone, and without those an answer differs as said below.
 
 | Tool | What it answers |
 |---|---|
@@ -38,9 +37,28 @@ join: `links` or `could_join` is absent when nothing is left of it.
 `fields.private_members`, a number, says how many members were left out. It is
 absent when none were. An answer about one person lists all of that person's
 own. Another person's private document or event is in no answer about the
-first, and `private_members` counts such a document there too.
+first, and `private_members` counts such a document there too. An event asked
+for by its id gives, as medrec 0.9.9 does, the id of each of its items that is
+entered in error, private ones too (`in_error`, `not_applied`). The place of
+another person's stay, as of a birth, is an event's place only when that stay
+holds nothing private.
+A claim, a bill or an event can be open with a private part: a service among
+others, a diagnosis, a line of the text. When medrec 0.9.9 or later has marked
+those, an answer that names no person leaves them out, lists and finds the item
+by what is left, and says how much it left out: `not_shown`, or a text's `(1 line
+not shown)` and its `hint`. `medrec_document` gives all of the text with
+`person`, whose document it is. With no current `private.json` for that person
+it gives all of it without `person` too, and its `hint` says so. What an item
+cost stays.
 This is discretion, not access control: anyone the connector lets in can ask
 about one person.
+
+What a chart holds about somebody else (a screening a parent answers of
+themselves in their child's chart, or a result its source says is of another) is
+in no answer. A list of that person's results, tests, timeline or documents says
+how many. Current views from before medrec 0.9.9, or from an earlier version's
+`npm run views`, list it whatever the size of the person's files, and nothing
+counts it.
 
 A condition with a diagnosis code carries `plain_name` beside the source's
 own words when medrec 0.9.4 or later has the code's published name
@@ -55,12 +73,35 @@ knows who that is (`providers.json`): a name, practice, role and phone, how
 sure it is (`household`, `sure` or `likely`) and why, and where the phone is
 from. They stand beside the source's own words. Nothing is found, sorted or
 paged by one, and `medrec_search` and `medrec_summary` have none. An answer
-about the whole household, or a document's text, gives none to a private item,
-even one it names, and no reason that names one. Labels that are missing or
+about the whole household, and a document's text asked for without `person`,
+give none to a private item, even one they name, and no reason that names one.
+Labels that are missing or
 older than the records are left out, with no warning. An item's labels that do
 not fit a page beside it are left out with a `provider-labels-left-out`
 warning, and those of a person whose file one answer has no room to read with a
 `provider-labels-not-read` warning.
+
+A condition, allergy or medicine carries `standing`, what all of its sources
+make of it today, and `says`, each source's word with the day it was read, when
+medrec 0.9.9 or later has prepared them (`standing.json`). They replace `status`
+on it, and the `(status)` in a summary line's `detail`. `active` lists what
+any source says is current, one line for each condition or allergy, then
+medicines on hold and those whose end date has passed, and a person's summary
+has those two as sections of their own, `medications_on_hold` and
+`medications_ended_by_date`. Where sources differ, the line says so and gives
+each word; none wins. A `no-problem-list` warning names the sources that send
+only diagnoses from visits. Without a current `standing.json` (views from an
+earlier medrec or from `npm run views`, or a person read from their files) they
+are listed by each record's own `status`, which they keep, and nothing is said
+of sources that differ.
+
+What is entered in error by every source that has it is in no list, event, bill
+or total, and an `entered-in-error` warning says how many. A paper or an event
+of it opens by its id, and says so. A record or paper that only some of its
+sources say it of says `sources differ` and each word, from medrec's views.
+Current views from before medrec 0.9.9, or from an earlier version's `npm run
+views`, list what is entered in error, and nothing counts it. Everyone else's is
+told from their files, or from what medrec's or this version's views name.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -116,29 +157,30 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
   the tool says why it cannot answer (below), never answering from records
   that have since changed.
 
-| Call, over a synthetic folder of six people with views, 6.0 MB of index and 6.5 MB of text, one record in 20 private, every claim with a provider label (255 KB of them) | CPU, cold, least | CPU, cold, median | Requests to Google |
+| Call, over a synthetic folder of six people with views, 6.0 MB of index and 6.5 MB of text, one record in 20 private, one claim or paper in 20 with a private part, every claim with a provider label (255 KB of them) | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
-| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.2 ms | 0 |
-| `medrec_summary` of one person | 2.0 ms | 2.6 ms | 13 |
-| `medrec_search`, one word | 3.3 ms | 4.8 ms | 40 |
-| `medrec_search`, one word, 100 hits | 4.8 ms | 8.7 ms | 40 |
-| `medrec_search`, three words | 3.2 ms | 4.0 ms | 45 |
-| `medrec_search` for one letter, 200 hits (the most a call returns) | 4.2 ms | 5.4 ms | 25 |
-| `medrec_search` for "labs" (every lab record, by kind) | 3.2 ms | 5.5 ms | 43 |
-| `medrec_records` results, 200 | 3.3 ms | 4.0 ms | 16 |
-| `medrec_records` tests, everyone | 4.5 ms | 5.7 ms | 28 |
-| `medrec_records` timeline of one person | 2.1 ms | 2.5 ms | 9 |
-| `medrec_records` timeline, everyone, 200 | 3.6 ms | 5.1 ms | 23 |
-| `medrec_records` claims, everyone, 200, with labels | 5.7 ms | 6.4 ms | 25 |
-| `medrec_records` bills, everyone | 3.3 ms | 4.0 ms | 23 |
-| `medrec_records` conditions, everyone, 200, with plain names | 2.8 ms | 3.4 ms | 17 |
-| `medrec_records` conditions of one person, with plain names | 1.7 ms | 2.1 ms | 8 |
-| `medrec_records` events, everyone | 4.2 ms | 5.2 ms | 18 |
-| `medrec_records` events of one person, detailed, 200 | 2.8 ms | 3.5 ms | 8 |
-| `medrec_records` events with a name, everyone, 200 | 4.2 ms | 5.1 ms | 20 |
-| `medrec_records` one event by `id` | 3.2 ms | 4.0 ms | 16 |
-| `medrec_document`, a page | 3.1 ms | 4.2 ms | 10 |
-| for scale: `JSON.parse` of 0.96 MB | 2.9 ms | 3.0 ms | — |
+| `tools/list` (sign-in check and MCP framing) | 0.2 ms | 0.4 ms | 0 |
+| `medrec_summary` of one person | 2.5 ms | 3.2 ms | 14 |
+| `medrec_search`, one word | 3.5 ms | 4.8 ms | 44 |
+| `medrec_search`, one word, 100 hits | 5.1 ms | 8.5 ms | 44 |
+| `medrec_search`, three words | 3.5 ms | 5.3 ms | 46 |
+| `medrec_search` for one letter, 200 hits (the most a call returns) | 3.9 ms | 6.0 ms | 25 |
+| `medrec_search` for "labs" (every lab record, by kind) | 3.6 ms | 5.8 ms | 46 |
+| `medrec_records` results, 200 | 3.3 ms | 4.2 ms | 17 |
+| `medrec_records` tests, everyone | 4.3 ms | 5.3 ms | 28 |
+| `medrec_records` timeline of one person | 1.9 ms | 2.4 ms | 9 |
+| `medrec_records` timeline, everyone, 200 | 3.6 ms | 4.1 ms | 23 |
+| `medrec_records` claims, everyone, 200, with labels | 5.4 ms | 6.5 ms | 25 |
+| `medrec_records` bills, everyone | 3.5 ms | 4.3 ms | 24 |
+| `medrec_records` conditions, everyone, 200, with plain names | 3.5 ms | 4.1 ms | 22 |
+| `medrec_records` conditions of one person, with plain names | 2.0 ms | 2.3 ms | 9 |
+| `medrec_records` active medications, everyone, with each source's word | 3.7 ms | 4.3 ms | 21 |
+| `medrec_records` events, everyone | 4.7 ms | 6.0 ms | 19 |
+| `medrec_records` events of one person, detailed, 200 | 3.0 ms | 4.3 ms | 8 |
+| `medrec_records` events with a name, everyone, 200 | 4.6 ms | 5.9 ms | 21 |
+| `medrec_records` one event by `id` | 3.5 ms | 4.1 ms | 17 |
+| `medrec_document`, a page | 3.2 ms | 3.8 ms | 10 |
+| for scale: `JSON.parse` of 0.96 MB | 2.8 ms | 3.1 ms | — |
 
 Measured with `npm run bench:cpu -- bench/views.cpu.ts` (2026-11-25, Apple
 silicon, six runs of 15 calls each: the least of all, and the median of the
@@ -146,7 +188,7 @@ runs' medians). The Worker answered in Node, through its own OAuth check, MCP
 framing, Drive client and views, with Node's own `fetch` work counted. Google
 was a local fake on another thread, whose work is not counted. A cold call is
 the first on a fresh isolate, which downloads and parses every file it needs.
-The machine was busy (load 12 to 23): the scale row takes about 2.2 ms on a quiet
+The machine was busy (load 4 to 5): the scale row takes about 2.2 ms on a quiet
 one, and the medians spread with the load. Cloudflare's dashboard shows the
 deployed Worker's own CPU times.
 
@@ -189,7 +231,8 @@ At the limits:
   records, in a layout this connector does not read, or from medrec 0.9.4 or
   earlier (which says nothing about studies, or of documents a private record
   links), has all their records, documents, events and studies held back from
-  answers about everyone. Their notes stay.
+  answers about everyone. Their notes stay, and a document asked for by its id is
+  given whole, private lines included.
   A `private-not-prepared` warning names them and says why. An answer about
   that person includes everything, with the same warning, marked only as far
   as a `private.json` from medrec 0.9.1 to 0.9.4 says. A person
@@ -201,9 +244,13 @@ At the limits:
   `private-not-prepared` warning then asks for a pass by 0.9.7 or later, which
   ends it. Each person with any private
   item costs one more request to Google, and so does each other person whose
-  document or event the events on a detailed page about one person name. When
+  document or event the events on a detailed page about one person name, or
+  whose stay an event found has its place from. When
   that request fails, or that person's private items are not known, the page
-  leaves out theirs with one of those warnings. A series of tests is private when
+  leaves out theirs with one of those warnings. An answer that names no person
+  costs one more for each person with a private part among what a search finds,
+  or with two claims of one day that it shows by one name; when that fails, the
+  person is left out with a `person-unavailable` warning. A series of tests is private when
   any of its results is (medrec 0.9.3): finding a person's private results
   among their series costs one more request, and one per shard that holds
   two results of one date and name. When one of them cannot be found there,
@@ -405,7 +452,9 @@ npm run dev         # the Worker on 127.0.0.1:8787
 
 The views a tool reads are in `src/views` (the reference writer, and the
 store that reads them); docs/views.md is their layout, for medrec's writer.
-The goldens run twice, over the files and over the views.
+The goldens run twice, over the files and over the views. The calls of the six
+folders in `scripts/own-folder.mjs`, about what medrec's views alone hold, run
+over medrec's own views of them, and not over their files.
 
 Every record in the tests is invented. `test/fixtures/records` is the web
 app's demo folder; `scripts/synth.mjs` grows it to a large family's size.

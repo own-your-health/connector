@@ -1,0 +1,1 @@
+{"schema":"medrec-standing/v1","person":"p_robinaaaaaaaaaaaaaaa","sources":[],"order":{},"records":{},"in_error":{"claim":["r_eyevisitaaaaaaaaaaaa","r_footvisitaaaaaaaaaaa"],"document":["d_skinbillaaaaaaaaaaaa","d_footbillaaaaaaaaaaaa","d_letteraaaaaaaaaaaaaa"],"encounter":["r_checkerroraaaaaaaaaa"],"immunization":["r_doseerroraaaaaaaaaaa"],"result":["r_levelerroraaaaaaaaaa"]}}

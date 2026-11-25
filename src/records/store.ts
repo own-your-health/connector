@@ -12,12 +12,16 @@
 // Lists are async iterables in their final order, so a tool reads only as
 // many items as the page it answers needs.
 
+import { shownIndex } from './about';
 import { NO_NAMES, type CodeNames } from './code-names';
+import { allOf, enteredInError, type Errors } from './errors';
 import type { Folder } from './folder';
+import type { Parts } from './parts';
 import type { Privacy } from './private';
 import type { LabelsFile } from './provider-labels';
+import type { Standings } from './standing';
 import { ToolError } from '../mcp/errors';
-import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
+import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, PersonIndex, RecordEntry } from './model';
 import { sourcesOf } from './sources';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
 import {
@@ -46,6 +50,10 @@ export interface RecordFilter {
   range: Range;
   /** Leave out records whose status says they ended. */
   active: boolean;
+  /** Those entered in error: passed whatever their status, for the list to count. */
+  errors?: ReadonlySet<string>;
+  /** What is left out of them, where the answer names no person. */
+  parts?: Parts;
   /** `matchesCode`: an exact code, or part of the name. */
   name?: string;
 }
@@ -57,25 +65,30 @@ export interface Candidate {
   date?: string;
   title: string;
   score: number;
-  /** Ranked but held back from the answer (private.ts): counted where it ranks, never shown. */
-  held?: boolean;
+  /** As a listed record's. */
+  not_shown?: string;
+  /** Ranked but left out of the answer (private.ts), and why: counted where it ranks, never shown. */
+  held?: Why;
   snippet(): Promise<string>;
 }
 
-/** Which hits a search holds back where they rank: private items a question about everyone does not name. */
-export type Skip = (c: { id: string; title: string }) => boolean;
+/** Why a list leaves an item out: it is private, and the question does not name it; or it is entered in error (`paid`: a bill the household marked a payment on). */
+export type Why = 'private' | 'error' | 'paid';
+
+/** Which hits a search leaves out where they rank, and why. */
+export type Skip = (c: { id: string; title: string }) => Why | undefined;
 
 /**
- * The first hits of `ranked` up to `want` not held back, with those held back
+ * The first hits of `ranked` up to `want` not left out, with those left out
  * (`skip`) that rank among them, flagged `held`.
  */
-export function upTo<T extends { held?: boolean }>(ranked: T[], want: number, skip?: (x: T) => boolean): T[] {
+export function upTo<T extends { held?: Why }>(ranked: T[], want: number, skip?: (x: T) => Why | undefined): T[] {
   const out: T[] = [];
   let kept = 0;
   for (const x of ranked) {
     if (kept >= want) break;
-    if (x.held || skip?.(x)) x.held = true;
-    else kept++;
+    x.held ??= skip?.(x);
+    if (x.held === undefined) kept++;
     out.push(x);
   }
   return out;
@@ -86,6 +99,27 @@ export interface Standing {
   settled: boolean;
   left?: string;
 }
+
+/** A person's bills, from their bills.json. */
+export interface Bills {
+  /** What is paid and left on each that stands, by document id. */
+  standing: ReadonlyMap<string, Standing>;
+  /** Those entered in error, and whether the household marked a payment on each (medrec 0.9.9 and later). */
+  lost: ReadonlyMap<string, boolean>;
+  /** How many payments are kept on the bill a paper entered in error is of, and not applied. */
+  kept(paper: string): number;
+}
+
+/** A person's events, from their events.json. */
+export interface Events {
+  events: readonly JsonObject[];
+  /** Those that are none without what is entered in error (medrec 0.9.9 and later). */
+  lost: readonly JsonObject[];
+  /** How many of the household's decisions name an item entered in error, and are not applied. */
+  kept(id: string): number;
+}
+
+export const NO_EVENTS: Events = { events: [], lost: [], kept: () => 0 };
 
 /**
  * What the tools read. A person-scoped method that cannot read that person's
@@ -107,8 +141,12 @@ export interface Store {
    * find among each series' results: a row's `members` lists those it holds.
    */
   tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]>;
-  /** A person's documents, records, studies and notes as timeline events in the range, ordered as the records tool lists them. */
-  timeline(h: Household, p: Person, range: Range): AsyncIterable<Event>;
+  /**
+   * A person's documents, records, studies and notes as timeline events in the
+   * range, ordered as the records tool lists them. Here and below, `parts` is
+   * what the person's `privacy` gave: a store that knows none of it is given none.
+   */
+  timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event>;
   documents(h: Household, p: Person): Promise<DocumentEntry[]>;
   /** The document with this id, and whose it is; null when no one has it. */
   findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null>;
@@ -116,12 +154,13 @@ export interface Store {
   /**
    * The person's `want` best hits, best first (score, then date, newest
    * first), not counting those `skip` holds back: these come where they
-   * rank, flagged `held` (upTo).
+   * rank, flagged `held` (upTo). With `parts`, an item is found by what is
+   * shown of it, and one found by the rest is held back.
    */
-  search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]>;
+  search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip, parts?: Parts): Promise<Candidate[]>;
   documentText(h: Household, p: Person, d: DocumentEntry): Promise<string>;
-  /** The names of the first 20 records filed from the document. */
-  documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]>;
+  /** The first 20 records filed from the document. Views from before medrec 0.9.9 give no ids. */
+  documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]>;
   /** Fetch what the hits' snippets need in as few requests as the store can, before `snippet()` is called on each. */
   prepare?(hits: Candidate[]): Promise<void>;
   /**
@@ -130,19 +169,32 @@ export interface Store {
    * groups records into events, so a person without current events gets a
    * personUnavailable error, however small their files.
    */
-  events(h: Household, p: Person): Promise<JsonObject[]>;
+  events(h: Household, p: Person): Promise<Events>;
   /**
    * The person's private items (private.json, in full from medrec 0.9.5), or
    * why they are not known: never an error, since not knowing only holds
    * their items back from answers about everyone.
    */
   privacy(h: Household, p: Person): Promise<Privacy>;
-  /** What is paid and left on each of the person's bills by document id (bills.json, medrec 0.9.1 and later); null when not known. */
-  bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null>;
+  /** The person's bills (bills.json, medrec 0.9.1 and later); null when not known. */
+  bills(h: Household, p: Person): Promise<Bills | null>;
   /** The plain names of the person's condition codes (code-names.json, medrec 0.9.4 and later); none when missing or stale. */
   codeNames(h: Household, p: Person): Promise<CodeNames>;
   /** Who the providers the person's items print are (providers.json, medrec 0.9.7 and later), to read; null when missing or stale. */
   providerLabels(h: Household, p: Person): Promise<LabelsFile | null>;
+  /**
+   * What each source says of the person's conditions, allergies and medicines
+   * (standing.json, medrec 0.9.9 and later); null when missing or stale. With
+   * `kind`, null too when the person has no record of it.
+   */
+  standings(h: Household, p: Person, kind?: string): Promise<Standings | null>;
+  /**
+   * The person's records and papers entered in error, by kind, which no list
+   * shows; none in views from before medrec 0.9.9, which list them.
+   */
+  errors(h: Household, p: Person): Promise<Errors>;
+  /** How many of their records and papers are about somebody else, and shown nowhere (medrec 0.9.9 and later). */
+  aboutAnother(h: Household, p: Person): Promise<number>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -156,7 +208,7 @@ export const eventOrder = (a: Event, b: Event) =>
   cmpOpt(b.date, a.date) || cmpStr(clip(a.title, CLIP), clip(b.title, CLIP)) || cmpStr(a.kind, b.kind) || cmpStr(a.title, b.title);
 
 export function passes(r: RecordEntry, kind: string, f: RecordFilter): boolean {
-  return r.kind === kind && holds(f.range, r.date) && !(f.active && isEnded(r.status)) && (f.name === undefined || matchesCode(r, f.name));
+  return r.kind === kind && holds(f.range, r.date) && !(f.active && isEnded(r.status) && !f.errors?.has(r.id)) && (f.name === undefined || matchesCode(r, f.name));
 }
 
 /**
@@ -219,10 +271,11 @@ export async function searchHousehold(
   want: number,
   /** Asks one person, or leaves them out (partial.ts LeftOut.of); by default the person's error is the answer. */
   each: <T>(p: Person, f: () => Promise<T>, none: T) => Promise<T> = (_p, f) => f(),
-  /** Each person's hits held back where they rank. */
+  /** Each person's hits left out where they rank. */
   skip?: (p: Person) => Skip | undefined,
+  parts?: (p: Person) => Parts | undefined,
 ): Promise<{ p: Person; c: Candidate }[]> {
-  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want, skip?.(p)), [])));
+  const found = await Promise.all(people.map((p) => each(p, () => store.search(h, p, terms, range, want, skip?.(p), parts?.(p)), [])));
   const owner = new Map(found.flatMap((cs, i) => cs.map((c) => [c, people[i]!] as const)));
   return rankHits(found, want).map((c) => ({ p: owner.get(c)!, c }));
 }
@@ -234,12 +287,51 @@ export function searchTerms(query: string): { terms: string[]; labs: boolean } {
   return { terms, labs: LAB_QUERIES.includes(terms.join(' ')) };
 }
 
+/**
+ * What of an open claim or paper is private is known from the views alone
+ * (`privacy`), so a store of files is asked to leave none of it out. An
+ * event's part is the tools' own to leave out.
+ */
+function noParts(parts: Parts | undefined): void {
+  for (const id of parts?.keys() ?? []) if (!id.startsWith('e_')) throw new Error('private parts are of views, and this store reads files');
+}
+
 /** The store over the records folder's own files, read whole. */
 export class RawStore implements Store {
-  constructor(readonly folder: Folder) {}
+  private readonly shown_ = new Map<string, Promise<{ idx: PersonIndex; from: string }>>();
+
+  constructor(
+    readonly folder: Folder,
+    /** The ids medrec's views say are about somebody else, to leave out of a person's files too. */
+    private readonly aside: (h: Household, p: Person) => Promise<readonly string[]> = async () => [],
+  ) {}
+
+  /** A person's index as answers show it, without what is about somebody else, and what that was told from: one for a call's several readers. */
+  private shown(h: Household, p: Person): Promise<{ idx: PersonIndex; from: string }> {
+    let s = this.shown_.get(p.id);
+    if (!s) this.shown_.set(p.id, (s = this.show(h, p)));
+    return s;
+  }
+
+  private async show(h: Household, p: Person): Promise<{ idx: PersonIndex; from: string }> {
+    const also = await this.aside(h, p);
+    const from = JSON.stringify([p.birth_date ?? null, also]);
+    const path = `${p.folder}/index.json`;
+    const made = async () => ({ value: shownIndex(p, await this.folder.index(p), also), size: (await this.folder.size(path)) ?? 0 });
+    return { idx: await this.folder.derived(`shown:${p.id}`, [path], made, from), from };
+  }
+
+  protected async index(h: Household, p: Person): Promise<PersonIndex> {
+    return (await this.shown(h, p)).idx;
+  }
+
+  /** The ids entered in error, of any kind. */
+  private async errorsIn(h: Household, p: Person): Promise<ReadonlySet<string>> {
+    return allOf(await this.errors(h, p));
+  }
 
   /** Events are medrec's alone, in its views, which this store does not read. */
-  async events(_h: Household, p: Person): Promise<JsonObject[]> {
+  async events(_h: Household, p: Person): Promise<Events> {
     throw eventsNotPrepared(p);
   }
 
@@ -249,7 +341,7 @@ export class RawStore implements Store {
   }
 
   /** So are payments. */
-  async bills(_h: Household, _p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+  async bills(_h: Household, _p: Person): Promise<Bills | null> {
     return null;
   }
 
@@ -263,28 +355,42 @@ export class RawStore implements Store {
     return null;
   }
 
+  /** And what each source says. */
+  async standings(_h: Household, _p: Person, _kind?: string): Promise<Standings | null> {
+    return null;
+  }
+
+  async errors(h: Household, p: Person): Promise<Errors> {
+    return enteredInError(await this.index(h, p));
+  }
+
+  async aboutAnother(h: Household, p: Person): Promise<number> {
+    return (await this.index(h, p)).about_another?.length ?? 0;
+  }
+
   household(): Promise<Household> {
     return this.folder.household();
   }
 
   people(h: Household): Promise<PersonRow[]> {
-    return Promise.all(h.people.map(async (p) => personRow(p, await this.folder.index(p), (await this.folder.notes(p)).length)));
+    return Promise.all(h.people.map(async (p) => personRow(p, await this.index(h, p), (await this.folder.notes(p)).length)));
   }
 
   async summary(h: Household, p: Person, today: string, perList: number): Promise<Summary> {
-    return summarize(h, p, await this.folder.index(p), (await this.folder.notes(p)).length, today, perList);
+    return summarize(h, p, await this.index(h, p), (await this.folder.notes(p)).length, today, perList, await this.errorsIn(h, p));
   }
 
   async *records(h: Household, p: Person, kind: string, filter: RecordFilter, detailed: boolean): AsyncIterable<ListedRecord> {
-    const idx = await this.folder.index(p);
+    noParts(filter.parts);
+    const idx = await this.index(h, p);
     const from = sourcesOf(h, p.id, idx.imports);
     const rs = (idx.records ?? []).filter((r) => passes(r, kind, filter));
     for (const r of rs.sort(recordOrder(detailed))) yield { ...r, source: from(r) };
   }
 
   async tests(h: Household, p: Person, filter: RecordFilter, look?: ReadonlySet<string>): Promise<ResultRow[]> {
-    const idx = await this.folder.index(p);
-    const rs = (idx.records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && (filter.name === undefined || matchesCode(r, filter.name)));
+    const [idx, gone] = await Promise.all([this.index(h, p), this.errorsIn(h, p)]);
+    const rs = (idx.records ?? []).filter((r) => r.kind === 'result' && holds(filter.range, r.date) && !gone.has(r.id) && (filter.name === undefined || matchesCode(r, filter.name)));
     const sorted = newestFirst(rs);
     const rows = latestResults(sorted, sourcesOf(h, p.id, idx.imports));
     if (!look || look.size === 0) return rows;
@@ -297,12 +403,13 @@ export class RawStore implements Store {
     });
   }
 
-  async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {
-    yield* timelineEvents(h, p, await this.folder.index(p), await this.folder.notes(p), range).sort(eventOrder);
+  async *timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event> {
+    noParts(parts);
+    yield* timelineEvents(h, p, await this.index(h, p), await this.folder.notes(p), range).sort(eventOrder);
   }
 
-  async documents(_h: Household, p: Person): Promise<DocumentEntry[]> {
-    return (await this.folder.index(p)).documents ?? [];
+  async documents(h: Household, p: Person): Promise<DocumentEntry[]> {
+    return (await this.index(h, p)).documents ?? [];
   }
 
   async findDocument(h: Household, id: string): Promise<[Person, DocumentEntry] | null> {
@@ -317,12 +424,20 @@ export class RawStore implements Store {
     return this.folder.notes(p);
   }
 
-  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]> {
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip, parts?: Parts): Promise<Candidate[]> {
+    noParts(parts);
     const labs = LAB_QUERIES.includes(terms.join(' '));
-    const items = await this.folder.derived(`search:${p.id}`, this.folder.personFiles(p), async () => {
-      const list = searchables(await this.folder.index(p), (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p));
-      return { value: list, size: list.reduce((n, x) => n + x.folded.length, 0) };
-    });
+    const { idx, from } = await this.shown(h, p);
+    // Its items are of the index as shown, by their places in it.
+    const items = await this.folder.derived(
+      `search:${p.id}`,
+      this.folder.personFiles(p),
+      async () => {
+        const list = searchables(idx, (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p));
+        return { value: list, size: list.reduce((n, x) => n + x.folded.length, 0) };
+      },
+      from,
+    );
     const found: Candidate[] = [];
     for (const item of items) {
       if (!holds(range, item.date)) continue;
@@ -336,7 +451,6 @@ export class RawStore implements Store {
         title: item.title,
         score: m.score,
         snippet: async () => {
-          const idx = await this.folder.index(p);
           if (m.first === -1) return item.lab!(idx);
           return snippetAt(item.hay(idx, (await this.folder.text(p)).texts ?? {}, await this.folder.notes(p)), m.first);
         },
@@ -353,11 +467,12 @@ export class RawStore implements Store {
     return (await this.folder.text(p)).texts?.[d.id] ?? '';
   }
 
-  async documentRecords(_h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
-    return ((await this.folder.index(p)).records ?? [])
-      .filter((r) => (r.documents ?? []).includes(d.id))
+  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]> {
+    const gone = await this.errorsIn(h, p);
+    return ((await this.index(h, p)).records ?? [])
+      .filter((r) => (r.documents ?? []).includes(d.id) && !gone.has(r.id))
       .slice(0, 20)
-      .map((r) => clip(r.display, CLIP));
+      .map((r) => ({ id: r.id, name: clip(r.display, CLIP) }));
   }
 }
 

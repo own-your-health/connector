@@ -2515,6 +2515,2931 @@
         "label": "documents",
         "item": 3
       }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin",
+        "active": true
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "active": true
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies",
+        "person": "Robin",
+        "active": true
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies",
+        "active": true
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "person": "Robin",
+        "active": true
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications"
+      }
+    },
+    {
+      "label": "words-page",
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "active": true,
+        "limit": 4
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "active": true,
+        "limit": 4
+      },
+      "cursor_from": "words-page"
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "active": true,
+        "name": "rash"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "name": "cough",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "allergies",
+        "active": true,
+        "name": "nut"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "name": "capsule"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "since": "2024-02-12",
+        "until": "2024-02-18",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "conditions",
+        "active": true,
+        "since": "2019-01-01",
+        "until": "2019-12-31",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests"
+      }
+    },
+    {
+      "label": "words-timeline",
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "limit": 5
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "limit": 5
+      },
+      "cursor_from": "words-timeline"
+    },
+    {
+      "folder": "words",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "limit": 200
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample capsule"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "wafer",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "words",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "name": "foot"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "statement"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_skinbillaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_eyebillaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_footbillaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_letteraaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_afdvwrgnfiyia2nc25aj"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_nr6bf3q4m7hzrw2v2wyy"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_uxqocdpssjeacibw2ssf"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_zaoezborcuode22h4dhl"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "id": "e_7je6bgxvyu4skk5gknr3"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "errors",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "hearing"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "hearing"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "hearing"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "hearing",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "counseling"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "counseling",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "office visit"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "office visit",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "given",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_hearbillaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "given",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_footbillaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "score"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "status"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "anxiety"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "patient health questionnaire"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "suicide risk"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "alcohol use"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "total"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "smoking"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "buspirone"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "inventory"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "beck"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "answers"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "depression"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "depression",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "score"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "score",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "gad 7"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "gad 7",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "smoking status"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "smoking status",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "total"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "total",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "tablet"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "tablet",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sunlight"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sunlight",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_answersaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_sheetaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "questionnaires",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_leafletaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "visits",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "score"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "status"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "anxiety"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "name": "patient health questionnaire"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "suicide risk"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "tests",
+        "name": "alcohol use"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "total"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "smoking"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "buspirone"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "inventory"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "beck"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "name": "answers"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "results",
+        "person": "Robin",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "depression"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "depression",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "score"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "score",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "gad 7"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "gad 7",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "smoking status"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "smoking status",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "total"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "total",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "tablet"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "tablet",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sunlight"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sunlight",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "child",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_answersaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_sheetaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "child",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_leafletaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "sample visit"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "depression"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "feelings"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "form"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "ear wax"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "drug"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "blood count"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "claim"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "drug"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "ear wax"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "follow-up"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "lab"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "placeholder"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "form"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "name": "implant"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "blood count",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "since": "2024-09-01",
+        "until": "2024-10-08"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2024-09-01",
+        "until": "2024-10-08"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample visit"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "form"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "depression"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "drug"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "drug screen"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "feelings"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example pediatrics"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab results"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "blood count"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "ear wax"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "behavioral"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "total"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "health"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "99213"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "96127"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "phq"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "anxiety"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "pediatrics visit"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "other"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "screening"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "claim"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "division"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "psychotherapy"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "mood"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_explainedaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_paidslipaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_toldaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_letteraaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_afterwardaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_unnamedaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "page": 2
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "offset": 20
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "person": "Robin",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "bills",
+        "person": "Robin",
+        "limit": 3
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "sample visit",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "depression",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "feelings",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "form",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "ear wax",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "drug",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "blood count",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "claim",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "drug",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "name": "ear wax",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "follow-up",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "lab",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "placeholder",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "name": "form",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "procedures",
+        "name": "implant",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "name": "blood count",
+        "response_format": "detailed",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "since": "2024-09-01",
+        "until": "2024-10-08",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "since": "2024-09-01",
+        "until": "2024-10-08",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample visit",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "form",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "depression",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "drug",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "drug screen",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "feelings",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example pediatrics",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "lab results",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "blood count",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "ear wax",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "behavioral",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "total",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "health",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "99213",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "96127",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "phq",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "anxiety",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "pediatrics visit",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "other",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "screening",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "claim",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "division",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "psychotherapy",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "mood",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "example",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_explainedaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_paidslipaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_toldaaaaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_letteraaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_afterwardaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_unnamedaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "page": 2,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "offset": 20,
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "form",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "labs",
+        "limit": 1
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "person": "Sam"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "person": "Nobody"
+      }
+    },
+    {
+      "folder": "parts",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_accountaaaaaaaaaaaaa",
+        "person": ""
+      }
     }
   ]
 }

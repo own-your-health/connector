@@ -18,6 +18,16 @@ export const isExact = isRawJSON;
 
 export const isObject = (v: Json | undefined): v is JsonObject => typeof v === 'object' && v !== null && !Array.isArray(v) && !isExact(v);
 
+/** An object without a key, in the order medrec gives it: its last key takes the place. */
+export function removed(o: JsonObject, key: string): JsonObject {
+  const entries = Object.entries(o);
+  const at = entries.findIndex(([k]) => k === key);
+  if (at === -1) return o;
+  const last = entries.pop()!;
+  if (at < entries.length) entries[at] = last;
+  return Object.fromEntries(entries);
+}
+
 /** A number JSON.parse may change, where a value could be, and then what may follow a value. */
 const MAYBE = /(?:^|[:,[])\s*(-0|-?(?:\d+\.\d*0|0\.0{6}\d+|\d[\d.]{15,}|\d[\d.]*[eE][-+]?\d+))(?=\s*(?:[,}\]]|$))/g;
 

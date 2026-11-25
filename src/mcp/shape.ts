@@ -79,6 +79,22 @@ const foreignCursor = () =>
     "cursor is not one this tool returned; pass a result's next_cursor exactly as received, or omit cursor to start from the first page",
   );
 
+/** What of a page is left for items: each takes its characters of JSON and a comma, between the page's brackets. */
+export class Room {
+  private used = 2;
+
+  constructor(private readonly budget: number) {}
+
+  /** Whether an item of `size` characters has room. */
+  fits(size: number): boolean {
+    return this.used + size + 1 <= this.budget;
+  }
+
+  take(size: number): void {
+    this.used += size + 1;
+  }
+}
+
 export class PageRequest {
   private constructor(
     readonly limit: number,
@@ -138,11 +154,19 @@ export class PageRequest {
    */
   full(): (row: unknown) => boolean {
     let at = 0;
-    let used = 2;
+    const room = this.room();
     return (row) => {
-      if (at++ >= this.offset) used += chars(JSON.stringify(row)) + 1;
-      return used > this.budget - ENVELOPE_RESERVE;
+      if (at++ < this.offset) return false;
+      const size = chars(JSON.stringify(row));
+      const fits = room.fits(size);
+      room.take(size);
+      return !fits;
     };
+  }
+
+  /** The room an empty page has. */
+  room(): Room {
+    return new Room(this.budget - ENVELOPE_RESERVE);
   }
 
   /**
@@ -160,13 +184,12 @@ export class PageRequest {
     }
     const available = Math.max(0, matched.length - this.offset);
     const rows = matched.slice(this.offset, this.offset + this.limit);
-    const itemBudget = Math.max(0, this.budget - ENVELOPE_RESERVE);
     const items: T[] = [];
-    let used = 2;
+    const room = this.room();
     for (const item of rows) {
-      const size = chars(JSON.stringify(item)) + 1;
-      if (used + size > itemBudget) break;
-      used += size;
+      const size = chars(JSON.stringify(item));
+      if (!room.fits(size)) break;
+      room.take(size);
       items.push(item);
     }
     const kept = items.length;

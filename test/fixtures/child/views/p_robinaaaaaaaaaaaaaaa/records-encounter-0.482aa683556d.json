@@ -1,0 +1,1 @@
+[{"id":"r_checkupaaaaaaaaaaaaa","kind":"encounter","date":"2024-03-04","display":"Office visit","status":"finished","fields":{"service_provider":"Example Health"},"provenance":[{"source":{"fhir_base":"https://north.example.test/fhir","cli":"fakeprov","organization_id":"north","label":"Example Health"}}]}]

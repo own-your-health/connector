@@ -24,6 +24,7 @@
 //   views/<person id>/events.json          medrec 0.9.0 on: what happened, one per visit, stay or fill
 //   views/<person id>/bills.json           medrec 0.9.1 on: what is paid and left on each bill
 //   views/<person id>/private.json         medrec 0.9.1 on: the private records, documents, events and studies
+//   views/<person id>/search-parts.json    medrec 0.9.9 on: what of an item's text is left without its private part
 //
 // Search items are numbered in the reverse of medrec's order for hits of
 // equal score (date, newest first, undated last, then as the files hold
@@ -138,6 +139,10 @@ export interface PersonViews {
    * there is none. The file is medrec's own, and is never read here.
    */
   provider_state?: string | null;
+  /** medrec 0.9.9 on: the ids of the person's records entered in error, by kind, as standing.json has them; absent when there are none. */
+  in_error?: Json;
+  /** medrec 0.9.9 on: the ids of what is in the person's chart and about somebody else, which no view has; absent when there is none. */
+  about_another?: string[];
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */
@@ -152,6 +157,8 @@ export interface SummaryView {
   recent_visits: Listed<SummaryLine>;
   /** Bills as `summarize` gives them; `past_due` is recomputed against the day asked. */
   bills: Listed<Bill>;
+  /** medrec 0.9.9 on: every record that standing.json has as current or on hold, in its order, to make the three lists of. */
+  standing?: Record<'medications' | 'conditions' | 'allergies', SummaryLine[]>;
 }
 
 /** Where a record came from, as a view keeps it. */
@@ -191,6 +198,8 @@ export interface DocumentView extends DocumentEntry {
   text_at?: [pack: number, start: number, bytes: number, chars: number];
   /** The names of the first 20 records filed from it. */
   linked?: string[];
+  /** Their ids (medrec 0.9.9 and later). */
+  linked_ids?: string[];
 }
 
 /**
@@ -245,6 +254,8 @@ export const paths = {
   labs: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-labs-${n}.json`,
   items: (pid: string) => `${VIEWS_DIR}/${pid}/search-items.bin`,
   hay: (pid: string, n: number) => `${VIEWS_DIR}/${pid}/search-hay-${n}.bin`,
+  /** medrec 0.9.9 on: what search reads of an item with a private part; this connector does not write it. */
+  searchParts: (pid: string) => `${VIEWS_DIR}/${pid}/search-parts.json`,
   /** medrec 0.9.0 on: what happened, one event per visit, stay or fill (medrec-events/v1); this connector does not write it. */
   events: (pid: string) => `${VIEWS_DIR}/${pid}/events.json`,
   bills: (pid: string) => `${VIEWS_DIR}/${pid}/bills.json`,

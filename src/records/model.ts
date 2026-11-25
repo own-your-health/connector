@@ -56,8 +56,28 @@ export interface Coding {
 
 export interface Provenance {
   source: { kind?: string; cli?: string | null; organization_id?: string | null; fhir_base?: string | null };
+  source_resource?: { type: string; id: string } | null;
   fetched_at?: string | null;
   filed_at?: string;
+  raw_path?: string | null;
+}
+
+/** What one source says of an item. */
+export interface SourceWord {
+  raw_path: string;
+  status?: string | null;
+  verification?: string | null;
+}
+
+export interface Given {
+  raw_path?: string | null;
+  display?: string;
+  code?: Coding;
+  fields?: JsonObject;
+}
+
+export interface GivenPaper {
+  title?: string;
 }
 
 export interface RecordEntry {
@@ -70,12 +90,22 @@ export interface RecordEntry {
   fields?: JsonObject;
   documents?: string[];
   provenance?: Provenance[];
+  /** What a source gave and no item shows (medrec 0.9.9 and later). It is in no view or answer. */
+  given?: Given[];
+  /** The raw file its values are of, when several have it (medrec 0.9.9 and later). */
+  fields_from?: string | null;
+  /** What each source says of it (medrec 0.9.9 and later). */
+  words?: SourceWord[];
+  /** What each source says of one that a source says is entered in error (the views, medrec 0.9.9 and later). */
+  says?: Json;
 }
 
 /** A record as a list shows it. */
 export interface ListedRecord extends RecordEntry {
   /** What it came through (sources.ts), as `medrec mcp` labels it. */
   source: string | undefined;
+  /** How much of it an answer that names no person leaves out (parts.ts). */
+  not_shown?: string;
 }
 
 export interface Amount {
@@ -101,6 +131,12 @@ export interface DocumentEntry {
   text?: { chars?: number } | null;
   statement?: Statement | null;
   same_statement_as?: string | null;
+  provenance?: Provenance;
+  also_from?: Provenance[];
+  /** As a record's. */
+  words?: SourceWord[];
+  given?: GivenPaper[];
+  says?: Json;
 }
 
 export interface Series {
@@ -133,6 +169,8 @@ export interface PersonIndex {
   records?: RecordEntry[];
   studies?: Study[];
   imports?: ImportRun[];
+  /** The ids of what is about somebody else, and left out of it here (about.ts). */
+  about_another?: string[];
 }
 
 export interface PersonText {

@@ -171,10 +171,11 @@ export class Folder {
 
   /**
    * A value computed from files, kept in the cache for as long as none of
-   * them changes: each person's search text, folded once.
+   * them changes: each person's search text, folded once. `from` is what else
+   * it was made from.
    */
-  async derived<T>(name: string, paths: string[], build: () => Promise<{ value: T; size: number }>): Promise<T> {
-    const version = (await Promise.all(paths.map((p) => this.source.version(p)))).map((v) => v ?? '-').join('\u0001');
+  async derived<T>(name: string, paths: string[], build: () => Promise<{ value: T; size: number }>, from = ''): Promise<T> {
+    const version = [...(await Promise.all(paths.map((p) => this.source.version(p)))).map((v) => v ?? '-'), from].join('\u0001');
     const key = `${this.scope}\u0000derived\u0000${name}`;
     const hit = this.cache.get(key, version);
     if (hit !== undefined) return hit as T;
@@ -194,6 +195,7 @@ export class Folder {
     return this.household_;
   }
 
+  /** The person's index.json as it is: what an answer shows of it is the store's (RawStore). */
   async index(p: Person): Promise<PersonIndex> {
     const path = `${p.folder}/index.json`;
     const idx = (await this.json<PersonIndex & { person?: string }>(path, parseExact)) ?? { schema: 'medrec-index/v1', person: p.id };

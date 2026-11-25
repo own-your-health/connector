@@ -22,7 +22,7 @@ import { synth } from '../scripts/synth.mjs';
 import { writeViewsAt } from '../src/views/local';
 import worker, { clearCacheForTests, type Env } from '../src/worker';
 import { CLIENT_ID, CLIENT_SECRET, FOLDER_ID, FakeGoogle } from '../test/fake-google';
-import { MemoryD1, MemoryKV, addDerived, labelClaims, markPrivate } from '../test/support';
+import { MemoryD1, MemoryKV, addDerived, labelClaims, markParts, markPrivate } from '../test/support';
 
 const N = Number(process.env.N ?? 20);
 const BASE = 'https://records.example.workers.dev';
@@ -40,9 +40,10 @@ it('measures', async () => {
   const scratch = mkdtempSync(join(tmpdir(), 'oyh-views-bench-'));
   const root = synth(join(scratch, 'records'));
   const written = writeViewsAt(root);
-  // medrec's events, bills, private items and provider labels for this folder, and code names, as medrec wrote them; then one record in 20 private, and every claim labelled, in as many bytes as one answer reads (LABELS_LIMIT).
+  // medrec's events, bills, private items and provider labels for this folder, and code names, as medrec wrote them; then one record in 20 private, one claim or paper in 20 with a private part, and every claim labelled, in as many bytes as one answer reads (LABELS_LIMIT).
   addDerived(root, 'large');
   const privateRecords = markPrivate(root, 20);
+  const parts = markParts(root, Number(process.env.PARTS ?? 20)).reduce((n, size) => n + size, 0);
   const labels = labelClaims(root, 172).reduce((n, size) => n + size, 0);
   const all = files(root);
   const touch = () => clearCacheForTests();
@@ -173,6 +174,8 @@ it('measures', async () => {
     ['records medications, active', call('medrec_records', { kind: 'medications', active: true })],
     ['records conditions, everyone, 200', call('medrec_records', { kind: 'conditions', limit: 200 })],
     ['records conditions, Robin', call('medrec_records', { kind: 'conditions', person: 'Robin' })],
+    ['records conditions, active, everyone', call('medrec_records', { kind: 'conditions', active: true })],
+    ['records allergies, active, everyone', call('medrec_records', { kind: 'allergies', active: true })],
     ['records documents Sam', call('medrec_records', { kind: 'documents', person: 'Sam' })],
     ['records bills, everyone', call('medrec_records', { kind: 'bills' })],
     ['records claims, everyone, 200', call('medrec_records', { kind: 'claims', limit: 200 })],
@@ -222,7 +225,7 @@ it('measures', async () => {
   rmSync(scratch, { recursive: true, force: true });
   writeFileSync(
     process.env.OUT ?? '/tmp/oyh-views.md',
-    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private, every claim labelled (${(labels / 1e3).toFixed(0)} KB)\n` +
+    `CPU ms on this thread through the Worker (fake Google ${inline ? 'inline, taken out' : 'on another thread'}), least and median of ${N}; load ${(await import('node:os')).loadavg()[0]!.toFixed(0)}; views: ${written.files} files, ${(written.bytes / 1e6).toFixed(1)} MB, largest JSON ${(largestJson / 1e3).toFixed(0)} KB; ${privateRecords} records private, private parts in search-parts.json (${(parts / 1e3).toFixed(0)} KB), every claim labelled (${(labels / 1e3).toFixed(0)} KB)\n` +
       `| Call | cold, least | cold, median | warm, least | subrequests |\n|---|---:|---:|---:|---:|\n${rows.join('\n')}\n`,
   );
 }, 600_000);

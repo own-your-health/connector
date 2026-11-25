@@ -27,7 +27,7 @@ describe("an open event's private members", async () => {
   const h = await store.household();
   const robin = h.people[0]!;
   const { areas } = await store.privacy(h, robin);
-  const events = (await store.events(h, robin)) as (JsonObject & { id: string; start: string; members: Member[] })[];
+  const events = (await store.events(h, robin)).events as (JsonObject & { id: string; start: string; members: Member[] })[];
   const id = (m: Member) => m.record ?? m.document!;
   const open = events.find((e) => !areas.has(e.id) && e.members.some((m) => areas.has(id(m))))!;
   const closed = events.find((e) => areas.has(e.id))!;
@@ -68,7 +68,7 @@ describe("an open event's private members", async () => {
     const over = (privacy: Privacy, event: JsonObject) =>
       instead({
         household: async () => ({ ...h, people: [robin, sam] }),
-        events: async (_h: unknown, p: typeof robin) => (p.id === robin.id ? [event] : []),
+        events: async (_h: unknown, p: typeof robin) => ({ events: p.id === robin.id ? [event] : [], lost: [] }),
         privacy: async (_h: unknown, p: typeof robin) => (p.id === robin.id ? { areas } : privacy),
         providerLabels: async () => null,
       });

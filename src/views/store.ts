@@ -10,13 +10,16 @@ import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
+import { NO_ERRORS, errorsOf, type Errors } from '../records/errors';
 import type { Folder } from '../records/folder';
-import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
-import { parseExact } from '../records/numbers';
+import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from '../records/model';
+import { isObject, parseExact } from '../records/numbers';
+import { OpenText, nameOf, notShown, shownClaim, type Parts, type SearchParts } from '../records/parts';
 import { atBase, sourcesOf } from '../records/sources';
-import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Candidate, type RecordFilter, type Skip, type Standing, type Store } from '../records/store';
+import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Bills, type Candidate, type Events, type RecordFilter, type Skip, type Store } from '../records/store';
 import type { Privacy } from '../records/private';
 import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
+import { STANDING_SCHEMA, standingsOf, type StandingView, type Standings } from '../records/standing';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
 import {
   CLIP,
@@ -73,6 +76,8 @@ export const RAW_LIMIT = 300_000;
 
 const decoder = new TextDecoder();
 
+const aboutAnother = (v: PersonViews | undefined): string[] => (Array.isArray(v?.about_another) ? v.about_another.filter((id) => typeof id === 'string') : []);
+
 /** `matchesCode` over a name a kind's records carry. */
 function nameMatches(code: string | null, display: string, codeDisplay: string | null, q: string): boolean {
   return matchesCode({ id: '', kind: '', display, code: { code, display: codeDisplay } } as RecordEntry, q);
@@ -95,7 +100,7 @@ function* shardsFor(run: Run, r: Range): Iterable<number> {
 
 /** A search hit from the views: its snippet is made from a few bytes of its pack. */
 interface ViewsCandidate extends Candidate {
-  hay?: { path: string; start: number; bytes: number; at: number; reader: PersonReader };
+  hay?: { path: string; start: number; bytes: number; at: number; reader: PersonReader; open?: OpenText };
 }
 
 /**
@@ -166,7 +171,7 @@ const DEPENDS = {
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
 
 /** private.json as a reader needs it (medrec-private/v1). */
-export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
+export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown; parts?: Json; clear_events?: Json } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
 
 /** The private items private.json gives, each by id with its area; all of the person's held back when their marks, or what their provider labels make private, did not read. */
 export function privacyOf(view: PrivateView): Privacy {
@@ -174,24 +179,39 @@ export function privacyOf(view: PrivateView): Privacy {
   for (const kind of ['records', 'documents', 'events', 'studies'] as const) {
     for (const [id, w] of Object.entries(view[kind] ?? {})) if (typeof w?.area === 'string') areas.set(id, w.area);
   }
+  const parts = new Map(isObject(view.parts) ? Object.entries(view.parts).flatMap(([id, v]) => (isObject(v) ? [[id, v] as const] : [])) : []);
+  const clear = new Set(Array.isArray(view.clear_events) ? view.clear_events.filter((id): id is string => typeof id === 'string') : []);
+  const known = { areas, ...(parts.size > 0 ? { parts } : {}), ...(clear.size > 0 ? { clear } : {}) };
   // First: every item is held back either way, and a newer medrec would not read the marks.
-  if (view.labels_unreadable === true) return { areas, unknown: { why: 'labels-unreadable' } };
-  if (view.marks_unreadable === true) return { areas, unknown: { why: 'marks-unreadable' } };
+  if (view.labels_unreadable === true) return { ...known, unknown: { why: 'labels-unreadable' } };
+  if (view.marks_unreadable === true) return { ...known, unknown: { why: 'marks-unreadable' } };
   const unreported = view.unreported_studies ?? [];
   if (view.studies === undefined || !Array.isArray(unreported) || !unreported.every((x) => typeof x === 'string')) {
     // medrec 0.9.4 and earlier say of no document or study that a private record or report makes it private.
     return { areas, unknown: { why: 'not-prepared', detail: 'the views medrec wrote for them do not cover linked documents and imaging studies' } };
   }
-  return { areas, unjudged: new Set(unreported) };
+  return { ...known, unjudged: new Set(unreported) };
 }
 
 /** bills.json as a reader needs it (medrec-bills/v1). */
-export type BillsView = { bills?: Record<string, { settled?: unknown; left?: unknown }> };
+export type BillsView = { bills?: Record<string, { settled?: unknown; left?: unknown }>; in_error?: Record<string, { as?: unknown; bill?: unknown; not_applied?: { from?: unknown }[] }> };
 
-/** What is paid and left on each bill bills.json gives, by document id. */
-export function standingOf(view: BillsView): Map<string, Standing> {
-  return new Map(Object.entries(view.bills ?? {}).map(([id, b]) => [id, { settled: b.settled === true, ...(typeof b.left === 'string' ? { left: b.left } : {}) }]));
+/** What bills.json gives of a person's bills, by document id. */
+export function billsOf(view: BillsView): Bills {
+  const gone = new Map(Object.entries(view.in_error ?? {}));
+  const kept = (id: string) => gone.get(id)?.not_applied ?? [];
+  return {
+    standing: new Map(Object.entries(view.bills ?? {}).map(([id, b]) => [id, { settled: b.settled === true, ...(typeof b.left === 'string' ? { left: b.left } : {}) }])),
+    lost: new Map([...gone].filter(([, g]) => g.as === 'bill').map(([id]) => [id, kept(id).some((x) => x.from === 'household')])),
+    kept: (paper) => {
+      const of = gone.get(paper)?.bill;
+      return kept(typeof of === 'string' ? of : paper).length;
+    },
+  };
 }
+
+/** events.json as a reader needs it (medrec-events/v1). */
+type EventsView = { schema?: string; events?: JsonObject[]; events_in_error?: JsonObject[]; in_error?: Record<string, { not_applied?: unknown[] }> };
 
 export class ViewsStore implements Store {
   private readonly raw: RawStore;
@@ -200,7 +220,8 @@ export class ViewsStore implements Store {
   private windows = new Map<string, { start: number; bytes: Uint8Array }[]>();
 
   constructor(private readonly folder: Folder) {
-    this.raw = new RawStore(folder);
+    // What views.json names is left out of a person's files read whole too, though they changed since.
+    this.raw = new RawStore(folder, async (h, p) => aboutAnother((await this.state(h)).index?.people[p.id]));
   }
 
   household(): Promise<Household> {
@@ -237,7 +258,7 @@ export class ViewsStore implements Store {
     return this.state_;
   }
 
-  async events(h: Household, p: Person): Promise<JsonObject[]> {
+  async events(h: Household, p: Person): Promise<Events> {
     const st = await this.state(h);
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads`).withFix(
@@ -253,13 +274,14 @@ export class ViewsStore implements Store {
         "Tell the user medrec prepares them on its next pass on the household's computer, then ask again; if it persists, the computer may be off",
       ).personUnavailable(p.id);
     }
-    const e = await new PersonReader(this.folder, p, v).json<{ schema?: string; events?: JsonObject[] }>(paths.events(p.id));
+    const e = await new PersonReader(this.folder, p, v).json<EventsView>(paths.events(p.id));
     if (e.schema !== EVENTS_SCHEMA) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s events in a layout (${String(e.schema)}) this connector does not read`).withFix(
         "Tell the user the connector needs updating: its README's Updating section has the steps",
       ).personUnavailable(p.id);
     }
-    return e.events ?? [];
+    const gone = new Map(Object.entries(e.in_error ?? {}));
+    return { events: e.events ?? [], lost: e.events_in_error ?? [], kept: (id) => gone.get(id)?.not_applied?.length ?? 0 };
   }
 
   /**
@@ -286,14 +308,15 @@ export class ViewsStore implements Store {
    * (private.json, code-names.json, providers.json), when it is current, in
    * `schema`; otherwise why not.
    */
-  private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
+  private async derived<T>(h: Household, p: Person, name: keyof typeof DEPENDS, schema: string, empties: readonly string[] = []): Promise<{ view: T } | { not: string }> {
     const found = await this.findDerived(h, p, name);
-    return 'not' in found ? found : this.readDerived<T>(p, found.v, name, schema, empty);
+    return 'not' in found ? found : this.readDerived<T>(p, found.v, name, schema, empties);
   }
 
-  private async readDerived<T>(p: Person, v: PersonViews, name: keyof typeof DEPENDS, schema: string, empty?: string): Promise<{ view: T } | { not: string }> {
-    // The view medrec writes for a person with nothing in it, known by its MD5 without reading it.
-    if (empty !== undefined && createHash('md5').update(empty).digest('hex') === v.files[name]) return { view: JSON.parse(empty) as T };
+  private async readDerived<T>(p: Person, v: PersonViews, name: keyof typeof DEPENDS, schema: string, empties: readonly string[] = []): Promise<{ view: T } | { not: string }> {
+    // A view medrec writes for a person with nothing in it, known by its MD5 without reading it.
+    const empty = empties.find((e) => createHash('md5').update(e).digest('hex') === v.files[name]);
+    if (empty !== undefined) return { view: JSON.parse(empty) as T };
     let view: { schema?: string };
     try {
       view = await new PersonReader(this.folder, p, v).json<{ schema?: string }>(`${VIEWS_DIR}/${p.id}/${name}`);
@@ -322,9 +345,9 @@ export class ViewsStore implements Store {
   }
 
   async privacy(h: Household, p: Person): Promise<Privacy> {
-    // As medrec 0.9.5 and later write it for a person with nothing private and no study without a report.
-    const empty = JSON.stringify({ schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {}, studies: {} });
-    const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, empty);
+    // As medrec 0.9.9 and later, and 0.9.5 to 0.9.8, write it for a person with nothing private and no study without a report.
+    const none = { schema: PRIVATE_SCHEMA, person: p.id, records: {}, documents: {}, events: {}, studies: {} };
+    const got = await this.derived<PrivateView>(h, p, 'private.json', PRIVATE_SCHEMA, [JSON.stringify({ ...none, parts: {} }), JSON.stringify(none)]);
     const known: Privacy = 'not' in got ? { areas: new Map(), unknown: { why: 'not-prepared', detail: got.not } } : privacyOf(got.view);
     if (known.unknown?.why !== 'not-prepared') return known;
     // An earlier medrec's pass names no provider-state.json, so once that file is gone too, it would end this warning with the labels unjudged.
@@ -338,9 +361,9 @@ export class ViewsStore implements Store {
     return (await this.folder.md5([`${p.folder}/${MADE_FROM.provider_state}`]))[0] !== null;
   }
 
-  async bills(h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+  async bills(h: Household, p: Person): Promise<Bills | null> {
     const got = await this.derived<BillsView>(h, p, 'bills.json', BILLS_SCHEMA);
-    return 'not' in got ? null : standingOf(got.view);
+    return 'not' in got ? null : billsOf(got.view);
   }
 
   async codeNames(h: Household, p: Person): Promise<CodeNames> {
@@ -361,12 +384,44 @@ export class ViewsStore implements Store {
     };
   }
 
+  async standings(h: Household, p: Person, kind?: string): Promise<Standings | null> {
+    const st = await this.state(h);
+    // Made from household.json and index.json alone, so it is as current as the person's views.
+    const v = st.fresh.has(p.id) ? st.index!.people[p.id]! : undefined;
+    if (!v || v.files['standing.json'] === undefined || (kind !== undefined && !v.records[kind])) return null;
+    let view: StandingView & { schema?: unknown };
+    try {
+      view = await new PersonReader(this.folder, p, v).json(`${VIEWS_DIR}/${p.id}/standing.json`);
+    } catch (e) {
+      if (e instanceof ToolError && e.unavailable === p.id) return null;
+      throw e;
+    }
+    return view.schema === STANDING_SCHEMA ? standingsOf(view, p.id) : null;
+  }
+
+  async aboutAnother(h: Household, p: Person): Promise<number> {
+    const r = await this.views(h, p);
+    return r ? aboutAnother(r.v).length : this.raw.aboutAnother(h, p);
+  }
+
+  async errors(h: Household, p: Person): Promise<Errors> {
+    const st = await this.state(h);
+    if (st.fresh.has(p.id)) return errorsOf(st.index!.people[p.id]!.in_error);
+    // Nothing is shown of someone too large to read whole.
+    return (await this.small(p)) ? this.raw.errors(h, p) : NO_ERRORS;
+  }
+
+  /** Whether the person's files are few enough bytes to read whole. */
+  private async small(p: Person): Promise<boolean> {
+    const sizes = await Promise.all([this.folder.size(`${p.folder}/index.json`), this.folder.size(`${p.folder}/text.json`)]);
+    return (sizes[0] ?? 0) + (sizes[1] ?? 0) <= RAW_LIMIT;
+  }
+
   /** The person's views, or null to read their files whole (they are small); an error when neither will do. */
   private async views(h: Household, p: Person): Promise<PersonReader | null> {
     const st = await this.state(h);
     if (st.fresh.has(p.id)) return new PersonReader(this.folder, p, st.index!.people[p.id]!);
-    const sizes = await Promise.all([this.folder.size(`${p.folder}/index.json`), this.folder.size(`${p.folder}/text.json`)]);
-    if ((sizes[0] ?? 0) + (sizes[1] ?? 0) <= RAW_LIMIT) return null;
+    if (await this.small(p)) return null;
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads, and they are too large to read here without it`).withFix(
         "Tell the user the connector needs updating: its README's Updating section has the steps",
@@ -442,20 +497,29 @@ export class ViewsStore implements Store {
     if (!r) return yield* this.raw.records(h, p, kind, filter, detailed);
     const from = viewSources(h, p);
     const run = r.v.records[kind];
+    const parts = kind === 'claim' ? filter.parts : undefined;
     // No record of the kind: no shards of it, nor names.
     if (!run) return;
     let only: Set<number> | null = null;
     if (filter.name !== undefined) {
       const names = await r.json<NameRow[]>(paths.names(p.id, kind));
       only = new Set(names.filter(([c, d, cd]) => nameMatches(c, d, cd, filter.name!)).flatMap((n) => n[3]));
+      // One that is shown by another name is in its day's shard.
+      for (const part of parts?.values() ?? []) {
+        const name = nameOf(part, '');
+        if (name === '' || !nameMatches(null, name, null, filter.name)) continue;
+        const on = day(typeof part.date === 'string' ? part.date : undefined);
+        if (on === undefined) only.add(UNDATED);
+        else for (const i of shardsFor(run, { since: on, until: on })) only.add(i);
+      }
     }
     for (const i of shardsFor(run, filter.range)) {
       if (only && !only.has(i)) continue;
       const shard = await r.records(kind, i);
-      const pass = shard.filter((x) => passes(x, kind, filter));
-      // A shard holds whole days in the concise order; detailed orders by the full date within them.
-      if (detailed) pass.sort(recordOrder(true));
-      for (const x of pass) yield { ...x, source: from(x) };
+      const pass = (parts ? shard.map((x) => shownClaim(x, parts.get(x.id))) : shard).filter((x) => passes(x, kind, filter));
+      // A shard holds whole days in the concise order; detailed orders by the full date within them, and a name shown for another by itself.
+      const sorted = parts ? await this.shownOrder(r, pass, recordOrder(detailed), parts) : detailed ? pass.sort(recordOrder(detailed)) : pass;
+      for (const x of sorted) yield { ...x, source: from(x) };
     }
   }
 
@@ -542,15 +606,18 @@ export class ViewsStore implements Store {
     return out;
   }
 
-  async *timeline(h: Household, p: Person, range: Range): AsyncIterable<Event> {
+  async *timeline(h: Household, p: Person, range: Range, parts?: Parts): AsyncIterable<Event> {
     const r = await this.views(h, p);
     if (!r) return yield* this.raw.timeline(h, p, range);
     const folder = this.folder;
+    const shown = (shard: Event[]) => (parts ? this.shownOrder(r, shard, eventOrder, parts) : shard);
     async function* fromViews(): AsyncIterable<Event> {
       for (const i of shardsFor(r!.v.timeline, range)) {
-        for (const e of await r!.json<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))) {
-          if (holds(range, e.date)) yield { ...e, person: p.id, person_name: p.name };
-        }
+        const shard = (await r!.json<Omit<Event, 'person' | 'person_name'>[]>(paths.timeline(p.id, i))).map((e): Event => {
+          const part = e.kind === 'claim' ? parts?.get(e.id) : undefined;
+          return { ...e, ...(part ? { title: nameOf(part, e.title), not_shown: notShown(part) } : {}), person: p.id, person_name: p.name };
+        });
+        yield* (await shown(shard)).filter((e) => holds(range, e.date));
       }
     }
     async function* fromNotes(): AsyncIterable<Event> {
@@ -603,9 +670,46 @@ export class ViewsStore implements Store {
     return decoder.decode(await r.bytes(paths.text(p.id, pack), start, start + bytes));
   }
 
-  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<string[]> {
+  async documentRecords(h: Household, p: Person, d: DocumentEntry): Promise<{ id?: string; name: string }[]> {
     if (!(await this.views(h, p))) return this.raw.documentRecords(h, p, d);
-    return ((d as DocumentView).linked ?? []).map((n) => clip(n, CLIP));
+    const { linked = [], linked_ids = [] } = d as DocumentView;
+    return linked.map((n, i) => ({ id: linked_ids[i], name: clip(n, CLIP) }));
+  }
+
+  /**
+   * A shard's items in an order by what is shown of them. Those it finds equal
+   * are as the files have them, which two things say where a part names one for
+   * another: the shard, of those with one name of their own, and search items'
+   * numbers, of those of one date (the other way round). Of two that neither
+   * says it of, the later by its full date is first.
+   */
+  private async shownOrder<T extends { id: string }>(r: PersonReader, list: T[], order: (a: T, b: T) => number, parts: Parts): Promise<T[]> {
+    const sorted = [...list].sort(order);
+    const runs: [number, number][] = [];
+    for (let i = 0, end; i < sorted.length; i = end) {
+      for (end = i + 1; end < sorted.length && order(sorted[i]!, sorted[end]!) === 0; ) end++;
+      if (end - i > 1 && sorted.slice(i, end).some((x) => parts.get(x.id)?.display !== undefined)) runs.push([i, end]);
+    }
+    if (runs.length === 0) return sorted;
+    const items = await this.items(r);
+    const ids = new Set(runs.flatMap(([i, end]) => sorted.slice(i, end).map((x) => x.id)));
+    const found = new Map(items.find(ids).map((ord) => {
+      const [date, , id, name] = items.meta(ord);
+      return [id, { date: date ?? '', name, ord }];
+    }));
+    for (const [i, end] of runs) {
+      const run = sorted.slice(i, end).map((x) => ({ x, ...(found.get(x.id) ?? { date: '', name: '', ord: -1 }) }));
+      // `sort` is stable, so those of one name are in the run as the shard has them.
+      const byName = chains(run, (c) => c.name);
+      const byDate = chains([...run].sort((m, n) => n.ord - m.ord), (c) => c.date);
+      for (let at = i; at < end; at++) {
+        const heads = [...byDate.values()].flatMap((c) => c[0] ?? []).sort((m, n) => n.ord - m.ord);
+        const next = heads.find((c) => byName.get(c.name)![0] === c) ?? heads[0]!;
+        for (const c of [byDate.get(next.date)!, byName.get(next.name)!]) c.splice(c.indexOf(next), 1);
+        sorted[at] = next.x;
+      }
+    }
+    return sorted;
   }
 
   /** A person's search items (search-items.bin): their count, and each one's text and details. */
@@ -644,10 +748,12 @@ export class ViewsStore implements Store {
     };
   }
 
-  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip): Promise<Candidate[]> {
+  async search(h: Household, p: Person, terms: string[], range: Range, want: number, skip?: Skip, parts?: Parts): Promise<Candidate[]> {
     const r = await this.views(h, p);
     if (!r) return this.raw.search(h, p, terms, range, want, skip);
     const labs = LAB_QUERIES.includes(terms.join(' '));
+    // An event is not searched.
+    const searched = parts !== undefined && [...parts.keys()].some((id) => !id.startsWith('e_'));
 
     const items = await this.items(r);
     // Refused here rather than at the snippets, so a question about everyone can leave this person out.
@@ -657,6 +763,7 @@ export class ViewsStore implements Store {
     const scores = new Float64Array(items.n);
     const firstAt = new Float64Array(items.n).fill(Infinity);
     const terms_ = new Uint8Array(items.n);
+    const shards: SearchShard[] = [];
     let matched = 0;
     for (let ti = 0; ti < terms.length; ti++) {
       const t = terms[ti]!;
@@ -667,7 +774,7 @@ export class ViewsStore implements Store {
       matched = 0;
       // No shard: no word starts so.
       if (r.has(at)) {
-        const shard = await r.json<SearchShard>(at);
+        const shard = (shards[ti] = await r.json<SearchShard>(at));
         for (const w in shard) {
           if (!w.startsWith(t)) continue;
           const list = shard[w]!;
@@ -684,15 +791,39 @@ export class ViewsStore implements Store {
           }
         }
       }
-      if (matched === 0) break;
+      // What is shown of a lab claim can hold a term that the rest of it does not.
+      if (matched === 0 && !(labs && searched)) break;
     }
     const all = terms.length;
-    const isHit = (ord: number) => matched > 0 && terms_[ord] === all;
+    const inText = (ord: number) => matched > 0 && terms_[ord] === all;
+    // The items found that an answer naming no person shows less of, and what of theirs holds every term.
+    // They are hits by all of theirs, and then by what is shown: its text, else as a lab record, else they are held back.
+    const less = new Map<number, Open>();
+    if (searched && (matched > 0 || labs) && r.has(paths.searchParts(p.id))) {
+      const open = await r.json<SearchParts>(paths.searchParts(p.id));
+      for (const k in open) {
+        const ord = Number(k);
+        if (!labs && !inText(ord)) continue;
+        const [start, end] = items.text(ord);
+        const [, , id, title] = items.meta(ord);
+        const text = OpenText.of(open[k]!, nameOf(parts!.get(id), title), end - start);
+        if (text) less.set(ord, { text, n: 0, first: Infinity, terms: 0 });
+      }
+      if (less.size > 0) countOpen(less, terms, shards, items.n);
+    }
+    const isLab = labs ? await this.labItems(r, [...less].flatMap(([ord, o]) => (inText(ord) !== (o.terms === all) ? [ord] : []))) : new Set<number>();
+    const found = new Map<number, 'text' | 'lab' | 'held'>();
+    for (const [ord, o] of less) {
+      if (!inText(ord) && !isLab.has(ord)) continue;
+      found.set(ord, o.terms === all ? 'text' : isLab.has(ord) && o.text.lab ? 'lab' : 'held');
+    }
+    const isHit = (ord: number) => (less.has(ord) ? found.get(ord) === 'text' || found.get(ord) === 'held' : inText(ord));
+    const rank = (ord: number) => (found.get(ord) === 'text' ? less.get(ord)!.n : scores[ord]!);
 
     // The best `want` by score, then item number, highest first: medrec's order, as the numbers run
     // oldest to newest. Keys sort ascending: -(score, then number).
     const keys: number[] = [];
-    if (matched > 0) for (let ord = lo; ord < hi; ord++) if (terms_[ord] === all) keys.push(-(scores[ord]! * 2 ** 26 + ord));
+    for (let ord = lo; ord < hi; ord++) if (isHit(ord)) keys.push(-(rank(ord) * 2 ** 26 + ord));
     const all_ = Float64Array.from(keys).sort();
     type Ranked = { c: ViewsCandidate; seq: number };
     const ranked: Ranked[] = [];
@@ -705,17 +836,21 @@ export class ViewsStore implements Store {
       // Offsets count over every pack; a pack starts at its first item's text.
       const k = Math.floor(ord / HAY_ITEMS);
       const base = items.text(k * HAY_ITEMS)[0];
+      const o = less.get(ord);
+      const part = parts?.get(id);
       const c: ViewsCandidate = {
         kind,
         id,
         date: date ?? undefined,
-        title,
-        score: scores[ord]!,
-        hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: firstAt[ord]!, reader: r },
+        title: nameOf(part, title),
+        score: rank(ord),
+        ...(part ? { not_shown: notShown(part) } : {}),
+        hay: { path: paths.hay(p.id, k), start: start - base, bytes: end - start, at: o ? o.first : firstAt[ord]!, reader: r, ...(o ? { open: o.text } : {}) },
         snippet: () => this.snippet(c),
       };
-      if (skip?.(c)) c.held = true;
-      else kept++;
+      // One with a part that the views do not say how to search is not shown.
+      c.held = found.get(ord) === 'held' || (part && !o) ? 'private' : skip?.(c);
+      if (c.held === undefined) kept++;
       ranked.push({ c, seq });
     }
 
@@ -736,7 +871,7 @@ export class ViewsStore implements Store {
       ranked.map((r) => r.c),
       want,
     );
-    let shown = out.filter((c) => !c.held).length;
+    let shown = out.filter((c) => c.held === undefined).length;
 
     // A lab query's finds by kind score 0: after every text hit, highest item number first.
     for (let i = r.v.search.labs - 1; labs && shown < want && i >= 0; i--) {
@@ -744,13 +879,27 @@ export class ViewsStore implements Store {
       for (let j = rows.length - 1; j >= 0 && shown < want; j--) {
         const [ord, date, kind, id, title, snippet] = rows[j]!;
         if (isHit(ord) || !holds(range, date)) continue;
-        const c: Candidate = { kind, id, date: date ?? undefined, title, score: 0, snippet: async () => snippet };
-        if (skip?.(c)) c.held = true;
-        else shown++;
+        const part = parts?.get(id);
+        const c: Candidate = { kind, id, date: date ?? undefined, title: nameOf(part, title), score: 0, ...(part ? { not_shown: notShown(part) } : {}), snippet: async () => snippet };
+        c.held = part && less.get(ord)?.text.lab !== true ? 'private' : skip?.(c);
+        if (c.held === undefined) shown++;
         out.push(c);
       }
     }
     return out;
+  }
+
+  /** Which of these search items a lab query finds by kind: rows are by item number, read from the last file back. */
+  private async labItems(r: PersonReader, ords: number[]): Promise<Set<number>> {
+    const asked = new Set(ords);
+    const found = new Set<number>();
+    const least = Math.min(...ords);
+    for (let i = r.v.search.labs - 1; ords.length > 0 && i >= 0; i--) {
+      const rows = await r.json<LabRow[]>(paths.labs(r.p.id, i));
+      for (const [ord] of rows) if (asked.has(ord)) found.add(ord);
+      if (rows.length > 0 && rows[0]![0] <= least) break;
+    }
+    return found;
   }
 
   /** Reads the bytes the hits' snippets need from each person's hay packs: near ones as one range, and as many ranges as the call may still make. */
@@ -759,7 +908,7 @@ export class ViewsStore implements Store {
     const readers = new Map<string, PersonReader>();
     for (const c of hits as ViewsCandidate[]) {
       if (!c.hay || this.covered(c)) continue;
-      const [ws, we] = snippetWindow(c.hay.bytes, c.hay.at);
+      const [ws, we] = spanOf(c.hay);
       const list = wanted.get(c.hay.path) ?? (wanted.set(c.hay.path, []), wanted.get(c.hay.path)!);
       list.push([c.hay.start + ws, c.hay.start + we]);
       readers.set(c.hay.path, c.hay.reader);
@@ -776,7 +925,7 @@ export class ViewsStore implements Store {
   /** The fetched window holding the hit's snippet, if one does. */
   private covered(c: ViewsCandidate): { start: number; bytes: Uint8Array } | undefined {
     const hay = c.hay!;
-    const [ws, we] = snippetWindow(hay.bytes, hay.at);
+    const [ws, we] = spanOf(hay);
     return this.windows.get(hay.path)?.find((w) => w.start <= hay.start + ws && w.start + w.bytes.length >= hay.start + we);
   }
 
@@ -786,9 +935,49 @@ export class ViewsStore implements Store {
       await this.prepare([c]);
       w = this.covered(c)!;
     }
-    // The window holds the file's bytes from w.start; the item's text starts at hay.start.
-    return snippetIn(w.bytes, w.start - c.hay!.start, c.hay!.bytes, c.hay!.at);
+    const { start, bytes, at, open } = c.hay!;
+    // The window holds the file's bytes from w.start; the item's text starts at `start`.
+    if (!open) return snippetIn(w.bytes, w.start - start, bytes, at);
+    const [from, to] = snippetWindow(open.bytes, at);
+    return snippetIn(open.read(w.bytes, w.start - start, from, to), from, open.bytes, at);
   }
+}
+
+type Open = { text: OpenText; n: number; first: number; terms: number };
+
+/** How often each of these items says every term in what is shown of it, where first, and how many of the terms it has, in order. */
+function countOpen(less: Map<number, Open>, terms: string[], shards: (SearchShard | undefined)[], n: number): void {
+  const asked = new Uint8Array(n);
+  for (const ord of less.keys()) asked[ord] = 1;
+  const held = (o: Open, ti: number, times: number, first: number) => {
+    if (times === 0 || (o.terms !== ti && o.terms !== ti + 1)) return;
+    o.terms = ti + 1;
+    o.n += times;
+    o.first = Math.min(o.first, first);
+  };
+  terms.forEach((t, ti) => {
+    const shard = shards[ti] ?? {};
+    for (const w in shard) {
+      if (!w.startsWith(t)) continue;
+      const list = shard[w]!;
+      for (let j = 0; j < list.length; j += 3) {
+        if (asked[list[j]!] === 0) continue;
+        const o = less.get(list[j]!)!;
+        if (o.text.word(w) === undefined) held(o, ti, list[j + 1]!, o.text.moved(list[j + 2]!));
+      }
+    }
+    for (const o of less.values()) {
+      for (const w of o.text.words(t)) {
+        const { n: times, first } = o.text.word(w)!;
+        held(o, ti, times, first);
+      }
+    }
+  });
+}
+
+/** The bytes of its item's text that a hit's snippet is made from. */
+function spanOf({ bytes, at, open }: NonNullable<ViewsCandidate['hay']>): [number, number] {
+  return open ? open.source(...snippetWindow(open.bytes, at)) : snippetWindow(bytes, at);
 }
 
 interface Items {
@@ -917,3 +1106,14 @@ function preparing(p: Person): ToolError {
 }
 
 export type { ViewsCandidate };
+
+/** A list's items by a key, each key's in the list's order. */
+function chains<T>(list: readonly T[], key: (x: T) => string): Map<string, T[]> {
+  const out = new Map<string, T[]>();
+  for (const x of list) {
+    const of = out.get(key(x));
+    if (of) of.push(x);
+    else out.set(key(x), [x]);
+  }
+  return out;
+}

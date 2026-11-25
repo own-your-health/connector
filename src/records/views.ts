@@ -6,6 +6,7 @@
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIndex, RecordEntry } from './model';
 import { conditionKey } from './code-names';
+import { withoutPapers } from './papers';
 import { isExact, isObject } from './numbers';
 import { sourcesOf, type SourceOf } from './sources';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
@@ -111,8 +112,12 @@ export function valueText(v: Json | undefined): string {
   return trim(`${num} ${unit}`);
 }
 
-/** Every string and number in `v`, each followed by a space, for search. */
+/** An id of anything in the folder. */
+const AN_ID = /^[a-z]_[a-z2-7]{20}$/;
+
+/** Every string and number in `v` but an id, each followed by a space, for search. */
 function flatText(v: Json | undefined, out: string[]): void {
+  if (typeof v === 'string' && v.length === 22 && AN_ID.test(v)) return;
   if (typeof v === 'string' || typeof v === 'number' || isExact(v)) out.push(valueText(v), ' ');
   else if (Array.isArray(v)) for (const x of v) flatText(x, out);
   else if (v && typeof v === 'object') for (const x of Object.values(v)) flatText(x, out);
@@ -346,7 +351,8 @@ export interface Listed<T> {
 
 export const cut = <T>(all: T[], n: number): Listed<T> => ({ items: all.slice(0, n), more: Math.max(0, all.length - n) });
 
-function line(r: RecordEntry, source: string | undefined): SummaryLine {
+/** A record as a line of a summary's list. */
+export function line(r: RecordEntry, source: string | undefined): SummaryLine {
   const detail = recordDetail(r);
   return {
     name: clip(r.display, CLIP),
@@ -372,7 +378,7 @@ export interface Vaccine {
 function vaccines(records: RecordEntry[], from: SourceOf): Vaccine[] {
   const by = new Map<string, Vaccine>();
   for (const r of records) {
-    if (r.kind !== 'immunization' || r.status === 'not-done' || r.status === 'entered-in-error') continue;
+    if (r.kind !== 'immunization' || r.status === 'not-done') continue;
     const key = seriesKey(r);
     const v = by.get(key);
     if (v) v.doses += 1;
@@ -528,14 +534,18 @@ export interface Summary {
   latest_results: Listed<ResultRow>;
   recent_visits: Listed<SummaryLine>;
   bills: Listed<Bill>;
+  /** The records a list of what is current by each source's words can be made of, when the summary has them (medrec 0.9.9 and later). */
+  standing?: Record<'medications' | 'conditions' | 'allergies', SummaryLine[]>;
 }
 
-export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number): Summary {
-  const records = newestFirst(idx.records ?? []);
+/** `gone`: what is entered in error, which the lists leave out and the counts do not. */
+export function summarize(h: Household, p: Person, idx: PersonIndex, notes: number, today: string, perList: number, gone: ReadonlySet<string>): Summary {
+  const all = newestFirst(idx.records ?? []);
+  const records = all.filter((r) => !gone.has(r.id));
   const from = sourcesOf(h, p.id, idx.imports);
   const counts = new Map<string, number>();
   const sources = new Map<string, SourceRow>();
-  for (const r of records) {
+  for (const r of all) {
     counts.set(r.kind, (counts.get(r.kind) ?? 0) + 1);
     const s = from(r);
     if (s !== undefined) {
@@ -573,7 +583,7 @@ export function summarize(h: Household, p: Person, idx: PersonIndex, notes: numb
       records.filter((r) => r.kind === 'encounter').map((r) => line(r, from(r))),
       perList,
     ),
-    bills: cut(bills(idx.documents ?? [], today), perList),
+    bills: cut(bills(withoutPapers(idx.documents ?? [], gone), today), perList),
   };
 }
 
@@ -587,6 +597,8 @@ export interface Event {
   id: string;
   title: string;
   detail?: string;
+  /** As a listed record's. */
+  not_shown?: string;
   source?: string;
 }
 

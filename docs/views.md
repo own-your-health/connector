@@ -16,8 +16,10 @@ so readers read it as it is.
 The reference writer is `src/views/write.ts`. Its output for the demo folder,
 the large synthetic folder and medrec's own folder for provider labels, with
 the views only medrec makes as it wrote them for each (`events.json`,
-`bills.json`, `private.json`, `code-names.json` and `providers.json`, in
-`test/fixtures`), answers all 305 recorded calls exactly as `medrec mcp` does
+`bills.json`, `private.json`, `code-names.json`, `providers.json` and
+`standing.json`, in `test/fixtures`), and all of medrec's own views for its six
+other folders (`words`, `errors`, `given`, `questionnaires`, `child` and
+`parts`), answer all 674 recorded calls exactly as `medrec mcp` does
 (`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
 when its views pass the same calls:
 
@@ -55,6 +57,8 @@ views/<person id>/bills.json              medrec 0.9.1 on; medrec's own, below
 views/<person id>/private.json            medrec 0.9.1 on; medrec's own, below
 views/<person id>/code-names.json         medrec 0.9.4 on; medrec's own, below
 views/<person id>/providers.json          medrec 0.9.7 on; medrec's own, below
+views/<person id>/standing.json           medrec 0.9.9 on; medrec's own, below
+views/<person id>/search-parts.json       medrec 0.9.9 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -213,11 +217,12 @@ Each test series (records of kind `result` with one `seriesKey`: the code's
  "entries":[[date, name number, shard, place in shard, rank], …]}
 ```
 
-`entries` lists every result of the series, newest first.
+`entries` lists every result of the series that is not entered in error (medrec
+0.9.9 and later), newest first.
 - `shard` and `place` locate the record in `records-result-<shard>.json`
   (`-1`: `records-result-undated.json`).
-- `rank` is the result's place among all the person's results, newest first,
-  stable over `index.json`'s order.
+- `rank` is the result's place among all those results of the person, newest
+  first, stable over `index.json`'s order.
 
 ## `timeline-<n>.json`
 
@@ -244,11 +249,20 @@ against the day they answer, so its value here does not matter.
 
 ## `documents.json` and `text-<n>.bin`
 
-`documents.json` is `index.json`'s `documents`, each with two fields added:
+`documents.json` is `index.json`'s `documents`, each without its `given` (what
+a source gave and no item shows, which is in no view) and with these fields
+added:
 - `text_at`: where its text is, as `[pack, byte offset, byte length,
   characters]`. Absent when the document has no text.
 - `linked`: the names (`display`) of the first 20 records that list it in
-  their `documents`, in `index.json` order. Absent when none do.
+  their `documents`, in `index.json` order, but those entered in error (medrec
+  0.9.9 and later). Absent when none do.
+- `linked_ids`: the same records' ids, in the same order (medrec 0.9.9 and
+  later). `medrec_document` without `person` is an answer about the whole
+  household: unless the document is private it leaves out the names whose record
+  the person's `private.json` holds back, and all of them when there are no ids
+  and any record of theirs is private or may be. With `person`, whose document
+  it is, it is an answer about them and has every name.
 
 `text-<n>.bin` holds the documents' texts as UTF-8, one after another, in
 document order. A pack closes before a text would take it past 1,000,000
@@ -259,7 +273,9 @@ bytes. A text is never split.
 Search items are what `medrec_search` searches, notes aside:
 - **Documents.** The text is the title, then the organization and the
   document type, then the document's text.
-- **Records.** The name, then the record's fields flattened.
+- **Records.** The name, then the record's fields flattened: every text and
+  number, each with a space after it, but the ids of other items (medrec 0.9.9
+  and later).
 - **Studies.** The description, then the modalities, body part, facility and
   series.
 
@@ -371,7 +387,11 @@ Two more views only medrec makes, in its layouts `medrec-bills/v1` and
   imaging studies with no report to judge them by (absent when there are
   none). A reader holds those back from an answer about the whole household
   as it does private items, counts them in the same `private-left-out`
-  count, and shows them in an answer about their person with no area.
+  count, and shows them in an answer about their person with no area. From
+  medrec 0.9.9, `parts` has what of an open item is private (Private parts,
+  below), `{}` when there is none. `clear_events` has the open events whose stay
+  another's event may name ("An event's members, links and `could_join`",
+  below), and is absent when there are none.
 
 Both are made from the person's views, their `overrides.json`, the
 `linked` people's records, and their `marks.json` (the household's payments
@@ -450,6 +470,79 @@ leaves theirs out, answers the rest, and names them in a warning
 (`private-not-prepared`, `private-marks-unreadable` or
 `private-labels-unreadable`).
 
+An event whose `place_from` is `linked` has the place of another person's stay.
+A reader shows it, in an answer about the event's person too, only when the
+event has a `born_during` link, each of them is to an event in that person's
+`clear_events`, and what is private of theirs is known. Otherwise the event has
+no place: no name finds it by that, no provider label is of it, and nothing
+takes its place.
+
+## Private parts (medrec 0.9.9 and later)
+
+A claim of several services, a bill, a receipt, an explanation of benefits or an
+event can be open with a private part: a service, a diagnosis or a payer's note
+in a claim, a line of a paper's text, and what such a claim or a private paper
+says of an event. `private.json` has each in `parts`, by the item's id:
+
+| Item | Its part |
+|---|---|
+| claim | `lines`, `diagnoses` and `payer_notes`: places from 0 in its `items`, `diagnoses` and `payer_notes`, each absent when there is none; `display`, the name it is shown by; `date`, its date; `category` when the lines that are left have another, `null` when none has |
+| bill, receipt, explanation of benefits | `text`: `[offset, length]` of each private line, in bytes of its text |
+| event | any of `kind`, `title`, `what`, `what_from`, `place`, `place_from`, `clinicians`, `money`, `differences` and `expected`, to take the event's own place, `null` for none |
+
+`says` is how much is left out ("1 service not shown"); an event whose open
+claims have no private line has none. An item with a part is not private, and is
+counted in no `private-left-out`.
+
+Only an answer that names no person leaves the parts out; one about the person
+gives the items whole. Where it leaves them out, an item is listed, filtered by
+name, sorted and paged by what is left of it:
+
+- a list of claims, the timeline and events carry `says` as `not_shown`. A
+  claim's `fields` lose the lines, diagnoses and notes, and a list with nothing
+  left its key. An event calls a claim among its `members` by the claim's
+  `display`.
+- a paper's text has `(1 line not shown)`, or `(2 lines not shown)` for lines
+  that follow one another on a page, in place of the lines, and its size and
+  pages are those of what is given.
+- a search hit carries `not_shown`, whatever its kind.
+
+Claims of one day that are shown by one name are in the files' order. A shard has
+those with one name of their own in it, and search items' numbers, which run the
+other way, those of one date. Of two claims of one day, one with a time, that
+neither says the order of, a reader gives the later by its full date first.
+
+Places are those of the `index.json` and `text.json` the view was made from. A
+list they are not places of is left out, and a text they are not places of is
+empty.
+
+A search answers from the postings, which hold the whole text, so it needs to
+know what of it is left. `search-parts.json` says that, by search item number,
+and is current when `private.json` is. A person with no part has `{}`:
+
+```json
+{"12": {"cuts": [[0, 41], [58, 9]], "words": {"form": [1, 6], "quick": [0]}, "lab": false}}
+```
+
+- `cuts` are the bytes of the item's text that are left out, in order. The text
+  that is left is the rest, after the part's `display` and a line break when the
+  first cut starts at 0.
+- `words` are those that are there another number of times, or first at another
+  place, than the postings say: `[times, offset of the first]`, or `[0]` for one
+  that is gone. Any other word is there as often as the postings say, its first
+  place moved by the cuts before it and by the `display`.
+- `lab: false` is an item no lab query finds without its part.
+
+An item whose whole text holds every term, or that a lab query finds, is a hit
+when what is left does too, ranked and excerpted by that. Otherwise it is held
+back as a private item is, and counted as one. An item with a part that
+`search-parts.json` does not name, or of a person whose views have no such file,
+is held back from every search that names no person.
+
+`private.json` from an earlier medrec has neither key, as it judged no parts: its
+open items are shown whole until a later medrec makes the views again, and no
+place is taken from a linked stay.
+
 ## `providers.json` (medrec 0.9.7 and later)
 
 Who the providers a person's items print are, in medrec's layout
@@ -478,9 +571,10 @@ An answer about the whole household uses nothing of `private`. It gives no
 label to a private item, even one it names, to one whose person's private items
 are not known, or to anything an event prints when that event is such an item.
 It leaves out a reason or a phone from such an item's paper, and one from what
-the household said of private items only. `medrec_document` names no person, so
-it answers by the same rule. An answer about one person looks a private item up
-in `private` alone, and takes its label from `private.labels`, then `labels`.
+the household said of private items only. An answer about one person looks a
+private item up in `private` alone, and takes its label from `private.labels`,
+then `labels`. `medrec_document` answers by the first rule without `person`, and
+by the second with it.
 
 Missing, stale or unreadable, it changes nothing else and gives no warning.
 This connector reads at most 256,000 bytes of them for one answer, since the
@@ -492,6 +586,89 @@ items that fit the page without labels: claims, documents, bills and events, and
 any record in detail. The labels count in the page's size. An item keeps the
 first of its labels that fit a page beside it, and the
 `provider-labels-left-out` warning counts the items that lost any.
+
+## `standing.json` (medrec 0.9.9 and later)
+
+What each of a person's sources says of their conditions, allergies and
+medicines, and what that makes of each, in medrec's layout
+`medrec-standing/v1` (medrec's `docs/data-contract.md`, "Standing"). No
+source's word wins over another's. The reference writer here does not write it.
+
+It is made from `household.json` and the person's `index.json` alone, so it is
+current whenever the person's views are. Two other views come with it:
+
+- **`views.json`** has `people.<id>.in_error`, the same object as
+  `standing.json`'s: the ids of the person's records entered in error, by kind,
+  and of their papers, as `document`; it is absent when there are none. A reader
+  that leaves them out of an answer opens no other view for it.
+- **`summary.json`** has `standing`: each medicine, condition and allergy that
+  is current or on hold, uncut, for a reader to make the summary's lists of.
+  `medications`, `conditions` and `allergies` beside it are by each record's
+  own `status`, for a reader without `standing.json`.
+
+This connector makes the lists by medrec's rules ("As a reader lists them"), on
+the day it answers and of the records the answer may show: a private one it may
+not show makes no line current and no line differ. It reads `standing.json` for
+`kind: "conditions"`, `"allergies"` and `"medications"` and for a person's
+summary. With `active`, it reads all of the person's records of the kind, since
+a line's records may be of any date. Without a current `standing.json` it lists
+by status, as views from 0.9.8 and earlier are, and says nothing of sources
+that differ.
+
+## What is entered in error (medrec 0.9.9 and later)
+
+A record or paper is entered in error when every source of it says so. medrec's
+views hold it, and make everything else without it: events, bills, totals,
+labels, and the summary's other lists. A reader shows it in no list, the
+timeline or the search, and counts it (an `entered-in-error` warning, or a
+summary list's `note`). What the household decided of it is kept, and is not
+applied while it is. These views say what they leave out, by id:
+
+- **`events.json`**: `in_error` on an event (a list of the person's own items it
+  would have) and `not_applied` (the decisions naming one), `events_in_error`
+  (the events that are none without it), and the document's own `in_error` (an
+  object, by item). An event says how many of its own there are, of those the
+  answer may show. One in `events_in_error` is listed for nobody, and shown as
+  `entered in error` when it is asked for by its id.
+- **`bills.json`**: `in_error`, by document id, with what each is (`as`) and the
+  payments kept on it. A bill is all the papers that are one statement, so one
+  whose first paper is entered in error is its next copy's, and this connector
+  lists as bills those in `bills`, counting those that are `bill` in `in_error`.
+  Without a current `bills.json` it works that out from `documents.json`. A page
+  that leaves out a bill with a payment the household marked says so.
+- **`providers.json`**: `applied: false` on what the household said of one.
+- **`documents.json` and the records' shards**: `says`, what each source says, on
+  one that some source says is entered in error. One its sources differ on
+  stays, and an answer shows it with `sources differ` and those words. A
+  condition, allergy or medicine has its words in `standing.json` instead.
+
+The reference writer here judges the same from `index.json` alone, by medrec's
+rule (medrec's `docs/data-contract.md`, "Entered in error";
+`src/records/errors.ts`). It writes `people.<id>.in_error` and leaves those out
+of `tests.json`, the summary's lists and documents' `linked`. It writes no
+`says`, and none of the views above that it does not write. This connector
+judges so where it reads a person's `index.json` whole. Views from before medrec
+0.9.9 name none: what they list, it lists, and counts none.
+
+`medrec_document` of a paper entered in error says so first in its `hint`, with
+how many decisions, payments and corrections are kept. For those alone it reads
+`events.json`, `bills.json` and `providers.json`, and leaves out what it cannot
+read. One its sources differ on says what each says.
+
+## What is about another person (medrec 0.9.9 and later)
+
+A person's chart can hold what is about somebody else: a screening a parent
+answers of themselves, or a result its source says is of another. medrec's views
+leave it out of everything, and `people.<id>.about_another` in `views.json` has
+the ids, records and documents, in order; it is absent when there is none. A
+reader says how many on the first page of that person's results, tests, timeline
+or documents (an `about-another` warning), and nothing else of it.
+
+The reference writer here does the same, by medrec's rule (medrec's
+`docs/data-contract.md`, "About another person"; `src/records/about.ts`). So does
+this connector where it reads a person's `index.json` whole, and it leaves out
+the ids `views.json` names there too, though the person's files changed since.
+Views from before medrec 0.9.9 leave out nothing.
 
 ## Without a current `private.json` or `bills.json`
 

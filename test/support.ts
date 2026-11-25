@@ -5,13 +5,17 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { open, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Folder, ParsedCache, type FileSource } from '../src/records/folder';
-import { VIEWS_INDEX, personDir, storedName, type SlimSource, type ViewsIndex } from '../src/views/format';
-import type { Household, Person } from '../src/records/model';
+import { HAY_ITEMS, ITEMS_HEADER, VIEWS_INDEX, personDir, storedName, type SlimSource, type SummaryView, type ViewsIndex } from '../src/views/format';
+import type { Household, JsonObject, Person, PersonIndex } from '../src/records/model';
+import { sourcesOf } from '../src/records/sources';
+import { fold, wordStarts } from '../src/records/text';
+import { standingsOf, type StandingView, type Standings } from '../src/records/standing';
+import { line, type Summary } from '../src/records/views';
 import type { Privacy } from '../src/records/private';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../src/records/code-names';
 import { providerLabelsOf, type LabelsFile, type ProvidersView } from '../src/records/provider-labels';
-import { RawStore, type Standing } from '../src/records/store';
-import { privacyOf, standingOf, type BillsView, type PrivateView } from '../src/views/store';
+import { RawStore, type Bills } from '../src/records/store';
+import { billsOf, privacyOf, type BillsView, type PrivateView } from '../src/views/store';
 
 export const DEMO = join(import.meta.dirname, 'fixtures/records');
 
@@ -129,14 +133,25 @@ export class MemoryD1 {
  * The views only medrec makes, each in test/fixtures/<view>/<folder>/<person id>.json
  * (scripts/derived.mjs; code-names.json is not rebuilt, see its README).
  */
-export const DERIVED = ['events.json', 'bills.json', 'private.json', 'code-names.json', 'providers.json'] as const;
+export const DERIVED = ['events.json', 'bills.json', 'private.json', 'code-names.json', 'providers.json', 'standing.json'] as const;
+
+/** A summary's `standing`, as medrec writes it: what standing.json has as current or on hold, in its order. */
+function standingLines(h: Household, p: Person, idx: PersonIndex, v: StandingView): Summary['standing'] {
+  const from = sourcesOf(h, p.id, idx.imports);
+  const by = new Map((idx.records ?? []).map((r) => [r.id, r]));
+  const { order, records } = v as unknown as { order: Record<string, string[]>; records: Record<string, { is: string }> };
+  const lines = (kind: string) => (order[kind] ?? []).filter((id) => ['current', 'on_hold'].includes(records[id]!.is)).map((id) => line(by.get(id)!, from(by.get(id)!)));
+  return { medications: lines('medication'), conditions: lines('condition'), allergies: lines('allergy') };
+}
 
 /**
  * Gives views this connector wrote what medrec adds beside them: each
- * person's events.json (0.9.0), bills.json and private.json (0.9.1), code-names.json (0.9.4) and providers.json (0.9.7), from
- * test/fixtures/<view>/`folder` as medrec wrote them for that folder,
- * stored under content-addressed names and listed in `files`, and the
- * `overrides`, `marks`, `provider_state` and `linked` MD5s they were made from. `linked`
+ * person's events.json (0.9.0), bills.json and private.json (0.9.1),
+ * code-names.json (0.9.4), providers.json (0.9.7) and standing.json (0.9.9),
+ * from test/fixtures/<view>/`folder` as medrec wrote them for that folder,
+ * stored under content-addressed names and listed in `files`, the summary's
+ * `standing` and what is `in_error`, and the `overrides`, `marks`,
+ * `provider_state` and `linked` MD5s they were made from. `linked`
  * follows medrec's own rule: a person with a birth date and their
  * guardians, both ways. `views` limits it to some of them.
  */
@@ -155,6 +170,15 @@ export function addDerived(root: string, folder: 'records' | 'large' | 'labels',
       const sum = createHash('md5').update(body).digest('hex');
       writeFileSync(join(root, personDir(p.id) + storedName(view, sum)), body);
       v.files[view] = sum;
+      if (view === 'standing.json') {
+        const standing = JSON.parse(body.toString('utf8')) as StandingView;
+        if (standing.in_error) v.in_error = standing.in_error;
+        const summary = JSON.parse(readFileSync(join(root, personDir(p.id) + storedName('summary.json', v.files['summary.json']!)), 'utf8')) as SummaryView;
+        const idx = JSON.parse(readFileSync(join(root, p.folder, 'index.json'), 'utf8')) as PersonIndex;
+        const text = JSON.stringify({ ...summary, standing: standingLines(h as unknown as Household, p as unknown as Person, idx, standing) });
+        v.files['summary.json'] = createHash('md5').update(text).digest('hex');
+        writeFileSync(join(root, personDir(p.id) + storedName('summary.json', v.files['summary.json'])), text);
+      }
     }
     v.overrides = md5(join(root, p.folder, 'overrides.json'));
     v.marks = md5(join(root, p.folder, 'marks.json'));
@@ -183,8 +207,8 @@ export function addCodeNames(root: string, folder: 'records' | 'large'): void {
 
 /**
  * The files read whole, with what only medrec's views say beside them: the
- * private items, bill standing and provider labels medrec wrote for `folder`
- * (test/fixtures/private, bills and providers). The parity test's files pass,
+ * private items, bill standing, provider labels and the sources' words medrec
+ * wrote for `folder` (test/fixtures/private, bills, providers and standing). The parity test's files pass,
  * so it checks the tools' answers from the files, privacy and payments
  * included, against medrec's.
  */
@@ -198,7 +222,7 @@ export class RawWithDerived extends RawStore {
     super(folder);
   }
 
-  private fixture<T>(view: 'private' | 'bills' | 'code-names' | 'providers', p: Person): T | undefined {
+  private fixture<T>(view: 'private' | 'bills' | 'code-names' | 'providers' | 'standing', p: Person): T | undefined {
     const index = this.root === undefined ? undefined : join(this.root, VIEWS_INDEX);
     const sum = index !== undefined && existsSync(index) ? (JSON.parse(readFileSync(index, 'utf8')) as ViewsIndex).people[p.id]?.files[`${view}.json`] : undefined;
     const file = sum !== undefined ? join(this.root!, personDir(p.id) + storedName(`${view}.json`, sum)) : join(import.meta.dirname, 'fixtures', view, this.which, `${p.id}.json`);
@@ -210,9 +234,9 @@ export class RawWithDerived extends RawStore {
     return v ? privacyOf(v) : super.privacy(h, p);
   }
 
-  override async bills(_h: Household, p: Person): Promise<ReadonlyMap<string, Standing> | null> {
+  override async bills(_h: Household, p: Person): Promise<Bills | null> {
     const v = this.fixture<BillsView>('bills', p);
-    return v ? standingOf(v) : null;
+    return v ? billsOf(v) : null;
   }
 
   override async codeNames(_h: Household, p: Person): Promise<CodeNames> {
@@ -223,6 +247,17 @@ export class RawWithDerived extends RawStore {
   override async providerLabels(_h: Household, p: Person): Promise<LabelsFile | null> {
     const v = this.fixture<ProvidersView>('providers', p);
     return v ? { size: JSON.stringify(v).length, read: async () => providerLabelsOf(v, p.id) } : null;
+  }
+
+  override async standings(_h: Household, p: Person): Promise<Standings | null> {
+    const v = this.fixture<StandingView>('standing', p);
+    return v ? standingsOf(v, p.id) : null;
+  }
+
+  override async summary(h: Household, p: Person, today: string, perList: number): Promise<Summary> {
+    const s = await super.summary(h, p, today, perList);
+    const v = this.fixture<StandingView>('standing', p);
+    return v ? { ...s, standing: standingLines(h, p, await this.index(h, p), v) } : s;
   }
 }
 
@@ -294,6 +329,76 @@ export function labelClaims(root: string, others: number): number[] {
     writeFileSync(join(root, personDir(p.id) + storedName('providers.json', sum)), body);
     v.files['providers.json'] = sum;
     sizes.push(body.length);
+  }
+  writeFileSync(at, JSON.stringify(index));
+  return sizes;
+}
+
+/**
+ * Gives every `every`-th claim and bill of each person a private part, a
+ * stretch of its text, in their private.json and search-parts.json, as medrec
+ * would list them, for measuring a household with private parts.
+ */
+export function markParts(root: string, every: number): number[] {
+  const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string }[] };
+  const at = join(root, VIEWS_INDEX);
+  const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
+  const sizes: number[] = [];
+  for (const p of h.people) {
+    const v = index.people[p.id]!;
+    const read = (name: string) => readFileSync(join(root, personDir(p.id) + storedName(name, v.files[name]!)));
+    const write = (name: string, view: unknown) => {
+      const body = JSON.stringify(view);
+      v.files[name] = createHash('md5').update(body).digest('hex');
+      writeFileSync(join(root, personDir(p.id) + storedName(name, v.files[name]!)), body);
+      return body.length;
+    };
+    const items = read('search-items.bin');
+    const n = items.readUInt32LE(0);
+    const hay = Buffer.concat(Array.from({ length: Math.ceil(n / HAY_ITEMS) }, (_, k) => read(`search-hay-${k}.bin`)));
+    const priv = JSON.parse(read('private.json').toString()) as PrivateView & { parts?: JsonObject };
+    const parts: JsonObject = {};
+    const search: JsonObject = {};
+    const counted = (text: string) => {
+      const starts = wordStarts(text);
+      const seen = new Map<string, [number, number]>();
+      for (const [i, w] of fold(text).split(' ').entries()) {
+        const held = seen.get(w);
+        if (held) held[0]++;
+        else seen.set(w, [1, starts[i]!]);
+      }
+      return seen;
+    };
+    let nth = 0;
+    for (let ord = 0; ord < n; ord++) {
+      const [, kind, id, title] = JSON.parse(items.subarray(ITEMS_HEADER(n) + items.readUInt32LE(4 * (2 + n + ord)), ITEMS_HEADER(n) + items.readUInt32LE(4 * (3 + n + ord))).toString()) as [string | null, string, string, string];
+      if ((kind !== 'claim' && kind !== 'document') || priv.records?.[id] || priv.documents?.[id] || nth++ % every !== 0) continue;
+      const own = hay.subarray(items.readUInt32LE(4 * (1 + ord)), items.readUInt32LE(4 * (2 + ord)));
+      const text = own.toString();
+      const line = text.indexOf('\n') + 1;
+      const words = [...text.slice(line).matchAll(/ /g)].map((m) => line + m.index);
+      if (words.length < 12) continue;
+      const bytes = (i: number) => Buffer.byteLength(text.slice(0, i));
+      const from = words[2]!;
+      const to = words[9]!;
+      const display = kind === 'claim' ? `Shown · ${title}` : title;
+      const cuts = [...(kind === 'claim' ? [[0, bytes(line)]] : []), [bytes(from), bytes(to) - bytes(from)]];
+      const open = `${kind === 'claim' ? `${display}\n` : text.slice(0, line)}${text.slice(line, from)}${text.slice(to)}`;
+      const before = counted(text);
+      const after = counted(open);
+      const moved = (b: number) => b - cuts.reduce((sum, [start, length]) => sum + (start! + length! <= b ? length! : 0), 0) + (kind === 'claim' ? Buffer.byteLength(display) + 1 : 0);
+      const said: JsonObject = {};
+      for (const [w, [count, first]] of before) {
+        const is = after.get(w);
+        if (!is) said[w] = [0];
+        else if (is[0] !== count || is[1] !== moved(first)) said[w] = is;
+      }
+      for (const [w, is] of after) if (!before.has(w)) said[w] = is;
+      parts[id] = kind === 'claim' ? { display, lines: [0], says: '1 service not shown' } : { text: [[0, 1]], says: '1 line not shown' };
+      search[ord] = { cuts, words: said };
+    }
+    write('private.json', { ...priv, parts: { ...(priv.parts as JsonObject | undefined), ...parts } });
+    sizes.push(write('search-parts.json', search));
   }
   writeFileSync(at, JSON.stringify(index));
   return sizes;
