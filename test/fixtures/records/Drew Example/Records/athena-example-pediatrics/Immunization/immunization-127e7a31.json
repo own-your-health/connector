@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-127e7a31","meta":{"lastUpdated":"2023-04-18T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"116"}],"text":"Rotavirus, pentavalent"},"occurrenceDateTime":"2023-04-18","route":{"text":"Oral"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

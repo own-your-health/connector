@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-3d784ab7","meta":{"lastUpdated":"2019-01-07T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"03"}],"text":"MMR"},"occurrenceDateTime":"2019-01-07","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}

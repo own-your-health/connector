@@ -1,0 +1,31 @@
+{
+  "schema": "medrec-request/v1",
+  "id": "x_ravenr3s44lucbt35t23",
+  "requested_at": "2026-11-22T16:56:00Z",
+  "scope": {
+    "source": "s_aahmerhqirkxersh34ic"
+  },
+  "requested_by": {
+    "email": "robin@example.com",
+    "name": "Robin Example"
+  },
+  "app": {
+    "name": "own-your-health-app",
+    "version": "0.1.0"
+  },
+  "handled": {
+    "picked_up_at": "2026-11-22T17:00:00Z",
+    "finished_at": "2026-11-22T17:00:00Z",
+    "outcome": "ok",
+    "sources": [
+      {
+        "source": "s_aahmerhqirkxersh34ic",
+        "outcome": "ok",
+        "attempt": "t_avkfuyhmzubicvf4hlnb",
+        "next_allowed_at": "2026-11-22T17:15:00Z"
+      }
+    ],
+    "message": "1 source imported",
+    "by": "medrec 0.9.7"
+  }
+}

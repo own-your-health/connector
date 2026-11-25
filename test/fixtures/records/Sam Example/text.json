@@ -1,10 +1,10 @@
 {
   "schema": "medrec-text/v1",
-  "person": "p_wwezzed7kml67hnp6s7n",
+  "person": "p_74kjconqhpreh6ybsgna",
   "texts": {
-    "d_x3qad3sdurwcpiioun23": "Sports medicine visit with Dr. Casey Placeholder. Right ankle sprain while running. X-ray of the ankle shows no fracture. Brace, ice and rest for two weeks, then physical therapy exercises.",
-    "d_egwxdwkc3pbo3ensizj3": "Statement date 08/01/2026. Guarantor account # EX-000000. Balance due $120.00. Due date 08/31/2026.",
-    "d_aipiyvveklwqqrz7ejff": "Knee procedure 08/26/2026. Statement date 09/21/2026. Account ****2222. Amount due $175.00. Please pay by 10/21/2026.",
-    "d_d6i3awfvotrthuovzda3": "Knee scope 08/26/2026. Went home the same day on crutches. Keep the dressing dry for three days. Start physical therapy in one week."
+    "d_6ksrordtp2eowigea4z5": "Statement from Example Endoscopy Center\n\nService date: 09/16/2026\nStatement date: 10/05/2026\nAccount number: ****3333\nAmount due: $90.50\nPlease pay by: 11/04/2026\nQuestions? Call 555-010-0188\n",
+    "d_aff5qzzccpct4657cdz4": "After your upper endoscopy\n\nExample Endoscopy Center, 09/16/2026\nSoft foods today. Do not drive until tomorrow.\n\n\f\nCall us if\n\nYou have a fever, or pain that does not ease.\nThe biopsy result takes about a week.\n",
+    "d_l6ncvagd3milns3ps7fv": "Statement from Example Billing\n\nService date: 07/09/2026\nStatement date: 08/01/2026\nGuarantor account #: EX-000000\nBalance due: $120.00\nDue date: 08/31/2026\n",
+    "d_qvqjo7pe6npdhkerqm7k": "Sports medicine visit note\n\nExample Health Orthopedics, 05/20/2026, Dr. Casey Placeholder.\nRight ankle sprain while running.\nX-ray of the ankle shows no fracture.\n\n\f\nPlan\n\nBrace, ice and rest for two weeks, then physical therapy exercises.\n"
   }
 }

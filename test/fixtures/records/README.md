@@ -1,24 +1,16 @@
 # Sample records
 
-A synthetic medrec records folder for the app’s demo mode and tests. Every person, organization and value in it is invented.
+A synthetic medrec records folder for the tests. Every person, organization and value in it is invented. medrec 0.9.7 wrote every file of it, from raw invented FHIR, papers and images, by
 
-The base is [own-your-health/app](https://github.com/own-your-health/app) `public/demo` at 112a287, without its views and manifest. Added for medrec 0.9.0's events:
+```sh
+MEDREC=<medrec 0.9.7> node scripts/records.mjs <own-your-health/app at d897428> <a new folder>
+```
 
-- Robin: an ER trip with only the hospital's claim (2025-11-06), a pharmacy claim (2026-07-21), and two office visits and a lab claim on one day (2026-05-12), the lab fitting either visit;
-- Sam: a hospital stay (2026-07-27 to 07-30) with the hospital's, a doctor's and an anesthesiologist's claims, Jamie's birth among it;
-- Jamie: two newborn-care claims during that stay;
-- the plan as a source for Sam and Jamie, and a raw file under `Records/` for each new claim. The tests compare this connector's answers over it with `medrec mcp`'s (`test/golden/`).
+but for Casey's `marks.json`, which does not read, on purpose. The same sources give the same bytes. The base is [own-your-health/app](https://github.com/own-your-health/app) `public/demo` at d897428, without its views and manifest. `scripts/records/more.mjs` adds, for what this connector's tests need of medrec's contract:
 
-Added for medrec 0.9.3's private items and 0.9.5's linked documents and studies:
+- **Events**: Robin's ER trip with only the hospital's claim (2026-02-14); two office visits and a lab claim on one day (2026-06-16), the lab fitting either; Sam's hospital stay (2024-04-08 to 04-11), in which Jamie was born, and Jamie's claim in it.
+- **Private items and payments**: Robin's condition by its code, medicine by its name and result by its test; a record system whose records are all of one area (its visits, one with its claim in one event, and an older potassium result, a series whose latest is not private); a claim's paper; a letter from a practice whose name says its area; two imaging studies with reports, one report from such a practice; the household's private marks on the latex allergy and on a middle potassium result; payments of Sam's in full and of Robin's in part on two bills, one of them past due as of 2026-11-24; Casey's `marks.json`.
+- **Source names**: one sign-in key (CLI, organization, FHIR base) with two of Casey's sources and one of Robin's, each with a name and a patient of its own, and a source of Casey's with no name. Two of Casey's visits were filed by a load of each patient's own, two by loads of both at one moment, so that two names are left, and one from the source with no name.
+- **Views**: none. `scripts/derived.mjs` and `scripts/golden.mjs` make them.
 
-- Robin: a mental health condition and medicine, a sexual-health test, a visit from a behavioral-health record system, a claim and its portal visit in one private event, a letter from a counseling practice, an older potassium result from that practice (a series whose latest result is not private), and two imaging studies with their reports: one whose report a private visit links, and one that nothing makes private;
-- Robin's `marks.json`: the household's private marks on the latex allergy and on a middle potassium result;
-- Casey: a person with two records and a `marks.json` that does not read, on purpose;
-- payments the household marked: Sam's `marks.json` pays their first bill in full, and Robin's pays part of two, one of them past due.
-
-Added for medrec 0.9.6's source names:
-
-- one sign-in key (CLI, organization, FHIR base) with two of Casey's sources and one of Robin's, each with a name and a patient of its own, and a source of Casey's with no name;
-- Casey: an office visit filed by each of two import runs, whose patients tell the sources apart; one that no run filed, so that two names are left; and one from the source with no name.
-
-After changing this folder, run `node scripts/derived.mjs` and `node scripts/golden.mjs` with medrec 0.9.6 on `PATH`.
+After changing this folder, run `node scripts/derived.mjs` and `node scripts/golden.mjs` with the medrec the tests compare with on `PATH`, and rebuild `test/fixtures/code-names` (its README).

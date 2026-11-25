@@ -1,18 +1,18 @@
 {
   "schema": "medrec-text/v1",
-  "person": "p_xo4em46i7yj3hphlpajo",
+  "person": "p_wu3emtceodvtbhsakubm",
   "texts": {
-    "d_yxneikjpr2ku6f473zde": "Explanation of Benefits. Example Health, office visit 10/01/2026. Amount billed $412.00. Plan paid $214.72. You may owe the provider $53.68.",
-    "d_76ujctibnfxzik6dlxdr": "Visit summary. Annual physical with Dr. Jordan Sample. Discussed home blood pressure readings and continuing lisinopril. LDL cholesterol is lower than last year. Influenza vaccine given today. Return in twelve months.",
-    "d_yln4rknhb7kdpgotfnme": "Lipid panel, fasting 12 hours. LDL cholesterol 104 mg/dL. Total cholesterol 176 mg/dL. HDL 51 mg/dL. Triglycerides 117 mg/dL.",
-    "d_pv57tjsi5ot4237rjcdf": "Statement date 10/20/2026. Account number ****0000. Amount due $53.68. Please pay by 11/19/2026.",
-    "d_hzeiaz4ooaflblkav63m": "Statement date 04/02/2025. Account number ****0000. Amount due $51.18. Please pay by 05/02/2025.",
-    "d_zzo4v2idv4mi6fkh7s2b": "Payment received 04/20/2025. Account ****0000. Amount paid $51.18. Thank you.",
-    "d_kbw3kvi6dmg664qsv4aa": "Statement date 10/28/2026. Account # ****1111. Balance due $19.28. Due date 11/27/2026.",
-    "d_t35vywrysx5zuezwtnki": "Vaccination record. Tdap 02/11/2024.",
-    "d_giwq36ury7q3rqb6d52e": "Basic metabolic panel. Potassium 5.4 mmol/L (high). Creatinine 0.9 mg/dL.",
-    "d_counselingletteraaaa": "Example Counseling Center. February 3, 2026. To whom it may concern: Robin Example attends monthly sessions with our practice. Morgan Sample.",
-    "d_brainreportaaaaaaaaa": "Example Imaging. MR brain without contrast, January 20, 2026. No acute findings. Reviewed by Robin Placeholder, MD.",
-    "d_wristreportaaaaaaaaa": "Example Imaging. XR wrist, 2 views, July 8, 2025. No fracture. Reviewed by Robin Placeholder, MD."
+    "d_2y6bxadn3veauhu236se": "Statement from Example Lab\n\nStatement date: 10/28/2026\nAccount number: ****1111\nBalance due: $19.28\nDue date: 11/27/2026\n",
+    "d_56qj5csieyqb4qnz3k7x": "X-ray of the left wrist\n\nExample Imaging, 07/08/2025.\nNo fracture.\n",
+    "d_5mhuvdpnbpuupjpd5uzt": "Ultrasound\n\nExample Sexual Health Clinic, 12/03/2025.\nBoth sides normal.\n",
+    "d_73v3nrasyku7ji4sa7yg": "Letter\n\nExample Counseling, 08/10/2026.\nAppointments continue every three months.\n",
+    "d_ed77tdsyv3cefrcssmyn": "Explanation of Benefits\n\nThis is not a bill.\nExample Counseling, 05/07/2026.\nAmount billed $160.00.\nPlan paid $96.00.\nYou may owe the provider $24.00.\n",
+    "d_jep33j27sgd2dfemmge6": "Lipid panel\n\nCollected 10/01/2026, fasting 12 hours.\nLDL cholesterol 104 mg/dL.\nTotal cholesterol 176 mg/dL.\nHDL 51 mg/dL.\nTriglycerides 117 mg/dL.\n\n\f\nReference ranges\n\nLDL cholesterol under 130 mg/dL.\nTotal cholesterol under 200 mg/dL.\nHDL over 39 mg/dL.\nTriglycerides under 150 mg/dL.\n",
+    "d_kyaw3wzfcuunosib2qso": "After visit summary\n\nExample Health Main Clinic, 10/01/2026\nAnnual physical with Dr. Jordan Sample.\nDiscussed home blood pressure readings and continuing lisinopril.\n\n\f\nResults and vaccines\n\nLDL cholesterol is lower than last year.\nInfluenza vaccine given today.\n\n\f\nNext steps\n\nReturn in twelve months.\n",
+    "d_n7tnco6hig24uh7tdzn2": "Basic metabolic panel\n\nCollected 11/18/2026.\nPotassium 5.4 mmol/L (high).\nCreatinine 0.9 mg/dL.\n",
+    "d_o3lcuavdm7mdk6p7x2ac": "Explanation of Benefits\n\nThis is not a bill.\nExample Health, office visit 10/01/2026.\nAmount billed $412.00.\nPlan paid $214.72.\nYou may owe the provider $53.68.\n\n\f\nHow this was worked out\n\nYour plan covers 80% after the deductible.\n",
+    "d_r5pxijgihjzmwvykzr4e": "Statement from Example Health\n\nStatement date: 04/02/2025\nAccount number: ****0000\nAmount due: $51.18\nPlease pay by: 05/02/2025\n",
+    "d_vsx4afcrxddexluzqfrz": "Statement from Example Health\n\nService date: 10/01/2026\nStatement date: 10/20/2026\nAccount number: ****0000\nAmount due: $53.68\nPlease pay by: 11/19/2026\nQuestions? Call 555-010-0155\n",
+    "d_whk3w4z3vwf4geamzkh5": "Payment receipt\n\nExample Health\nPayment date: 04/20/2025\nAccount number: ****0000\nAmount paid: $51.18\nThank you.\n"
   }
 }

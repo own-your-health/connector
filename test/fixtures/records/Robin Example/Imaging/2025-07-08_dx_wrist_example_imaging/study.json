@@ -1,0 +1,55 @@
+{
+  "schema": "medrec-study/v1",
+  "person": "p_wu3emtceodvtbhsakubm",
+  "id": "m_ev2irkorda5axo73dm3t",
+  "study_uid": "2.25.400000000000000000000000000000001",
+  "path": "Robin Example/Imaging/2025-07-08_dx_wrist_example_imaging",
+  "date": "2025-07-08",
+  "modalities": [
+    "DX"
+  ],
+  "body_part": "WRIST",
+  "description": "WRIST LEFT",
+  "facility": "Example Imaging",
+  "accession": "EX001",
+  "series": [
+    {
+      "uid": "2.25.500000000000000000000000000000011",
+      "number": 1,
+      "modality": "DX",
+      "description": "AP",
+      "instances": {
+        "2.25.600000000000000000000000000000011": "S001/00001.dcm"
+      }
+    },
+    {
+      "uid": "2.25.500000000000000000000000000000012",
+      "number": 2,
+      "modality": "DX",
+      "description": "Lateral",
+      "instances": {
+        "2.25.600000000000000000000000000000012": "S002/00001.dcm"
+      }
+    }
+  ],
+  "instances": 2,
+  "size": 3470,
+  "report": "d_56qj5csieyqb4qnz3k7x",
+  "files": {
+    "S001/00001.dcm": "a0bf39097fa74db4e108c3227e250e29",
+    "S002/00001.dcm": "cfc5443126b9ef2abb6acde7d4212f24"
+  },
+  "filed_at": "2026-11-22T19:58:19Z",
+  "provenance": [
+    {
+      "source": {
+        "kind": "media"
+      },
+      "method": "media",
+      "filed_at": "2026-11-22T19:58:19Z",
+      "raw_path": "Robin Example/Imaging/2025-07-08_dx_wrist_example_imaging",
+      "classified_by": "hand",
+      "filed_by": "medrec 0.9.7"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"resourceType":"Immunization","id":"immunization-196df31a","meta":{"lastUpdated":"2024-10-15T08:00:00Z"},"status":"completed","vaccineCode":{"coding":[{"system":"http://hl7.org/fhir/sid/cvx","code":"146"}],"text":"DTaP-IPV-Hib-HepB"},"occurrenceDateTime":"2024-10-15","route":{"text":"Intramuscular"},"performer":[{"actor":{"display":"Example Pediatrics"}}]}
