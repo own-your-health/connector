@@ -1,0 +1,398 @@
+{
+  "about": "Made-up sample data: every person, organization, CLI, address, id and date in it is invented.",
+  "person": "p_robinrobinrobinrobin",
+  "household": {
+    "schema": "medrec-household/v1",
+    "format": 1,
+    "people": [
+      { "id": "p_robinrobinrobinrobin", "name": "Robin Example", "folder": "robin", "adult": true },
+      { "id": "p_samsamsamsamsamsam22", "name": "Sam Example", "folder": "sam", "adult": true },
+      { "id": "p_kimkimkimkimkimkim22", "name": "Kim Example", "folder": "kim", "adult": true },
+      { "id": "p_leeleeleeleeleelee22", "name": "Lee Example", "folder": "lee", "adult": true },
+      { "id": "p_maxmaxmaxmaxmaxmax22", "name": "Max Example", "folder": "max", "adult": true }
+    ]
+  },
+  "record": { "id": "r_examplerecordexample", "kind": "result", "date": "2026-02-01", "display": "Example level" },
+  "bases": {
+    "one": "https://one.example.test/fhir",
+    "one with a final slash": "https://one.example.test/fhir/",
+    "two": "https://two.example.test/fhir"
+  },
+  "cases": {
+    "one source": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "sources of one name": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "a connection's name beside its practices'": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Records Link (all practices)", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-4" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "the first has no name": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": null, "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "the last has no name": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "a blank name": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "  ", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "space around a name": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": " Example Hill Clinic ", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "space around some of the names": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic ", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": " Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+
+    "other people's sources beside": {
+      "person": "p_samsamsamsamsamsam22",
+      "sources": [
+        { "person": "p_kimkimkimkimkimkim22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Grove Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-5" },
+        { "person": "p_leeleeleeleeleelee22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Field Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-6" },
+        { "person": "p_samsamsamsamsamsam22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Valley Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-4" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" } }]
+    },
+    "only other people's sources": {
+      "person": "p_samsamsamsamsamsam22",
+      "sources": [
+        { "person": "p_kimkimkimkimkimkim22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Grove Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-5" },
+        { "person": "p_leeleeleeleeleelee22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Grove Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-6" },
+        { "person": "p_maxmaxmaxmaxmaxmax22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Grove Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-7" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" } }]
+    },
+    "only a source with no person": {
+      "sources": [{ "cli": "portal-d", "organization": "link-4", "organization_name": "Example Dale Clinic", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-d", "organization_id": "link-4", "fhir_base": "https://three.example.test/fhir" } }]
+    },
+    "only an entry of organizations": {
+      "organizations": [{ "id": "link-1", "name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir" }],
+      "sources": [],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "no list of sources": {
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+
+    "another CLI's source beside": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-c", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "another organization's source beside": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-3", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "a source at another base beside": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "sources with no base beside": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": null, "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "patient_id": "pat-3" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "a final slash on the record's base": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir/" } }]
+    },
+    "a final slash on the source's base": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir/", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "several final slashes on the record's base": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir///" } }]
+    },
+    "a record with an empty base and a source with none": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "" } }]
+    },
+    "a record with no base": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1" } }]
+    },
+    "a record with a null base": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": null } }]
+    },
+    "a record with no base, and a name at each of three": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1" } }]
+    },
+
+    "filed by one patient's run": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-04-01T10:00:00Z", "pulled_at": "2026-04-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-04-01T10:00:00Z" }]
+    },
+    "filed by one patient's run, read by another's": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-04-01T10:00:00Z", "pulled_at": "2026-04-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-04-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "filed for two patients, read for one": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "filed for two patients, read for one of them and a third": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" },
+        { "imported_at": "2026-04-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-3" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "filed for two patients, read for neither": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "filed and read for two patients": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "filed by no run, read by one": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-04-01T10:00:00Z", "pulled_at": "2026-04-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-04-01T09:00:00Z", "filed_at": "2026-05-01T10:00:00Z" }]
+    },
+    "filed by no run, read for two patients": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-04-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-05-01T10:00:00Z" }]
+    },
+    "filed and read by no run": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [{ "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-05-01T10:00:00Z" }]
+    },
+    "a record and a run that do not say when they were read": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [{ "imported_at": "2026-03-01T10:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "filed_at": "2026-05-01T10:00:00Z" }]
+    },
+    "another CLI's run at the same moment": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-c", "organization": "link-1", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "another organization's run at the same moment": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a", "organization": "link-3", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "a CLI and organization that read alike run together": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "22", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "22", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "22", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a2", "organization": "2", "patient_id": "pat-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "22", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "22", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "a run with no patient beside": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a", "organization": "link-1" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "two runs of one patient": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-2" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-3" }
+      ],
+      "imports": [
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T08:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" },
+        { "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-2" }
+      ],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-05-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "a patient only another person's source has": {
+      "person": "p_samsamsamsamsamsam22",
+      "sources": [
+        { "person": "p_samsamsamsamsamsam22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Valley Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-4" },
+        { "person": "p_kimkimkimkimkimkim22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Grove Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-5" },
+        { "person": "p_leeleeleeleeleelee22", "cli": "portal-b", "organization": "link-2", "organization_name": "Example Field Clinic", "fhir_base": "https://two.example.test/fhir", "patient_id": "pat-6" }
+      ],
+      "imports": [{ "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-b", "organization": "link-2", "patient_id": "pat-5" }],
+      "provenance": [{ "source": { "cli": "portal-b", "organization_id": "link-2", "fhir_base": "https://two.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+    "sources with no patient beside": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Lake Clinic", "fhir_base": "https://one.example.test/fhir" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Moor Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": null }
+      ],
+      "imports": [{ "imported_at": "2026-03-01T10:00:00Z", "pulled_at": "2026-03-01T09:00:00Z", "cli": "portal-a", "organization": "link-1", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" }, "fetched_at": "2026-03-01T09:00:00Z", "filed_at": "2026-03-01T10:00:00Z" }]
+    },
+
+    "no CLI": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "a null CLI": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": null, "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": null, "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "no organization": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "a null organization": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": null, "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": [{ "source": { "cli": "portal-a", "organization_id": null, "fhir_base": "https://one.example.test/fhir" } }]
+    },
+    "no provenance": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }]
+    },
+    "an empty provenance": {
+      "sources": [{ "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" }],
+      "provenance": []
+    },
+    "two provenances": {
+      "sources": [
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-a", "organization": "link-1", "organization_name": "Example Hill Clinic", "fhir_base": "https://one.example.test/fhir", "patient_id": "pat-1" },
+        { "person": "p_robinrobinrobinrobin", "cli": "portal-c", "organization": "link-3", "organization_name": "Example Lake Clinic", "fhir_base": "https://three.example.test/fhir", "patient_id": "pat-2" }
+      ],
+      "provenance": [
+        { "source": { "cli": "portal-a", "organization_id": "link-1", "fhir_base": "https://one.example.test/fhir" } },
+        { "source": { "cli": "portal-c", "organization_id": "link-3", "fhir_base": "https://three.example.test/fhir" } }
+      ]
+    }
+  }
+}
