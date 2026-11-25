@@ -7,6 +7,7 @@
 
 import type { Json, JsonObject } from './model';
 import { isObject } from './numbers';
+import { trim } from './text';
 
 export const PROVIDERS_SCHEMA = 'medrec-providers/v1';
 
@@ -18,6 +19,8 @@ export interface Printed {
   field: (typeof FIELDS)[number] | 'organization' | 'place' | 'clinicians' | 'members';
   /** Its words. Only a claim's provider may have none, where a reader shows the claim without its fields. */
   text?: string;
+  /** The title that says it, where there are none: what the claim paid for, ` · ` and its provider, or the provider alone. */
+  title?: string;
   /** The event member that prints it, when the item itself does not. */
   member?: string;
   /** Whether the item says it by itself, so that the label does not have to. */
@@ -41,8 +44,10 @@ export function printedOfClaim(fields: JsonObject | null | undefined): Printed[]
   return text === undefined ? [] : [{ field: 'provider', text, shown: false }];
 }
 
-/** The same of a claim whose fields are not at hand. */
-export const CLAIM_PROVIDER: readonly Printed[] = [{ field: 'provider', shown: false }];
+/** The same of a claim whose fields are not at hand, by its title. */
+export function printedOfTitle(title: string): Printed[] {
+  return [{ field: 'provider', title, shown: false }];
+}
 
 export function printedOfDocument(organization: string | null | undefined): Printed[] {
   return typeof organization === 'string' ? [{ field: 'organization', text: organization, shown: true }] : [];
@@ -103,6 +108,16 @@ class Part {
     return str(own(object(own(this.byItem, item)), p.text)) ?? str(own(this.byName, p.text));
   }
 
+  /** What a claim that has this label prints, by its title; undefined when the title does not say which of several it is. */
+  text(item: string, id: string, title: string): string | undefined {
+    const its = object(own(this.byItem, item));
+    const of = (by: Record<string, unknown>) => Object.keys(by).filter((n) => by[n] === id);
+    const names = [...of(its), ...of(this.byName).filter((n) => !Object.hasOwn(its, n))];
+    if (names.length === 1) return names[0];
+    const said = names.filter((n) => title === trim(n) || title.endsWith(` · ${trim(n)}`));
+    return said.length === 1 ? said[0] : undefined;
+  }
+
   label(id: string): Record<string, unknown> | undefined {
     const l = own(this.labels, id);
     return typeof l === 'object' && l !== null && !Array.isArray(l) ? (l as Record<string, unknown>) : undefined;
@@ -135,14 +150,15 @@ export class ProviderLabels {
       const key = `${id}\0${p.text ?? ''}`;
       if (had.has(key)) continue;
       had.add(key);
-      const entry = this.entry(p, label, asked.whole, hides);
+      const text = () => p.text ?? (p.title === undefined ? undefined : part.text(at, id!, p.title));
+      const entry = this.entry(p, text, label, asked.whole, hides);
       if (entry) out.push(entry);
     }
     return out;
   }
 
   /** None for a likely one whose every reason is one the answer may not give. */
-  private entry(p: Printed, label: Record<string, unknown>, whole: boolean, hides: (id: string) => boolean): JsonObject | undefined {
+  private entry(p: Printed, textOf: () => string | undefined, label: Record<string, unknown>, whole: boolean, hides: (id: string) => boolean): JsonObject | undefined {
     // What gave it: with the ids the answer may not give, none.
     const from = (v: Record<string, unknown>, keys: readonly string[]): JsonObject | undefined => {
       const kind = str(v.from);
@@ -158,11 +174,13 @@ export class ProviderLabels {
       for (const k of keys) if (typeof v[k] === 'string') out[k] = v[k];
       return out;
     };
+    const reasons = (Array.isArray(label.evidence) ? label.evidence : []).map(object);
+    // A label has one for each text whose first name told; this text's is why it is this text's.
+    const told = reasons.filter((v) => v.from === 'first_name');
+    const text = told.length > 1 ? textOf() : undefined;
+    const others = text !== undefined && told.some((v) => v.printed === text) ? told.filter((v) => v.printed !== text) : [];
     // One a later medrec knows has no words here.
-    const evidence = (Array.isArray(label.evidence) ? label.evidence : []).flatMap((e) => {
-      const v = object(e);
-      return from(v, EVIDENCE.get(v.from) ?? []) ?? [];
-    });
+    const evidence = reasons.filter((v) => !others.includes(v)).flatMap((v) => from(v, EVIDENCE.get(v.from) ?? []) ?? []);
     // One medrec does not know is likely.
     const confidence = label.confidence === 'household' || label.confidence === 'sure' ? label.confidence : 'likely';
     if (confidence === 'likely' && evidence.length === 0) return undefined;
@@ -188,6 +206,7 @@ export class ProviderLabels {
 /** What each kind of evidence, and of where a phone is from, says beside its `from`. */
 const EVIDENCE: ReadonlyMap<unknown, readonly string[]> = new Map([
   ['only_match', ['state']],
+  ['first_name', ['state', 'city', 'printed']],
   ['paper', ['document']],
   ['household', ['id', 'by', 'at']],
 ]);

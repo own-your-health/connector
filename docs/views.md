@@ -442,6 +442,12 @@ The label stands beside the source's own words. A likely one whose every
 reason is left out (below) is left out too, a confidence the reader does not
 know is likely, and a phone is shown only with where it is from.
 
+A label that a first name told apart (`first_name`, medrec 0.9.8 and later)
+says which printed text did, once for each text that shares the label. A reader
+shows a text its own, and all of them for a text that has none. A claim on the
+timeline has no fields, so this connector takes the one of the label's texts
+that the claim's title ends with.
+
 An answer about the whole household uses nothing of `private`. It gives no
 label to a private item, even one it names, to one whose person's private items
 are not known, or to anything an event prints when that event is such an item.

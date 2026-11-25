@@ -12,7 +12,7 @@ import { ToolError } from '../src/mcp/errors';
 import { ENVELOPE_RESERVE, SIZE_BUDGET, chars } from '../src/mcp/shape';
 import { Folder, ParsedCache } from '../src/records/folder';
 import type { JsonObject } from '../src/records/model';
-import { CLAIM_PROVIDER, NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, providerLabelsOf, type Printed } from '../src/records/provider-labels';
+import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, providerLabelsOf, type Printed } from '../src/records/provider-labels';
 import { RawStore } from '../src/records/store';
 import { callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
@@ -50,6 +50,45 @@ describe("a person's labels", () => {
       },
     ]);
     expect(Object.keys(shown(VISIT, 'J SAMPLE', true)[0]!)).toEqual(['field', 'printed', 'name', 'role', 'phone', 'phone_from', 'confidence', 'evidence']);
+  });
+
+  it('have the text they came from, where a first name was what told', () => {
+    const first = (printed: string) => ({ from: 'first_name', state: 'FL', city: 'Exampleton', printed });
+    const of = (text: string) => shown(VISIT, text, true)[0]!;
+    expect([of('Drew Specimen, MD').confidence, of('Drew Specimen, MD').evidence]).toEqual(['likely', [first('Drew Specimen, MD')]]);
+    // Another text of the same provider is not why; a text said to be the same provider's has the text that was.
+    expect(of('SPECIMEN, DREW MD').evidence).toEqual([first('SPECIMEN, DREW MD')]);
+    expect(of('D SPECIMEN').evidence).toEqual([first('Drew Specimen, MD'), first('SPECIMEN, DREW MD')]);
+  });
+
+  it("have it for a claim without its fields too, by the claim's title", () => {
+    const first = (printed: string) => ({ from: 'first_name', printed });
+    const label = { name: 'A', confidence: 'likely', evidence: [first('Ann A'), { from: 'only_match', state: 'FL' }, first('A, ANN')] };
+    const view = (v: object) => providerLabelsOf({ person: PERSON, labels: { v_a: label }, claims: { [VISIT]: 'v_a' }, ...v }, PERSON);
+    const of = (v: object, title: string) => listed(VISIT, printedOfTitle(title), true, view(v))[0]!.evidence;
+    const names = { by_name: { 'Ann A': 'v_a', 'A, ANN': 'v_a', 'ANN A': 'v_a', B: 'v_b' } };
+    const only = { from: 'only_match', state: 'FL' };
+    expect(of(names, 'Sample service \u00b7 Ann A')).toEqual([first('Ann A'), only]);
+    expect(of(names, 'A, ANN')).toEqual([only, first('A, ANN')]);
+    // A text that is not one that told, and a title that does not say which.
+    for (const title of ['Sample service \u00b7 ANN A', 'Sample service', 'Sample service \u00b7 XAnn A', 'Ann A \u00b7 Sample service']) expect(of(names, title), title).toEqual(label.evidence);
+    // The one text there is needs no title.
+    expect(of({ by_name: { 'A, ANN': 'v_a' } }, 'Sample service')).toEqual([only, first('A, ANN')]);
+    // An item's own texts come first: one the item has another label for is not it.
+    expect(of({ by_name: { 'Ann A': 'v_a', 'A, ANN': 'v_a' }, by_item: { [VISIT]: { 'Ann A': 'v_b' } } }, 'Sample service')).toEqual([only, first('A, ANN')]);
+    expect(of({ by_item: { [VISIT]: { 'Ann A': 'v_a', 'A, ANN': 'v_a' } } }, 'Sample service \u00b7  Ann A')).toEqual(label.evidence);
+    expect(of({ by_item: { [VISIT]: { ' Ann A ': 'v_a', 'A, ANN': 'v_a' } } }, 'Sample service \u00b7 Ann A')).toEqual(label.evidence);
+    expect(of({ by_item: { [VISIT]: { 'Ann A': 'v_a', 'A, ANN': 'v_a' } } }, 'Sample service \u00b7 Ann A')).toEqual([first('Ann A'), only]);
+    // A title has its provider trimmed.
+    const spaced = { ...label, evidence: [first(' Ann A '), first('A, ANN')] };
+    for (const title of ['Ann A', 'Sample service \u00b7 Ann A']) {
+      expect(of({ labels: { v_a: spaced }, by_name: { ' Ann A ': 'v_a', 'A, ANN': 'v_a' } }, title), title).toEqual([first(' Ann A ')]);
+      // So it does not say which of two that differ by that.
+      expect(of({ labels: { v_a: spaced }, by_name: { ' Ann A ': 'v_a', 'Ann A': 'v_a', 'A, ANN': 'v_a' } }, title), title).toEqual(spaced.evidence);
+    }
+    // A private one's are looked up in `private`.
+    const priv = providerLabelsOf({ person: PERSON, by_name: { 'Ann A': 'v_a' }, private: { labels: { v_a: label }, claims: { [TALK]: 'v_a' }, by_name: { 'Ann A': 'v_a', 'A, ANN': 'v_a' } } }, PERSON);
+    expect(listed(TALK, printedOfTitle('A, ANN'), false, priv)[0]!.evidence).toEqual([only, first('A, ANN')]);
   });
 
   it('are looked up exactly as printed, and by the item first', () => {
@@ -135,7 +174,7 @@ describe("a person's labels", () => {
 
   it("find a claim's provider without its words", () => {
     const claims = { person: PERSON, labels: { v_a: { name: 'A', confidence: 'sure', evidence: [] } }, claims: { [VISIT]: 'v_a' }, private: { claims: { [TALK]: 'v_a' } } };
-    const of = (item: string, whole: boolean) => listed(item, CLAIM_PROVIDER, whole, providerLabelsOf(claims, PERSON));
+    const of = (item: string, whole: boolean) => listed(item, printedOfTitle('Sample service'), whole, providerLabelsOf(claims, PERSON));
     const entry = { field: 'provider', name: 'A', confidence: 'sure', evidence: [] };
     expect(of(VISIT, true)).toEqual([entry]);
     expect(of(TALK, false)).toEqual([entry]);

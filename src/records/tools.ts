@@ -9,7 +9,7 @@ import { NO_NAMES, conditionKey, plainName, type CodeNames } from './code-names'
 import { LeftOut, type Warning } from './partial';
 import { Gate, names, type Privacy } from './private';
 import { eventOrder, recordOrder, searchHousehold, searchTerms, takeMerged, type Standing, type Store } from './store';
-import { CLAIM_PROVIDER, NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, type Printed, type ProviderLabels } from './provider-labels';
+import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, type Printed, type ProviderLabels } from './provider-labels';
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { isObject } from './numbers';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
@@ -681,7 +681,7 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     const events = top.map(({ p, x: e }) => marked(p, { kind: e.kind, person: e.person_name, date: e.date, title: clip(e.title, CLIP), detail: e.detail === undefined ? undefined : clip(e.detail, CLIP), source: e.source, id: e.id }));
     const cut = await addLabels(ctx, h, gate, household, page, events, (i) => {
       const { p, x: e } = top[i]!;
-      return { p, printed: e.kind === 'document' ? printedOfDocument(e.source) : e.kind === 'claim' ? CLAIM_PROVIDER : [] };
+      return { p, printed: e.kind === 'document' ? printedOfDocument(e.source) : e.kind === 'claim' ? printedOfTitle(e.title) : [] };
     });
     return gatedPage(page, gate, chosen, left, household, events, hint, { cut });
   } else {
