@@ -458,10 +458,12 @@ it answers by the same rule. An answer about one person looks a private item up
 in `private` alone, and takes its label from `private.labels`, then `labels`.
 
 Missing, stale or unreadable, it changes nothing else and gives no warning.
-This connector leaves out one of more than 256,000 bytes the same way, since
-its CPU could cost the answer. It reads it before the page is cut, for the people with a printed
-provider among the items the page can hold: claims, documents, bills and events,
-and any record in detail. The labels count in the page's size. An item keeps
+This connector reads at most 256,000 bytes of them for one answer, since the
+CPU of more could cost the answer: people's files in the household's order, each
+that has room, and the rest are left out the same way. It reads them before the
+page is cut, for the people with a printed provider among the items that fill
+the page without labels: claims, documents, bills and events, and any record in
+detail. The labels count in the page's size. An item keeps
 the first of its labels that fit a page beside it, and the
 `provider-labels-left-out` warning counts the items that lost any.
 

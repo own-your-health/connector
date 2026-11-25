@@ -143,6 +143,8 @@ export interface Store {
   codeNames(h: Household, p: Person): Promise<CodeNames>;
   /** Who the providers the person's items print are (providers.json, medrec 0.9.7 and later); none when missing or stale. */
   providerLabels(h: Household, p: Person): Promise<ProviderLabels>;
+  /** How many bytes `providerLabels` would read; a look costs no request. */
+  providerLabelsSize(h: Household, p: Person): Promise<number>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -261,6 +263,10 @@ export class RawStore implements Store {
   /** And who a printed provider is. */
   async providerLabels(_h: Household, _p: Person): Promise<ProviderLabels> {
     return NO_LABELS;
+  }
+
+  async providerLabelsSize(_h: Household, _p: Person): Promise<number> {
+    return 0;
   }
 
   household(): Promise<Household> {

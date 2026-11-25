@@ -8,18 +8,19 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { labelsFolder } from '../scripts/labels-folder.mjs';
+import { synth } from '../scripts/synth.mjs';
 import { ToolError } from '../src/mcp/errors';
 import { ENVELOPE_RESERVE, SIZE_BUDGET, chars } from '../src/mcp/shape';
 import { Folder, ParsedCache } from '../src/records/folder';
 import type { JsonObject } from '../src/records/model';
 import { NO_LABELS, printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, providerLabelsOf, type Printed } from '../src/records/provider-labels';
 import { RawStore } from '../src/records/store';
-import { callTool } from '../src/records/tools';
+import { LABELS_LIMIT, callTool } from '../src/records/tools';
 import { VIEWS_INDEX, personDir, storedName, type ViewsIndex } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
-import { LABELS_LIMIT, ViewsStore } from '../src/views/store';
+import { ViewsStore } from '../src/views/store';
 import reader from './fixtures/labels/reader.json';
-import { LocalSource, addDerived, folderAt } from './support';
+import { LocalSource, addDerived, folderAt, labelClaims } from './support';
 
 const PERSON = 'p_robinaaaaaaaaaaaaaaa';
 
@@ -294,14 +295,20 @@ describe("over medrec's own folder", () => {
     }
     return root;
   }
-  function put(root: string, v: unknown): void {
+  function put(root: string, v: unknown, person = PERSON): void {
     const body = JSON.stringify(v);
     const sum = createHash('md5').update(body).digest('hex');
-    writeFileSync(join(root, personDir(PERSON) + storedName('providers.json', sum)), body);
+    writeFileSync(join(root, personDir(person) + storedName('providers.json', sum)), body);
     const at = join(root, VIEWS_INDEX);
     const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
-    index.people[PERSON]!.files['providers.json'] = sum;
+    index.people[person]!.files['providers.json'] = sum;
     writeFileSync(at, JSON.stringify(index));
+  }
+  /** A person's providers.json, made `size` bytes long. */
+  function sized(root: string, size: number, person = PERSON): void {
+    const index = JSON.parse(readFileSync(join(root, VIEWS_INDEX), 'utf8')) as ViewsIndex;
+    const { more: _, ...v } = JSON.parse(readFileSync(join(root, personDir(person) + storedName('providers.json', index.people[person]!.files['providers.json']!)), 'utf8'));
+    put(root, { ...v, more: 'x'.repeat(size - JSON.stringify({ ...v, more: '' }).length) }, person);
   }
   async function ask(root: string, name: string, args: Record<string, unknown>, store?: (s: ViewsStore) => ViewsStore) {
     const source = new LocalSource(root);
@@ -458,18 +465,54 @@ describe("over medrec's own folder", () => {
   });
 
   it('a providers.json that could cost the answer is not read', async () => {
-    const v = JSON.parse(readFileSync(join(import.meta.dirname, `fixtures/providers/labels/${PERSON}.json`), 'utf8'));
-    const bare = JSON.stringify({ ...v, more: '' }).length;
     for (const [size, labels] of [
       [LABELS_LIMIT, 1],
       [LABELS_LIMIT + 1, undefined],
     ] as const) {
       const at = folder();
-      put(at, { ...v, more: 'x'.repeat(size - bare) });
+      sized(at, size);
       const { out, read } = await ask(at, 'medrec_records', { kind: 'claims', limit: 100 });
       expect([of(out, SAMPLE)?.length, read.some((x) => x.includes('providers'))]).toEqual([labels, labels !== undefined]);
       expect(out.warnings ?? []).toEqual((await list(root, { kind: 'claims' })).warnings ?? []);
     }
+  });
+
+  describe('of several people', () => {
+    const several = synth(join(scratch, 'several'));
+    writeViewsAt(several);
+    addDerived(several, 'large');
+    labelClaims(several, 10);
+    const { people } = JSON.parse(readFileSync(join(several, 'household.json'), 'utf8')) as { people: { id: string; name: string }[] };
+    const id = (name: string) => people.find((p) => p.name === name)!.id;
+    const owners = (items: Item[]) => new Set(items.map((i) => id((i as Item & { person: string }).person)));
+    const readOf = (read: string[]) => read.filter((f) => f.includes('providers.')).map((f) => f.split('/').at(-2)!);
+
+    it('only those who can be on a page cut by its size cost a read', async () => {
+      const args = { kind: 'events', limit: 200, response_format: 'detailed' };
+      const { out, read } = await ask(several, 'medrec_records', args);
+      expect(out.truncated).toBe(true);
+      expect(new Set(readOf(read))).toEqual(owners(out.items));
+      // The next items, which a page of 200 that had room for them would hold, are of others too.
+      expect(owners((await list(several, { kind: 'events', limit: 200 })).items).size).toBeGreaterThan(owners(out.items).size);
+    });
+
+    it('as many as have room together are read, in the order of the household', async () => {
+      const warnings = (p: Page) => (p.warnings ?? []).map((w) => w.code);
+      const before = warnings(await list(several, { kind: 'claims', limit: 200 }));
+      const [robin, sam, alex] = ['Robin Example', 'Sam Example', 'Alex Example'].map(id) as [string, string, string];
+      for (const [sizes, read] of [
+        [[LABELS_LIMIT - 60_000, 30_000, 30_000], [robin, sam, alex]],
+        [[LABELS_LIMIT - 60_000, 30_000, 30_001], [robin, sam]],
+        [[LABELS_LIMIT - 60_000, 60_001, 30_000], [robin, alex]],
+        [[LABELS_LIMIT + 1, LABELS_LIMIT, 30_000], [sam]],
+      ] as const) {
+        [robin, sam, alex].forEach((p, i) => sized(several, sizes[i]!, p));
+        const { out, read: files } = await ask(several, 'medrec_records', { kind: 'claims', limit: 200 });
+        expect(owners(out.items)).toEqual(new Set([robin, sam, alex]));
+        expect([readOf(files).sort(), owners(out.items.filter((i) => i.provider_labels))]).toEqual([[...read].sort(), new Set(read)]);
+        expect(warnings(out)).toEqual(before);
+      }
+    });
   });
 
   it('answers from the files have none', async () => {

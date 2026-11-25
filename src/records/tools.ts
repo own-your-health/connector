@@ -395,15 +395,38 @@ async function withPlainNames(ctx: Context, h: Household, gate: Gate, household:
   });
 }
 
-/** A person's provider labels; none when they cannot be read, as a label is never worth an answer. */
-async function providerLabels(ctx: Context, h: Household, p: Person): Promise<ProviderLabels> {
-  try {
-    return await ctx.store.providerLabels(h, p);
-  } catch (e) {
-    // As for plain names: only the error's class is logged.
-    if (!(e instanceof ToolError)) console.error(`provider labels failed: ${e instanceof Error ? e.name : typeof e}`);
-    return NO_LABELS;
+/**
+ * The most bytes of providers.json one answer reads, all its people's together:
+ * a label is never worth the CPU the answer needs. 1,500 claims of 150 providers
+ * take about 150,000.
+ */
+export const LABELS_LIMIT = 256_000;
+
+/** People's provider labels, in the household's order as many as LABELS_LIMIT has room for; none of one whose cannot be read. */
+async function providerLabels(ctx: Context, h: Household, people: readonly Person[]): Promise<ReadonlyMap<string, ProviderLabels>> {
+  const ids = new Set(people.map((p) => p.id));
+  const out = new Map<string, ProviderLabels>();
+  const tried = async (f: () => Promise<void>) => {
+    try {
+      await f();
+    } catch (e) {
+      // As for plain names: only the error's class is logged.
+      if (!(e instanceof ToolError)) console.error(`provider labels failed: ${e instanceof Error ? e.name : typeof e}`);
+    }
+  };
+  let room = LABELS_LIMIT;
+  const fit: Person[] = [];
+  for (const p of h.people) {
+    if (!ids.has(p.id)) continue;
+    await tried(async () => {
+      const size = await ctx.store.providerLabelsSize(h, p);
+      if (size > room) return;
+      room -= size;
+      fit.push(p);
+    });
   }
+  await Promise.all(fit.map((p) => tried(async () => void out.set(p.id, await ctx.store.providerLabels(h, p)))));
+  return out;
 }
 
 /** What an answer, about the whole household or one person, may say of this person's labels. */
@@ -412,46 +435,49 @@ const asked = (gate: Gate, p: Person, whole: boolean) => ({ whole, isPrivate: (i
 /** Characters of JSON one item of a page may have: the page's, less its brackets and the item's comma. */
 const ITEM_ROOM = SIZE_BUDGET - ENVELOPE_RESERVE - 3;
 
-/** How many of an item's labels, the first ones, fit a page beside it: a label yields to the record. And the item's size with those. */
-function fitting(it: Record<string, unknown>, labels: JsonObject[]): { n: number; size: number } {
-  let size = chars(JSON.stringify(it));
-  let next = size + ',"provider_labels":[]'.length - 1;
+/** How many labels of an item `size` characters long, the first ones, fit a page beside it: a label yields to the record. And what those add to it. */
+function fitting(size: number, labels: JsonObject[]): { n: number; more: number } {
+  let next = ',"provider_labels":[]'.length - 1;
+  let more = 0;
   let n = 0;
   for (const l of labels) {
     next += chars(JSON.stringify(l)) + 1;
-    if (next > ITEM_ROOM) break;
-    size = next;
+    if (size + next > ITEM_ROOM) break;
+    more = next;
     n++;
   }
-  return { n, size };
+  return { n, more };
 }
 
 /**
  * Adds to the items a page can have the labels of what they print (`printed`),
- * before it is cut, so that they count in its size. Labels are read only for
- * the people who print something there, and looked up only until the labelled
- * items fill a page by themselves: no later one can be on it. Returns which
- * items did not have room for all of theirs.
+ * before it is cut, so that they count in its size. Those are the items up to
+ * the one that fills a page, first as they are, then with their labels. Labels
+ * are read only for the people who print something among the first, and looked
+ * up only among the second. Returns which items did not have room for all of theirs.
  */
 async function addLabels(ctx: Context, h: Household, gate: Gate, household: boolean, page: PageRequest, items: Record<string, unknown>[], printed: (i: number) => { p: Person; printed: readonly Printed[] }): Promise<ReadonlySet<number>> {
   const cut = new Set<number>();
-  const rows: { i: number; p: Person; printed: readonly Printed[] }[] = [];
-  for (let i = page.offset; i < Math.min(items.length, page.offset + page.limit); i++) {
+  const rows: { i: number; size: number; before: number; p: Person; printed: readonly Printed[] }[] = [];
+  const room = SIZE_BUDGET - ENVELOPE_RESERVE;
+  let before = 2;
+  for (let i = page.offset; i < Math.min(items.length, page.offset + page.limit) && before <= room; i++) {
+    const size = chars(JSON.stringify(items[i]));
     const row = printed(i);
-    if (row.printed.length > 0) rows.push({ i, ...row });
+    if (row.printed.length > 0) rows.push({ i, size, before, ...row });
+    before += size + 1;
   }
-  const people = [...new Set(rows.map(({ p }) => p))];
-  const labels = new Map(await Promise.all(people.map(async (p) => [p.id, await providerLabels(ctx, h, p)] as const)));
-  let used = 2;
-  for (const { i, p, printed } of rows) {
+  const labels = await providerLabels(ctx, h, rows.map(({ p }) => p));
+  let added = 0;
+  for (const { i, size, before, p, printed } of rows) {
+    if (before + added > room) break;
     const it = items[i]!;
-    const shown = labels.get(p.id)!.shown(it.id as string, printed, asked(gate, p, household));
+    const shown = labels.get(p.id)?.shown(it.id as string, printed, asked(gate, p, household)) ?? [];
     if (shown.length === 0) continue;
-    const { n, size } = fitting(it, shown);
+    const { n, more } = fitting(size, shown);
     if (n < shown.length) cut.add(i);
     if (n > 0) items[i] = item({ ...it, provider_labels: shown.slice(0, n) });
-    used += size + 1;
-    if (used > SIZE_BUDGET - ENVELOPE_RESERVE) break;
+    added += more;
   }
   return cut;
 }
@@ -966,7 +992,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
   const [records, privacy] = await Promise.all([ctx.store.documentRecords(h, p, d), ctx.store.privacy(h, p)]);
   // It names no person, so its labels are those of an answer about the whole household.
   const printed = printedOfDocument(d.organization);
-  const labels = printed.length > 0 ? (await providerLabels(ctx, h, p)).shown(d.id, printed, asked(new Gate(true, new Map([[p.id, privacy]])), p, true)) : [];
+  const labels = printed.length > 0 ? ((await providerLabels(ctx, h, [p])).get(p.id)?.shown(d.id, printed, asked(new Gate(true, new Map([[p.id, privacy]])), p, true)) ?? []) : [];
   const s = d.statement ?? undefined;
   const out: Record<string, unknown> = {
     id: d.id,

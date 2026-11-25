@@ -206,9 +206,10 @@ At the limits:
 - **Provider labels.** Each person with a printed provider on the page (a
   claim, document, bill or event, and any record with
   `response_format: "detailed"`) costs one more request to Google, and so does
-  a document's text. When that request fails or would pass the limit, or the
-  person's `providers.json` is over 256,000 bytes, the answer comes without
-  their labels.
+  a document's text. An answer reads at most 256,000 bytes of `providers.json`,
+  people in the household's order. When that request fails or would pass the
+  limit, or someone's file has no room left, the answer comes without their
+  labels.
 - **Payments.** `bills.json` (medrec 0.9.1 and later) says which bills the
   household has paid and what is left. A settled bill is never past due, and
   the summary leaves it out. A person without a current `bills.json` has

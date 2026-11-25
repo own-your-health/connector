@@ -255,13 +255,13 @@ export function editSources(root: string, edit: (s: SlimSource) => void): void {
  * Gives every claim of each person a label in their providers.json, and the
  * file `others` labels no claim has, as medrec would for a household whose
  * providers a directory knows, for measuring what labels cost. A private
- * claim's are the private part's. Returns the size of the largest file.
+ * claim's are the private part's. Returns the files' sizes.
  */
-export function labelClaims(root: string, others: number): number {
+export function labelClaims(root: string, others: number): number[] {
   const h = JSON.parse(readFileSync(join(root, 'household.json'), 'utf8')) as { people: { id: string; folder: string }[] };
   const at = join(root, VIEWS_INDEX);
   const index = JSON.parse(readFileSync(at, 'utf8')) as ViewsIndex;
-  let largest = 0;
+  const sizes: number[] = [];
   const id = (n: number) => `v_${createHash('md5').update(String(n)).digest('hex').slice(0, 20)}`;
   const label = (n: number) => ({
     name: `Sample Person ${n}, MD`,
@@ -293,10 +293,10 @@ export function labelClaims(root: string, others: number): number {
     const sum = createHash('md5').update(body).digest('hex');
     writeFileSync(join(root, personDir(p.id) + storedName('providers.json', sum)), body);
     v.files['providers.json'] = sum;
-    largest = Math.max(largest, body.length);
+    sizes.push(body.length);
   }
   writeFileSync(at, JSON.stringify(index));
-  return largest;
+  return sizes;
 }
 
 /**
