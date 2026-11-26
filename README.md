@@ -37,9 +37,10 @@ join: `links` or `could_join` is absent when nothing is left of it.
 `fields.private_members`, a number, says how many members were left out. It is
 absent when none were. An answer about one person lists all of that person's
 own. Another person's private document or event is in no answer about the
-first, and `private_members` counts such a document there too. An event's
-`in_error` and `not_applied` name only what such an answer may show, unless the
-event is private itself. The place of
+first, and `private_members` counts such a document there too. In an answer
+that names no person, an event asked for by its id too, `in_error` and
+`not_applied` name only what that answer may show, unless the event is private
+itself. The place of
 another person's stay, as of a birth, is an event's place only when that stay
 holds nothing private.
 A claim, a bill or an event can be open with a private part: a service among
@@ -54,8 +55,9 @@ This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 
 What a chart holds about somebody else (a screening a parent answers of
-themselves in their child's chart, or a result its source says is of another) is
-in no answer. A list of that person's results, tests, timeline or documents says
+themselves in their child's chart, a result its source says is of another, or,
+from medrec 0.9.10, a panel or report that lists none but those) is in no
+answer, and no panel's `members` names it. A list of that person's results, tests, timeline or documents says
 how many. Current views from before medrec 0.9.9, or from an earlier version's
 `npm run views`, list it whatever the size of the person's files, and nothing
 counts it.
@@ -106,7 +108,11 @@ told from their files, or from what medrec's or this version's views name.
 A panel or a report names the results its source says it lists (`members`, in
 its `fields`), when medrec 0.9.10 or later has read them. A panel with no value
 of its own is a heading: its `detail` is `panel`, and it is in no latest results
-and no `tests`.
+and no `tests`. A value has the comparator its source gives (`<5`), from an index
+medrec 0.9.10 wrote. Views another medrec or an earlier `npm run views` wrote from
+such an index can leave it out of the summary's latest results, while lists and
+tests have it, until medrec 0.9.10 or this version's `npm run views` writes them
+again.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -412,7 +418,11 @@ The connector's address is `https://records-connector.<subdomain>.workers.dev/mc
 A fork updates from this repository: on GitHub, **Sync fork** on your
 fork's main page, or `git pull` from this repository and push to your
 `main`. Each push to `main` deploys. Settings and connections stay as they
-are. A release's notes say when it reads a newer medrec's views. A folder
+are. A release's notes say when it reads a newer medrec's views: update the
+connector when medrec is updated. One older than the views reads them as they
+were, and can answer less. With views from medrec 0.9.10, a connector before it
+leaves out of tests of everyone each person with a private panel, and says only
+that their records are being prepared. A folder
 prepared by `npm run views` needs one more run after an update that changes
 what the script writes: the release's notes say so.
 

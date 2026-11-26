@@ -19,7 +19,7 @@ the views only medrec makes as it wrote them for each (`events.json`,
 `bills.json`, `private.json`, `code-names.json`, `providers.json` and
 `standing.json`, in `test/fixtures`), and all of medrec's own views for its six
 other folders (`words`, `errors`, `given`, `questionnaires`, `child` and
-`parts`), answer all 674 recorded calls exactly as `medrec mcp` does
+`parts`), answer all the recorded calls exactly as `medrec mcp` does
 (`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
 when its views pass the same calls:
 
@@ -250,7 +250,10 @@ events in `timeline-undated.json`.
 `counts`, `sources`, `medications`, `conditions`, `allergies`,
 `immunizations`, `latest_results`, `recent_visits` and `bills`. Each list is
 `{items, more}`, at most 25 items. Readers recompute each bill's `past_due`
-against the day they answer, so its value here does not matter.
+against the day they answer, so its value here does not matter. A result's
+`value` there has its comparator (`<5`) when medrec 0.9.10 or later, or this
+version's writer, made it from an index that has one. An earlier writer left it
+out, though the records' shards keep it.
 
 ## `documents.json` and `text-<n>.bin`
 
@@ -707,5 +710,8 @@ private record that `search-items.bin` does not list, or a private result
 that has no entry, cannot hold its series back: the person's tests then
 answer as views still arriving do, leaving them out of an answer about
 everyone with a `person-unavailable` warning. A heading, which `private.json`
-says one is (`heading: true`, medrec 0.9.10 and later), has none to find.
+says one is (`heading: true`, medrec 0.9.10 and later), has none to find. A
+connector before medrec 0.9.10's does not read `heading`, and answers so for
+every person with a private heading in views from medrec 0.9.10: update the two
+together.
 
