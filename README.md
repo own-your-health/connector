@@ -110,9 +110,10 @@ its `fields`), when medrec 0.9.10 or later has read them. A panel with no value
 of its own is a heading: its `detail` is `panel`, and it is in no latest results
 and no `tests`. A value has the comparator its source gives (`<5`), from an index
 medrec 0.9.10 wrote. Views another medrec or an earlier `npm run views` wrote from
-such an index can leave it out of the summary's latest results, while lists and
-tests have it, until medrec 0.9.10 or this version's `npm run views` writes them
-again.
+such an index can leave it out of what they hold as text (the summary's latest
+results, the timeline's details and a lab search's snippets), while the lists of
+results and tests have it, until medrec 0.9.10 or this version's `npm run views`
+writes them again.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -421,8 +422,9 @@ fork's main page, or `git pull` from this repository and push to your
 are. A release's notes say when it reads a newer medrec's views: update the
 connector when medrec is updated. One older than the views reads them as they
 were, and can answer less. With views from medrec 0.9.10, a connector before it
-leaves out of tests of everyone each person with a private panel, and says only
-that their records are being prepared. A folder
+says the records of each person with a private heading (a panel with no value of
+its own) are being prepared when asked for their tests, and leaves that person
+out of tests of everyone. A folder
 prepared by `npm run views` needs one more run after an update that changes
 what the script writes: the release's notes say so.
 

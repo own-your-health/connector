@@ -253,7 +253,8 @@ events in `timeline-undated.json`.
 against the day they answer, so its value here does not matter. A result's
 `value` there has its comparator (`<5`) when medrec 0.9.10 or later, or this
 version's writer, made it from an index that has one. An earlier writer left it
-out, though the records' shards keep it.
+out there, in a timeline event's `detail` and in a lab search's snippet, though
+the records' shards keep it.
 
 ## `documents.json` and `text-<n>.bin`
 
