@@ -212,6 +212,28 @@ describe('what is entered in error, with no views from medrec', () => {
     }
   });
 
+  it('is named by an event where the answer may show it, asked for by its id too', async () => {
+    const store = new ViewsStore(folderAt(medrecs));
+    const h = await store.household();
+    const ev = (await store.events(h, h.people[0]!)).events.find((e) => e.not_applied != null) as Record<string, any>;
+    const [named, kept] = ev.in_error as string[];
+    const one = async (areas: string[], args: object, over: object = {}) => {
+      const s = Object.assign(Object.create(store), { privacy: async () => ({ areas: new Map(areas.map((id) => [id, 'household'])) }), events: async () => ({ events: [{ ...ev, ...over }], lost: [] }) }) as ViewsStore;
+      const { items } = (await callTool('medrec_records', { kind: 'events', ...args }, { store: s, today: '2026-11-25' }))!.structuredContent as { items: { detail?: string; fields: Record<string, unknown> }[] };
+      return [items[0]!.fields.in_error, items[0]!.fields.not_applied, /\d+ entered in error/.exec(items[0]!.detail ?? '')?.[0]];
+    };
+    const all = [ev.in_error, ev.not_applied, '2 entered in error'];
+    const left = [[kept], undefined, '1 entered in error'];
+    expect(ev.not_applied[0].members).toContain(named);
+    for (const args of [{ id: ev.id }, { id: ev.id, response_format: 'detailed' }, { response_format: 'detailed' }]) {
+      expect([await one([], args), await one([named!], args), await one([named!, kept!], args)]).toEqual([all, left, [undefined, undefined, undefined]]);
+    }
+    // One person's answer, and an event that is private itself, have all of it.
+    expect(await one([named!], { person: 'Robin', response_format: 'detailed' })).toEqual(all);
+    expect(await one([named!, ev.id], { id: ev.id })).toEqual(all);
+    expect(await one([named!, ev.id], { name: 'zeppelin', response_format: 'detailed' }, { title: 'Zeppelin' })).toEqual(all);
+  });
+
   it('is in no series of tests, whatever the filter says of it', async () => {
     const rows = [];
     for (const store of [new RawStore(folderAt(files)), new ViewsStore(folderAt(files)), new ViewsStore(folderAt(own)), new ViewsStore(folderAt(medrecs))]) {

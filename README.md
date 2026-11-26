@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.9 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.10 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 674 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 681 recorded calls of `medrec mcp` to
 this connector's answers, to the character. What some of them need is in
 medrec's views alone, and without those an answer differs as said below.
 
@@ -37,9 +37,10 @@ join: `links` or `could_join` is absent when nothing is left of it.
 `fields.private_members`, a number, says how many members were left out. It is
 absent when none were. An answer about one person lists all of that person's
 own. Another person's private document or event is in no answer about the
-first, and `private_members` counts such a document there too. An event asked
-for by its id gives, as medrec 0.9.9 does, the id of each of its items that is
-entered in error, private ones too (`in_error`, `not_applied`). The place of
+first, and `private_members` counts such a document there too. In an answer
+that names no person, an event asked for by its id too, `in_error` and
+`not_applied` name only what that answer may show, unless the event is private
+itself. The place of
 another person's stay, as of a birth, is an event's place only when that stay
 holds nothing private.
 A claim, a bill or an event can be open with a private part: a service among
@@ -54,8 +55,9 @@ This is discretion, not access control: anyone the connector lets in can ask
 about one person.
 
 What a chart holds about somebody else (a screening a parent answers of
-themselves in their child's chart, or a result its source says is of another) is
-in no answer. A list of that person's results, tests, timeline or documents says
+themselves in their child's chart, a result its source says is of another, or,
+from medrec 0.9.10, a panel or report that lists none but those) is in no
+answer, and no panel's `members` names it. A list of that person's results, tests, timeline or documents says
 how many. Current views from before medrec 0.9.9, or from an earlier version's
 `npm run views`, list it whatever the size of the person's files, and nothing
 counts it.
@@ -102,6 +104,16 @@ sources say it of says `sources differ` and each word, from medrec's views.
 Current views from before medrec 0.9.9, or from an earlier version's `npm run
 views`, list what is entered in error, and nothing counts it. Everyone else's is
 told from their files, or from what medrec's or this version's views name.
+
+A panel or a report names the results its source says it lists (`members`, in
+its `fields`), when medrec 0.9.10 or later has read them. A panel with no value
+of its own is a heading: its `detail` is `panel`, and it is in no latest results
+and no `tests`. A value has the comparator its source gives (`<5`), from an index
+medrec 0.9.10 wrote. Views another medrec or an earlier `npm run views` wrote from
+such an index can leave it out of what they hold as text (the summary's latest
+results, the timeline's details and a lab search's snippets), while the lists of
+results and tests have it, until medrec 0.9.10 or this version's `npm run views`
+writes them again.
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
@@ -256,6 +268,8 @@ At the limits:
   two results of one date and name. When one of them cannot be found there,
   that person's tests are left out of an answer about everyone with a
   `person-unavailable` warning, and an answer about them says to ask again.
+  A private heading, which is in no series, is not looked for: `private.json`
+  from medrec 0.9.10 says which ones are.
 - **Which source a record came from.** A CLI, an organization and a FHIR base
   do not name one. Views from medrec 0.9.6 and later label each record with
   the name of its source, or with the CLI when none is known. In earlier
@@ -405,7 +419,12 @@ The connector's address is `https://records-connector.<subdomain>.workers.dev/mc
 A fork updates from this repository: on GitHub, **Sync fork** on your
 fork's main page, or `git pull` from this repository and push to your
 `main`. Each push to `main` deploys. Settings and connections stay as they
-are. A release's notes say when it reads a newer medrec's views. A folder
+are. A release's notes say when it reads a newer medrec's views: update the
+connector when medrec is updated. One older than the views reads them as they
+were, and can answer less. With views from medrec 0.9.10, a connector before it
+says the records of each person with a private heading (a panel with no value of
+its own) are being prepared when asked for their tests, and leaves that person
+out of tests of everyone. A folder
 prepared by `npm run views` needs one more run after an update that changes
 what the script writes: the release's notes say so.
 

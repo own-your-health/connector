@@ -171,7 +171,7 @@ const DEPENDS = {
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
 
 /** private.json as a reader needs it (medrec-private/v1). */
-export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown; parts?: Json; clear_events?: Json } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown }>>>;
+export type PrivateView = { marks_unreadable?: boolean; labels_unreadable?: boolean; unreported_studies?: unknown; parts?: Json; clear_events?: Json } & Partial<Record<'records' | 'documents' | 'events' | 'studies', Record<string, { area?: unknown; heading?: unknown }>>>;
 
 /** The private items private.json gives, each by id with its area; all of the person's held back when their marks, or what their provider labels make private, did not read. */
 export function privacyOf(view: PrivateView): Privacy {
@@ -181,7 +181,8 @@ export function privacyOf(view: PrivateView): Privacy {
   }
   const parts = new Map(isObject(view.parts) ? Object.entries(view.parts).flatMap(([id, v]) => (isObject(v) ? [[id, v] as const] : [])) : []);
   const clear = new Set(Array.isArray(view.clear_events) ? view.clear_events.filter((id): id is string => typeof id === 'string') : []);
-  const known = { areas, ...(parts.size > 0 ? { parts } : {}), ...(clear.size > 0 ? { clear } : {}) };
+  const headings = new Set(Object.entries(view.records ?? {}).flatMap(([id, w]) => (w?.heading === true ? [id] : [])));
+  const known = { areas, ...(parts.size > 0 ? { parts } : {}), ...(clear.size > 0 ? { clear } : {}), ...(headings.size > 0 ? { headings } : {}) };
   // First: every item is held back either way, and a newer medrec would not read the marks.
   if (view.labels_unreadable === true) return { ...known, unknown: { why: 'labels-unreadable' } };
   if (view.marks_unreadable === true) return { ...known, unknown: { why: 'marks-unreadable' } };

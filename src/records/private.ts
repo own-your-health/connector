@@ -33,6 +33,8 @@ export interface Privacy {
   unjudged?: ReadonlySet<string>;
   parts?: Parts;
   clear?: ReadonlySet<string>;
+  /** Those of `areas` that are headings (panels.ts), which no series of tests has. */
+  headings?: ReadonlySet<string>;
   unknown?: { why: 'marks-unreadable' | 'labels-unreadable' } | { why: 'not-prepared'; detail: string; needs?: string };
 }
 
@@ -135,7 +137,8 @@ export class Gate {
 
   /** The ids of the person's private records not entered in error, for a test series to find among its results. */
   records(p: Person): ReadonlySet<string> {
-    return new Set([...(this.people.get(p.id)?.areas.keys() ?? [])].filter((id) => id.startsWith('r_') && !this.inError(p, id)));
+    const of = this.people.get(p.id);
+    return new Set([...(of?.areas.keys() ?? [])].filter((id) => id.startsWith('r_') && !this.inError(p, id) && !of!.headings?.has(id)));
   }
 
   /**

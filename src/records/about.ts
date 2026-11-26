@@ -3,10 +3,11 @@
 // (medrec-cli docs/data-contract.md, "About another person"). medrec's views
 // leave it out and name its ids; here it is left out of an index read whole.
 
-import { canWrite } from './errors';
-import type { DocumentEntry, Given, GivenPaper, Json, JsonObject, Person, PersonIndex, Provenance, RecordEntry } from './model';
+import { allOf, canWrite, enteredInError } from './errors';
+import type { Coding, DocumentEntry, Given, GivenPaper, Json, JsonObject, Person, PersonIndex, Provenance, RecordEntry } from './model';
 import { isObject, removed } from './numbers';
 import { grownAnswers } from './questionnaires';
+import { everyList, noneBut, withoutMembers } from './panels';
 import { withoutPapers } from './papers';
 import { cmpStr } from './text';
 
@@ -25,6 +26,13 @@ function aboutAnother(p: Person, idx: PersonIndex, also: readonly string[]): Rea
   const seen: Seen = new Map();
   const out = new Set<string>();
   for (const r of records) if (known.has(r.id) || recordIs(p, r, seen)) out.add(r.id);
+  // So is a panel or a report that lists none but such, or did: to any depth.
+  const panels = everyList(records);
+  const errors = panels.length > 0 ? allOf(enteredInError(idx)) : new Set<string>();
+  for (let before = -1; before < out.size; ) {
+    before = out.size;
+    for (const [id, lists] of panels) if (noneBut(lists, errors, (x) => out.has(x))) out.add(id);
+  }
   // A paper that only such records list goes with them.
   const only = new Map<string, boolean>();
   for (const r of records) for (const d of r.documents ?? []) only.set(d, (only.get(d) ?? true) && out.has(r.id));
@@ -54,9 +62,20 @@ function recordIs(p: Person, r: RecordEntry, seen: Seen): boolean {
     const read = list<Provenance>(x.provenance).flatMap((v) => v.fetched_at ?? []);
     const day = x.date ?? read.sort(cmpStr)[0];
     // A laboratory's alcohol or drug test is none. Names are read last: most of them are old enough.
-    if (tooYoung(p, day) && !text(x.fields?.category)?.toLowerCase().startsWith('lab') && grownAnswers(x.display, x.code, seen)) return true;
+    if (tooYoung(p, day) && !text(x.fields?.category)?.toLowerCase().startsWith('lab') && toldBy(x).some(([name, code]) => grownAnswers(name, code, seen))) return true;
   }
   return false;
+}
+
+/** What a result or a report is told by: its name and code, then those of each part of a reading and of each questionnaire that lists it (medrec 0.9.10 and later). */
+function toldBy(r: RecordEntry): [string, Coding | null | undefined][] {
+  const codes = list(r.fields?.components as Json[]).flatMap((part) => {
+    const code = isObject(part) ? part.code : undefined;
+    const read = isObject(code) && [code.system, code.code, code.display].every((v) => v == null || typeof v === 'string');
+    return read ? [code as Coding] : [];
+  });
+  const by = list(r.listed_by).map((l): [string, Coding | null | undefined] => [l.display, l.code]);
+  return [[r.display, r.code], ...codes.map((c): [string, Coding] => [c.display ?? '', c]), ...by];
 }
 
 /** Whether the resource a record's values are of says, or said, that it is about somebody else; what no resource is known of is every one's. */
@@ -111,7 +130,8 @@ function without(idx: PersonIndex, gone: ReadonlySet<string>): PersonIndex {
       ?.filter((r) => !gone.has(r.id))
       .map((r) => {
         const out = r.documents ? { ...r, documents: keep(r.documents) } : r;
-        return r.kind === 'claim' && r.fields ? { ...out, fields: claimFields(r.fields, gone) } : out;
+        if (r.kind === 'claim' && r.fields) return { ...out, fields: claimFields(r.fields, gone) };
+        return r.fields?.members === undefined ? out : { ...out, fields: withoutMembers(r.fields, gone) };
       }),
     documents: idx.documents && withoutPapers(idx.documents, gone),
   };

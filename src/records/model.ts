@@ -74,6 +74,8 @@ export interface Given {
   display?: string;
   code?: Coding;
   fields?: JsonObject;
+  /** What a panel or a report listed before, as a record's. */
+  lists?: Record<string, string[]>;
 }
 
 export interface GivenPaper {
@@ -98,6 +100,12 @@ export interface RecordEntry {
   words?: SourceWord[];
   /** What each source says of one that a source says is entered in error (the views, medrec 0.9.9 and later). */
   says?: Json;
+  /** The raw files of the results a panel or a report lists, under their source, by the raw file that lists them (medrec 0.9.10 and later). */
+  lists?: Record<string, string[]>;
+  /** The questionnaires that list a result, then or now (medrec 0.9.10 and later). */
+  listed_by?: { display: string; code?: Coding | null }[];
+  /** It is a result that is a heading (the views, medrec 0.9.10 and later). */
+  heading?: boolean;
 }
 
 /** A record as a list shows it. */

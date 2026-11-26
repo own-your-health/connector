@@ -10,6 +10,7 @@ import { LeftOut, type Warning } from './partial';
 import { nameOf, notShown, shownEvent, shownText } from './parts';
 import { Gate, names, type Privacy } from './private';
 import { allOf, billsInError, inError, type Errors } from './errors';
+import { HEADING, heads } from './panels';
 import { withoutPapers } from './papers';
 import { STANDING_KINDS, differ, paperNote, type Line as StandingLine, type Standings } from './standing';
 import { each, mapped, standingRows, type ListRows } from './standing-rows';
@@ -17,6 +18,7 @@ import { NO_EVENTS, eventOrder, recordOrder, searchHousehold, searchTerms, takeM
 import { printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, printedOfTitle, type LabelsFile, type Printed, type ProviderLabels } from './provider-labels';
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { isObject } from './numbers';
+import { valueText } from './values';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
   CLIP,
@@ -33,7 +35,6 @@ import {
   checkIso,
   holds as holdsRange,
   matchesCode,
-  valueText,
   type Listed,
   type Range,
   type ResultRow,
@@ -64,7 +65,7 @@ const NOTE_CLIP = 2_000;
 
 /** medrec's own server instructions, after the standard ones (pk-cli-mcp `instructions`). */
 const MEDREC_INSTRUCTIONS =
-  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many, and leaves such lines out of a claim, an event or a bill\'s text, which not_shown or hint says; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. provider_labels say who a printed provider is, beside the source\'s words: call a likely one likely and give its evidence, and say where a phone is from. standing is what a condition, an allergy or a medicine is by all of its sources, and says has each source\'s word and the day it was read: where sources differ, give each word and choose none. For decisions about care, suggest the user ask their clinician.';
+  'medrec keeps the household\'s medical records, imported from patient portals and insurers and filed from scans, in one folder; these tools read it and change nothing. Start with medrec_summary; medrec_search finds anything by its words. For what happened or what it cost, use medrec_records kind events: one item per visit, ER trip, stay, test or fill, with the household\'s share. Items about mental health, reproductive or sexual health or substance use carry private, with its area: an answer about the whole household leaves them out and its warnings say how many, and leaves such lines out of a claim, an event or a paper\'s text, which not_shown or hint says; they are in answers about that person, or that name the item. Keep them out of anything shared. Give the date and source of each fact you use, and say when the records do not answer the question. Each result carries its lab\'s own reference range and flag, and labs may report one test in different units. provider_labels say who a printed provider is, beside the source\'s words: call a likely one likely and give its evidence, and say where a phone is from. standing is what a condition, an allergy or a medicine is by all of its sources, and says has each source\'s word and the day it was read: where sources differ, give each word and choose none. For decisions about care, suggest the user ask their clinician.';
 
 export const SERVER: ServerInfo & { host: string } = {
   host: "through the open-source Own Your Health connector, running in the household's own Cloudflare account, which reads their records folder in Google Drive with their own Google sign-in",
@@ -955,7 +956,9 @@ async function eventsList(ctx: Context, person: string | undefined, name: string
       const end = str(e.end) ?? '';
       if ((r.since !== undefined && cmpS(end, r.since) < 0) || (r.until !== undefined && cmpS(start, r.until) > 0)) continue;
       const shown = shownEvent(e, gate.part(p, str(e.id) ?? ''), (record) => gate.part(p, record));
-      rows.push({ p, e: household && id === undefined ? shownOf(shown, (x) => !gate.heldBackOf(p, x)) : shown, lost: i >= events.length });
+      // One that is private itself has all of its own.
+      const whole = !household || gate.area(p, str(e.id) ?? '') !== undefined;
+      rows.push({ p, e: whole ? shown : shownOf(shown, (x) => !gate.heldBackOf(p, x)), lost: i >= events.length });
     }
   }
   const linked = rows.filter(({ e }) => e.place_from === 'linked');
@@ -1063,10 +1066,15 @@ const EVENT_FIELDS = ['confidence', 'money', 'members', 'expected', 'differences
 /** An event with what it says of its items entered in error, of those the answer may show. */
 function shownOf(e: JsonObject, mayShow: (id: string) => boolean): JsonObject {
   const shown = (x: Json) => typeof x === 'string' && mayShow(x);
-  const out = { ...e };
-  if (Array.isArray(e.in_error)) out.in_error = e.in_error.filter(shown);
-  if (Array.isArray(e.not_applied)) out.not_applied = e.not_applied.filter((d) => isObject(d) && Array.isArray(d.members) && d.members.every(shown));
-  return out;
+  const kept = (of: Json | undefined, may: (x: Json) => boolean) => {
+    const left = Array.isArray(of) ? of.filter(may) : [];
+    return left.length > 0 ? left : null;
+  };
+  return {
+    ...e,
+    in_error: kept(e.in_error, shown),
+    not_applied: kept(e.not_applied, (d) => isObject(d) && Array.isArray(d.members) && d.members.every(shown)),
+  };
 }
 
 /**
@@ -1187,7 +1195,7 @@ function recordItem(person: string, r: ListedRecord, detailed: boolean): Item {
     it.unit = row.unit;
     it.range = row.range;
     it.flag = row.flag;
-    it.detail = undefined;
+    it.detail = heads(r) ? HEADING : undefined;
   } else if (r.kind === 'claim') {
     const owes = memberOwes(r.fields ?? {});
     if (owes !== undefined) it.detail = it.detail !== undefined ? `${it.detail as string}, member owes ${owes}` : `member owes ${owes}`;

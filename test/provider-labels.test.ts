@@ -357,7 +357,9 @@ describe("over medrec's own folder", () => {
     expect(of(about, BOTH)).toEqual([{ field: 'provider', practice: 'Example Counseling Center', confidence: 'likely', evidence: [{ from: 'paper', document: 'd_counselingtwoaaaaaaa' }] }]);
     const named = await list(root, { kind: 'claims', name: 'Sample service' });
     expect(named.items.find((i) => i.id === TALK)!.private).toBe('mental_health');
-    expect(named.items.find((i) => i.id === BOTH)!.private).toBe('household');
+    // Its area is private.json's, as in the answer about the person.
+    expect(named.items.find((i) => i.id === BOTH)!.private).toBe(about.items.find((i) => i.id === BOTH)!.private);
+    expect(about.items.find((i) => i.id === BOTH)!.private).toBeDefined();
     expect([of(named, TALK), of(named, BOTH)]).toEqual([undefined, undefined]);
     expect(of(named, SAMPLE)).toBeDefined();
   });

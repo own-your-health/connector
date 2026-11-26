@@ -19,7 +19,7 @@ the views only medrec makes as it wrote them for each (`events.json`,
 `bills.json`, `private.json`, `code-names.json`, `providers.json` and
 `standing.json`, in `test/fixtures`), and all of medrec's own views for its six
 other folders (`words`, `errors`, `given`, `questionnaires`, `child` and
-`parts`), answer all 674 recorded calls exactly as `medrec mcp` does
+`parts`), answer all the recorded calls exactly as `medrec mcp` does
 (`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
 when its views pass the same calls:
 
@@ -93,6 +93,9 @@ from, and of every view it describes:
 
 `index` or `text` is `null` when that file is absent. `files` names every
 file in the person's directory, `views/<person id>/`, with its MD5.
+From medrec 0.9.10, `build` is the commit medrec was built from, and medrec
+makes again all views another build wrote, those of `npm run views` too. A reader
+does not need it.
 
 A reader compares these with the MD5s Drive reports (`md5Checksum`), all of
 which one listing of the folder gives.
@@ -160,7 +163,9 @@ them as that file writes it (`4.10`, not `4.1`). `provenance` is
 cut to its first entry's `source`, keeping only `fhir_base`, `cli` and
 `organization_id` (`null` when it has none), and from medrec 0.9.6 `label`:
 what the record came through, as `medrec mcp` shows it, or `null`. A reader
-shows the `label`.
+shows the `label`. A result that is a heading has `heading: true` (medrec 0.9.10
+and later): a panel that lists results and has no value of its own. It is listed
+with `panel` for its `detail`, and is in no series of tests and no latest results.
 
 Views written by medrec 0.9.5 and earlier have no `label`. A CLI, an
 organization and a FHIR base do not name a source, and a view does not hold
@@ -218,7 +223,7 @@ Each test series (records of kind `result` with one `seriesKey`: the code's
 ```
 
 `entries` lists every result of the series that is not entered in error (medrec
-0.9.9 and later), newest first.
+0.9.9 and later) and no heading (medrec 0.9.10 and later), newest first.
 - `shard` and `place` locate the record in `records-result-<shard>.json`
   (`-1`: `records-result-undated.json`).
 - `rank` is the result's place among all those results of the person, newest
@@ -245,7 +250,11 @@ events in `timeline-undated.json`.
 `counts`, `sources`, `medications`, `conditions`, `allergies`,
 `immunizations`, `latest_results`, `recent_visits` and `bills`. Each list is
 `{items, more}`, at most 25 items. Readers recompute each bill's `past_due`
-against the day they answer, so its value here does not matter.
+against the day they answer, so its value here does not matter. A result's
+`value` there has its comparator (`<5`) when medrec 0.9.10 or later, or this
+version's writer, made it from an index that has one. An earlier writer left it
+out there, in a timeline event's `detail` and in a lab search's snippet, though
+the records' shards keep it.
 
 ## `documents.json` and `text-<n>.bin`
 
@@ -658,7 +667,8 @@ read. One its sources differ on says what each says.
 ## What is about another person (medrec 0.9.9 and later)
 
 A person's chart can hold what is about somebody else: a screening a parent
-answers of themselves, or a result its source says is of another. medrec's views
+answers of themselves, a result its source says is of another, or (medrec 0.9.10
+and later) a panel or report that lists none but those. medrec's views
 leave it out of everything, and `people.<id>.about_another` in `views.json` has
 the ids, records and documents, in order; it is absent when there is none. A
 reader says how many on the first page of that person's results, tests, timeline
@@ -668,7 +678,8 @@ The reference writer here does the same, by medrec's rule (medrec's
 `docs/data-contract.md`, "About another person"; `src/records/about.ts`). So does
 this connector where it reads a person's `index.json` whole, and it leaves out
 the ids `views.json` names there too, though the person's files changed since.
-Views from before medrec 0.9.9 leave out nothing.
+Both leave those ids out of the `members` of a panel or report too. Views from
+before medrec 0.9.9 leave out nothing.
 
 ## Without a current `private.json` or `bills.json`
 
@@ -699,5 +710,9 @@ connector finds a private result's entry by its date and name in
 private record that `search-items.bin` does not list, or a private result
 that has no entry, cannot hold its series back: the person's tests then
 answer as views still arriving do, leaving them out of an answer about
-everyone with a `person-unavailable` warning.
+everyone with a `person-unavailable` warning. A heading, which `private.json`
+says one is (`heading: true`, medrec 0.9.10 and later), has none to find. A
+connector before medrec 0.9.10's does not read `heading`, and answers so for
+every person with a private heading in views from medrec 0.9.10: update the two
+together.
 
