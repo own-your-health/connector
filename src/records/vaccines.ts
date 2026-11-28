@@ -171,12 +171,11 @@ export function claimVaccines(records: readonly RecordEntry[]): RecordEntry[] {
       const k = vaccineFamily(name);
       if (numbers.some((n) => seen.has(`${d}|${n}`)) || (k !== undefined && kinds.has(`${d}|${k}`))) continue;
       for (const n of numbers) seen.add(`${d}|${n}`);
-      const { code: _, providers: __, ...claim } = r as RecordEntry & { providers?: unknown };
-      const key = (r as { key?: unknown }).key;
+      const { code: _, providers: __, ...claim } = r;
       out.push({
         ...claim,
         kind: 'immunization',
-        ...(typeof key === 'string' ? { key: `${key}|${JSON.stringify(line.sequence ?? null)}` } : {}),
+        ...(r.key !== undefined ? { key: `${r.key}|${JSON.stringify(line.sequence ?? null)}` } : {}),
         date: d,
         ...(cvx.length === 1 ? { code: { system: CVX, code: cvx[0]! } } : {}),
         display: name,

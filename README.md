@@ -58,9 +58,8 @@ What a chart holds about somebody else (a screening a parent answers of
 themselves in their child's chart, a result its source says is of another, or,
 from medrec 0.9.10, a panel or report that lists none but those) is in no
 answer, and no panel's `members` names it. A list of that person's results, tests, timeline or documents says
-how many. Current views from before medrec 0.9.9, or from an earlier version's
-`npm run views`, list it whatever the size of the person's files, and nothing
-counts it.
+how many. Current views from before medrec 0.9.9 list it whatever the size of
+the person's files, and nothing counts it.
 
 A condition with a diagnosis code carries `plain_name` beside the source's
 own words when medrec 0.9.4 or later has the code's published name
@@ -101,19 +100,18 @@ What is entered in error by every source that has it is in no list, event, bill
 or total, and an `entered-in-error` warning says how many. A paper or an event
 of it opens by its id, and says so. A record or paper that only some of its
 sources say it of says `sources differ` and each word, from medrec's views.
-Current views from before medrec 0.9.9, or from an earlier version's `npm run
-views`, list what is entered in error, and nothing counts it. Everyone else's is
+Current views from before medrec 0.9.9 list what is entered in error, and
+nothing counts it. Everyone else's is
 told from their files, or from what medrec's or this version's views name.
 
 A panel or a report names the results its source says it lists (`members`, in
 its `fields`), when medrec 0.9.10 or later has read them. A panel with no value
 of its own is a heading: its `detail` is `panel`, and it is in no latest results
 and no `tests`. A value has the comparator its source gives (`<5`), from an index
-medrec 0.9.10 wrote. Views another medrec or an earlier `npm run views` wrote from
-such an index can leave it out of what they hold as text (the summary's latest
-results, the timeline's details and a lab search's snippets), while the lists of
-results and tests have it, until medrec 0.9.10 or this version's `npm run views`
-writes them again.
+medrec 0.9.10 wrote. Views an earlier medrec wrote from such an index can leave
+it out of what they hold as text (the summary's latest results, the timeline's
+details and a lab search's snippets), while the lists of results and tests have
+it, until medrec 0.9.10 or later, or `npm run views`, writes them again.
 
 A claim line that names a vaccine is listed among the person's immunizations,
 and in their summary, as `from a claim` (its `detail`), from medrec 0.9.11. It
@@ -183,9 +181,10 @@ answer needs, instead of parsing each person's megabytes of `index.json` and
   has to run again after each refresh. Once medrec writes views there, the
   script leaves them alone unless given `--force`.
 - **A person with 300,000 bytes or less** of those files is answered from
-  their files, views or not. Anyone larger needs current views. Without them,
-  the tool says why it cannot answer (below), never answering from records
-  that have since changed.
+  their files, views or not, unless the views need a later medrec contract
+  than this connector's ([Updating](#updating)): then no one is. Anyone
+  larger needs current views. Without them, the tool says why it cannot
+  answer (below), never answering from records that have since changed.
 
 | Call, over a synthetic folder of six people with views, 6.0 MB of index and 6.5 MB of text, one record in 20 private, one claim or paper in 20 with a private part, every claim with a provider label (255 KB of them) | CPU, cold, least | CPU, cold, median | Requests to Google |
 |---|---:|---:|---:|
@@ -241,13 +240,16 @@ At the limits:
 - **Views still arriving.** Drive may hold some of a new pass's views before
   the rest. A call that would read one of them says the records are being
   prepared and to ask again in a minute. It never mixes two passes.
-- **Views from a newer medrec.** A layout this connector does not know reads
-  like no views, and a large person's calls say the connector needs updating
+- **Views from a newer medrec.** Views that need a later medrec contract
+  than this connector's (`reader`) are not read at all, and neither are the
+  files beside them: every call says the connector needs updating. A layout
+  this connector does not know, in views it may read, reads like no views,
+  and a large person's calls say the connector needs updating
   ([Updating](#updating)).
 - **Views from an earlier layout.** A folder prepared by this connector's
-  first `npm run views` (`medrec-views/v1`) reads like no views for a large
-  person, and their calls say so. medrec 0.8.0's next pass, or
-  `npm run views`, writes the current layout.
+  `npm run views` before this version, its first `medrec-views/v1` included,
+  is not read at all: every call asks for one more run of it. medrec 0.8.0's
+  next pass, or `npm run views`, writes the current layout.
 - **Events.** Only medrec groups records into events, so `kind: "events"`
   reads the `events.json` medrec 0.9.0 and later write, for every person,
   small ones too. `npm run views` does not write it. A person whose events
@@ -438,8 +440,9 @@ A fork updates from this repository: on GitHub, **Sync fork** on your
 fork's main page, or `git pull` from this repository and push to your
 `main`. Each push to `main` deploys. Settings and connections stay as they
 are. A release's notes say when it reads a newer medrec's views: update the
-connector when medrec is updated. One older than the views reads them as they
-were, and can answer less. With views from medrec 0.9.10, a connector before it
+connector before medrec is updated. One older than the views reads them as they
+were, and can answer less, unless they need a later contract than it follows
+(below): then it reads none of them. With views from medrec 0.9.10, a connector before it
 says the records of each person with a private heading (a panel with no value of
 its own) are being prepared when asked for their tests, and leaves that person
 out of tests of everyone. A folder
@@ -501,7 +504,7 @@ npm run dev         # the Worker on 127.0.0.1:8787
 
 The views a tool reads are in `src/views` (the reference writer, and the
 store that reads them); docs/views.md is their layout, for medrec's writer.
-The goldens run twice, over the files and over the views. The calls of the six
+The goldens run twice, over the files and over the views. The calls of the
 folders in `scripts/own-folder.mjs`, about what medrec's views alone hold, run
 over medrec's own views of them, and not over their files.
 

@@ -85,11 +85,15 @@ export interface GivenPaper {
 export interface RecordEntry {
   id: string;
   kind: string;
+  /** medrec's merge key: one fact from two sources is one record. A vaccine a claim tells of has its claim's, and the line's `sequence`. */
+  key?: string;
   date?: string | null;
   code?: Coding | null;
   display: string;
   status?: string | null;
   fields?: JsonObject;
+  /** What a source says of the providers `fields` print, beyond their names (medrec). A vaccine a claim tells of has none. */
+  providers?: Json;
   documents?: string[];
   provenance?: Provenance[];
   /** What a source gave and no item shows (medrec 0.9.9 and later). It is in no view or answer. */

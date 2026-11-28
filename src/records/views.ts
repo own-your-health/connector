@@ -116,8 +116,6 @@ function flatText(v: Json | undefined, out: string[]): void {
 
 const nonEmpty = (s: string) => (s === '' ? undefined : s);
 
-export { memberShare, moneyForTests } from './money';
-
 /**
  * Queries that name a kind of record rather than words in one: "blood
  * tests" finds the lab results, which never say so. Folded, words joined by

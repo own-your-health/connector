@@ -17,10 +17,12 @@ The reference writer is `src/views/write.ts`. Its output for the demo folder,
 the large synthetic folder and medrec's own folder for provider labels, with
 the views only medrec makes as it wrote them for each (`events.json`,
 `bills.json`, `private.json`, `code-names.json`, `providers.json` and
-`standing.json`, in `test/fixtures`), and all of medrec's own views for its six
-other folders (`words`, `errors`, `given`, `questionnaires`, `child` and
-`parts`), answer all the recorded calls exactly as `medrec mcp` does
-(`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
+`standing.json`, in `test/fixtures`), and all of medrec's own views for its eight
+other folders (`words`, `errors`, `given`, `questionnaires`, `child`, `parts`,
+`vaccines` and `fills`), answer all the recorded calls exactly as `medrec mcp`
+does (`test/golden.test.ts`, "from the views"). The one exception is what
+medrec's views do not hold of a claim's vaccines, in an answer that names the
+person (Records, below). Another writer (medrec's) is right
 when its views pass the same calls:
 
 ```sh
@@ -139,6 +141,9 @@ reader lists only the directories of the people `household.json` names.
 
 ### The schema
 
+A reader checks `reader` first (above): views it may not read are not read at
+all, and neither are the files beside them, whatever their schema.
+
 `schema` names the layout. A change that a reader of the current layout
 would misread takes the next number (`medrec-views/v3`). A field that
 readers may ignore does not. A reader that meets a later number than it
@@ -187,8 +192,9 @@ of (medrec 0.9.11 and later). Each is the claim's `id` and `provenance`, `kind`
 `display` the line's service text, else the claim's, `status` `completed`, and
 `fields` `{"from_claim": true, "cvx": [codes]}`, with `code` the CVX code where
 there is exactly one. It is no record. What is private of the claim is private
-of it, by the id, and nothing of the claim's entry in `private.json`'s `parts`
-applies to it. A counted line names a vaccine by its own CVX code (one of its
+of it, by the id. Of the claim's entry in `private.json`'s `parts`, only
+`says` applies: an answer that names no person gives it as the vaccine's
+`not_shown`, as `medrec mcp` does. Its `display` and `lines` do not. A counted line names a vaccine by its own CVX code (one of its
 `codes`, else its `service`), never 998 or 999, or, with CDC's tables on
 medrec's machine, by its CPT code. One is listed for each vaccine and day that
 no immunization of the person's has, by its CVX code, or by its kind of vaccine
