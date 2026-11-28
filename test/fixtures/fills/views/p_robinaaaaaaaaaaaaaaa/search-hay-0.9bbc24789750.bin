@@ -1,0 +1,30 @@
+Sample cream
+request 2024-03-31 prescription Sample gel
+request 2024-03-31 prescription Sample lotion
+request 2024-03-31 prescription Sample syrup
+request 2024-03-31 prescription Sample drops
+request 2024-03-31 prescription Sample tablet, 5 mg
+request 2024-03-31 prescription Sample capsule 10 mg
+request 2024-03-31 prescription SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-03-04 2024-03-04 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-04-05 2024-04-05 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 Sample capsule 10 mg
+dispense 0000-0001-01 SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-06 2024-05-06 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 SAMPLE TABLET 5 MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-07 2024-05-07 1 http://hl7.org/fhir/sid/ndc 00000-0002-01 SAMPLE TABLET 50 MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-08 2024-05-08 1 http://hl7.org/fhir/sid/ndc 00000-0002-02 Sample syrup · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-09 2024-05-09 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-3 Sample  Syrup · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-10 2024-05-10 SMPL LOTION · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-11 2024-05-11 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 Denial Reason Sample reason 3.00 USD Example ointment · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-11 2024-05-11 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-8 SMPL LOTION · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-12 2024-05-12 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 Denial Reason Sample reason 7.00 USD SMPL LOTION · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-13 2024-05-13 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 Denial Reason Sample reason 12.00 USD SMPL LOTION · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-14 2024-05-14 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 denialreason Sample reason 2 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 SMPL LOTION · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-15 2024-05-15 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 Reject Reason Sample reason SMPL LOTION · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-16 2024-05-16 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-4 Denial Reason Sample reason 0.00 USD SMPL GEL · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-05-20 2024-05-20 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-5 Sample gel
+dispense SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-06-07 2024-06-07 1 http://hl7.org/fhir/sid/ndc 00000000101 SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-07-08 2024-07-08 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-07-09 2024-07-09 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 SMPL CAP 10MG · Example Pharmacy
+Example Pharmacy Example Health Plan professional professional 2024-07-10 2024-07-10 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 Example cream 1 % · Example Pharmacy
+Example Pharmacy Example Health Plan pharmacy pharmacy 2024-07-11 2024-07-11 1 http://www.nlm.nih.gov/research/umls/rxnorm RX-1 2 http://www.nlm.nih.gov/research/umls/rxnorm RX-9 

@@ -2,7 +2,7 @@
 // medrec's own fixture says a reader makes of its standing.json, and the rows an
 // answer makes of them (src/records/standing-rows.ts).
 
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
@@ -115,5 +115,38 @@ describe('the rows of a list', async () => {
     const groups = (await of(active())).rows.map((r) => r.group);
     expect(groups).toEqual([...groups].sort());
     expect(new Set(groups)).toEqual(new Set([0, 1, 2]));
+  });
+});
+
+describe('the fills a claim tells of (medrec 0.9.11)', async () => {
+  // medrec's fixture: a medicine ended by its date, filled by the pharmacy and by two pharmacy claims after it.
+  const scratch = mkdtempSync(join(tmpdir(), 'oyh-fills-'));
+  afterAll(() => rmSync(scratch, { recursive: true, force: true }));
+  const root = ownFolder('fills', join(scratch, 'fills'), { views: true });
+  const index = JSON.parse(readFileSync(join(root, 'views/views.json'), 'utf8'));
+  const [pid, v] = Object.entries<{ files: Record<string, string> }>(index.people)[0]!;
+  const view = JSON.parse(readFileSync(join(root, 'views', pid, `standing.${v.files['standing.json']!.slice(0, 12)}.json`), 'utf8'));
+  const st = standingsOf(view as StandingView, pid)!;
+  const store = new RawStore(folderAt(root));
+  const h = await store.household();
+  const [CAPSULE, PACKAGE, CODED] = ['r_capsuleaaaaaaaaaaaaa', 'r_packageaaaaaaaaaaaaa', 'r_codedaaaaaaaaaaaaaaa'];
+  const standing = async (active: boolean, heldBack?: (id: string) => boolean) => {
+    const asked: Asked = { kind: 'medication', today: '2024-12-01', filter: { range: {}, active }, detailed: false, ...(heldBack ? { heldBack } : {}) };
+    const { rows } = await standingRows(st, (f) => store.records(h, h.people[0]!, 'medication', f, false), asked);
+    for await (const r of rows) if (r.record.id === CAPSULE) return r.standing;
+    return undefined;
+  };
+  const ended = (filled: string) => `ended by its date 2024-03-31 (prescription), filled ${filled}`;
+
+  it('says a fill is from a claim', async () => {
+    for (const active of [true, false]) expect(await standing(active)).toBe(ended('2024-06-07 (from a claim)'));
+  });
+
+  it('shows a claim as a fill where the answer may show the claim, though it is no medicine', async () => {
+    const held = (...ids: string[]) => (id: string) => ids.includes(id);
+    for (const active of [true, false]) {
+      expect(await standing(active, held(PACKAGE))).toBe(ended('2024-05-06 (from a claim)'));
+      expect(await standing(active, held(PACKAGE, CODED))).toBe(ended('2024-04-05'));
+    }
   });
 });

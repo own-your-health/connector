@@ -11,6 +11,7 @@ import worker, { type Env } from '../src/worker';
 import { CLIENT_ID, CLIENT_SECRET, FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, MemoryD1, MemoryKV, folderAt } from './support';
 import { RawStore } from '../src/records/store';
+import { MEDREC_CONTRACT, VERSION } from '../src/version';
 
 const BASE = 'https://records.example.workers.dev';
 const CLAUDE = 'https://claude.ai/api/mcp/auth_callback';
@@ -224,6 +225,30 @@ describe('connecting', () => {
     const call = await mcp(access_token, 'tools/call', { name: 'medrec_summary', arguments: {} });
     expect(call.body?.result?.isError).toBe(true);
     expect(JSON.stringify(call.body?.result)).toContain('FOLDER_ID not set');
+  });
+});
+
+describe('GET /version', () => {
+  const version = (init: RequestInit = {}, e: Env = env) => worker.fetch(new Request(`${BASE}/version`, init), e, ctx());
+
+  it('says the connector version and the medrec contract it follows, to anyone, and nothing else', async () => {
+    const res = await version();
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toMatch(/^application\/json/);
+    expect(res.headers.get('Cache-Control')).toBe('no-store');
+    expect(res.headers.get('Set-Cookie')).toBeNull();
+    expect(await res.text()).toBe(JSON.stringify({ version: VERSION, medrec_contract: MEDREC_CONTRACT }));
+  });
+
+  it('answers before the connector is set up, with nothing of its settings', async () => {
+    const res = await version({}, { OAUTH_KV: env.OAUTH_KV } as Env);
+    expect(await res.json()).toEqual({ version: VERSION, medrec_contract: MEDREC_CONTRACT });
+    const all = await (await version()).text();
+    for (const secret of [env.FOLDER_ID, env.GOOGLE_CLIENT_ID, 'example.com']) expect(all).not.toContain(secret);
+  });
+
+  it('answers GET alone', async () => {
+    expect((await version({ method: 'POST', body: '{}' })).status).toBe(404);
   });
 });
 

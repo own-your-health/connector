@@ -31,9 +31,15 @@ interface Word {
 }
 
 interface Fill {
+  /** The fill's record: the pharmacy's, or a payer's claim (medrec 0.9.11 and later). */
   record: string;
   date: string;
+  /** A payer's claim says so, and no record of the pharmacy's (medrec 0.9.11 and later). */
+  from_claim?: true;
 }
+
+/** A fill's day, as a list says it. */
+const filledOn = (f: Fill) => `${f.date}${f.from_claim ? ' (from a claim)' : ''}`;
 
 /** What a record's words make of it, whatever the day: a medicine that is current is not one after `until`. */
 export interface Standing {
@@ -161,7 +167,7 @@ export class Standings {
         is = 'entered in error';
         break;
       case 'ended_by_date':
-        is = `ended by its date ${s.until}${s.until_of === undefined ? '' : ` (${s.until_of})`}${line.filled === undefined ? '' : `, filled ${line.filled.date}`}`;
+        is = `ended by its date ${s.until}${s.until_of === undefined ? '' : ` (${s.until_of})`}${line.filled === undefined ? '' : `, filled ${filledOn(line.filled)}`}`;
         break;
       default:
         is = s.is === 'draft' || s.is === 'refuted' ? s.is : s.is === 'visit' ? 'diagnosis from a visit' : 'ended';
@@ -258,11 +264,19 @@ export class Standings {
    * entered in error has one with the current ones: both are there to be left
    * out and counted.
    */
-  active<T extends RecordEntry>(of: readonly T[], kind: string, today: string, asked: (x: T) => boolean, shows: (x: T) => boolean): { rows: Row<T>[]; notes: string[] } {
+  active<T extends RecordEntry>(
+    of: readonly T[],
+    kind: string,
+    today: string,
+    asked: (x: T) => boolean,
+    shows: (x: T) => boolean,
+    claimShows: (id: string) => boolean,
+  ): { rows: Row<T>[]; notes: string[] } {
     const by = new Map(of.map((x) => [x.id, x]));
+    // A fill of a medicine can be a claim, which is none of `of`: it shows where the answer may show its id.
     const mayShow = (id: string) => {
       const x = by.get(id);
-      return x !== undefined && shows(x);
+      return x !== undefined ? shows(x) : claimShows(id);
     };
     const lists = this.lists(kind, mayShow, today);
     const rows: Row<T>[] = [];
@@ -319,7 +333,9 @@ function standingOf(v: JsonObject): Standing {
     until_of: text(v.until_of),
     differs: v.differs === true,
     differs_after: text(v.differs_after),
-    filled: list(v.filled).flatMap((f) => (isObject(f) && typeof f.record === 'string' && typeof f.date === 'string' ? [{ record: f.record, date: f.date }] : [])),
+    filled: list(v.filled).flatMap((f) =>
+      isObject(f) && typeof f.record === 'string' && typeof f.date === 'string' ? [{ record: f.record, date: f.date, ...(f.from_claim === true ? { from_claim: true as const } : {}) }] : [],
+    ),
     words: list(v.words).filter(isObject).map(wordOf),
     unheard: numbers(v.unheard),
   };

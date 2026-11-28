@@ -8,9 +8,11 @@ import type { DocumentEntry, Household, Json, JsonObject, Note, Person, PersonIn
 import { conditionKey } from './code-names';
 import { HEADING, heads } from './panels';
 import { withoutPapers } from './papers';
+import { memberShare } from './money';
 import { isExact, isObject } from './numbers';
 import { sourcesOf, type SourceOf } from './sources';
 import { clip, cmpOpt, cmpStr, collapse, day, firstLine, fold, lines, rawOffset, trim } from './text';
+import { claimVaccines, fromClaim } from './vaccines';
 import { than, valueText } from './values';
 
 /** Longest name or detail a summary line carries, in characters. */
@@ -114,79 +116,7 @@ function flatText(v: Json | undefined, out: string[]): void {
 
 const nonEmpty = (s: string) => (s === '' ? undefined : s);
 
-// ---- money, as medrec's claims.rs adds it ----------------------------------------------------------
-
-const I128_MAX = (1n << 127n) - 1n;
-
-/** A decimal amount in ten-thousandths, so two of them add exactly. */
-function units(raw: string): bigint | undefined {
-  let s = trim(raw);
-  const neg = s.startsWith('-');
-  if (neg) s = s.slice(1);
-  const dot = s.indexOf('.');
-  const int = dot === -1 ? s : s.slice(0, dot);
-  const frac = dot === -1 ? '' : s.slice(dot + 1);
-  const digits = (x: string) => /^[0-9]*$/.test(x);
-  if ((int === '' && frac === '') || !digits(int) || !digits(frac) || frac.length > 4) return undefined;
-  const v = BigInt(`${int === '' ? '0' : int}${frac.padEnd(4, '0')}`);
-  if (v > I128_MAX) return undefined;
-  return neg ? -v : v;
-}
-
-/** Ten-thousandths as a decimal with two places, or four when it has them. */
-function decimal(u: bigint): string {
-  const sign = u < 0n ? '-' : '';
-  const abs = u < 0n ? -u : u;
-  const int = abs / 10_000n;
-  const frac = abs % 10_000n;
-  return frac % 100n === 0n ? `${sign}${int}.${String(frac / 100n).padStart(2, '0')}` : `${sign}${int}.${String(frac).padStart(4, '0')}`;
-}
-
-/** serde_json's `Value` equality: objects whatever their key order. */
-function sameJson(a: Json | undefined, b: Json | undefined): boolean {
-  if (a === b) return true;
-  if (isExact(a)) return isExact(b) && a.rawJSON === b.rawJSON;
-  if (Array.isArray(a)) return Array.isArray(b) && a.length === b.length && a.every((x, i) => sameJson(x, b[i]));
-  if (isObject(a) && isObject(b)) {
-    const ka = Object.keys(a);
-    return ka.length === Object.keys(b).length && ka.every((k) => Object.hasOwn(b, k) && sameJson(a[k], b[k]));
-  }
-  return false;
-}
-
-/** `a + b` for two `{amount, currency}` values of one currency; undefined when the currencies differ or an amount is not a plain decimal. */
-function addMoney(a: Json, b: Json): Json | undefined {
-  const cur = (m: Json) => (isObject(m) && Object.hasOwn(m, 'currency') ? m.currency : undefined);
-  if (!sameJson(cur(a), cur(b))) return undefined;
-  const amt = (m: Json) => {
-    const v = isObject(m) ? m.amount : undefined;
-    return typeof v === 'string' ? units(v) : undefined;
-  };
-  const x = amt(a);
-  const y = amt(b);
-  if (x === undefined || y === undefined) return undefined;
-  return { amount: decimal(x + y), currency: cur(a) ?? null };
-}
-
-/**
- * The member's share of a claim's `amounts`: the payer's `you_owe`, else
- * `deductible` + `copay` + `coinsurance` + `not_covered` of those given
- * (never `discount`), and whether it is that sum.
- */
-export function memberShare(a: JsonObject): { value: Json; summed: boolean } | undefined {
-  if (Object.hasOwn(a, 'you_owe')) return { value: a.you_owe!, summed: false };
-  const parts = ['deductible', 'copay', 'coinsurance', 'not_covered'].filter((k) => Object.hasOwn(a, k)).map((k) => a[k]!);
-  if (parts.length === 0) return undefined;
-  let sum: Json | undefined = parts[0]!;
-  for (const v of parts.slice(1)) {
-    sum = addMoney(sum, v);
-    if (sum === undefined) return undefined;
-  }
-  return { value: sum, summed: true };
-}
-
-/** Exposed for the unit tests of medrec's arithmetic. */
-export const moneyForTests = { units, decimal, addMoney };
+export { memberShare, moneyForTests } from './money';
 
 /**
  * Queries that name a kind of record rather than words in one: "blood
@@ -210,6 +140,9 @@ const str = (f: JsonObject, k: string) => {
 export const ENDED = new Set(['completed', 'stopped', 'inactive', 'resolved', 'remission', 'entered-in-error', 'cancelled', 'refuted']);
 export const isEnded = (status: string | null | undefined) => status !== null && status !== undefined && ENDED.has(status);
 
+/** What a list says of a vaccine a claim tells of, in place of its status or doses. */
+export const FROM_CLAIM = 'from a claim';
+
 /** The short line a record shows beside its name in a list. */
 export function recordDetail(r: RecordEntry): string | undefined {
   const f = r.fields ?? {};
@@ -231,6 +164,8 @@ export function recordDetail(r: RecordEntry): string | undefined {
       }
       return str(f, 'dosage') ?? status;
     }
+    case 'immunization':
+      return fromClaim(r) ? FROM_CLAIM : status;
     case 'claim': {
       const a = f.amounts;
       if (isObject(a) && Object.keys(a).length > 0) {
@@ -360,10 +295,13 @@ export interface Vaccine {
   doses: number;
   last_date?: string;
   source?: string;
-  /** The last dose's record id (medrec 0.9.1 and later). */
+  /** The last dose's record id (medrec 0.9.1 and later), or of one a claim tells of, the claim's. */
   id?: string;
+  /** A dose a claim tells of, and no record (medrec 0.9.11 and later): a line of its own, of one dose. */
+  from_claim?: boolean;
 }
 
+/** Each vaccine's doses, and each one a claim tells of on a line of its own, so that a private claim's dose never adds to a line shown. Newest first by their last dose. */
 function vaccines(records: RecordEntry[], from: SourceOf): Vaccine[] {
   const by = new Map<string, Vaccine>();
   for (const r of records) {
@@ -373,7 +311,11 @@ function vaccines(records: RecordEntry[], from: SourceOf): Vaccine[] {
     if (v) v.doses += 1;
     else by.set(key, { vaccine: clip(r.display, CLIP), code: r.code?.code ?? undefined, doses: 1, last_date: day(r.date), source: from(r), id: r.id });
   }
-  return [...by.values()];
+  const claimed = claimVaccines(records).map(
+    (r): Vaccine => ({ vaccine: clip(r.display, CLIP), code: r.code?.code ?? undefined, doses: 1, last_date: day(r.date), source: from(r), id: r.id, from_claim: true }),
+  );
+  // Stable: series keep their order among themselves.
+  return [...by.values(), ...claimed].sort((a, b) => cmpOpt(b.last_date, a.last_date));
 }
 
 export interface ResultRow {

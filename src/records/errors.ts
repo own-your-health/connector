@@ -28,14 +28,15 @@ export const saysInError = (w: { status?: string | null; verification?: string |
 export function enteredInError(idx: PersonIndex): Errors {
   const out = new Map<string, Set<string>>();
   const add = (kind: string, id: string) => void (out.get(kind) ?? out.set(kind, new Set()).get(kind)!).add(id);
-  for (const r of idx.records ?? []) if (recordIs(r)) add(r.kind, r.id);
+  for (const r of idx.records ?? []) if (recordInError(r)) add(r.kind, r.id);
   for (const d of idx.documents ?? []) if (paperIs(d)) add('document', d.id);
   return out;
 }
 
 const wordOf = (words: readonly SourceWord[] | null | undefined, v: Provenance) => (v.raw_path == null ? undefined : words?.find((w) => w.raw_path === v.raw_path));
 
-function recordIs(r: RecordEntry): boolean {
+/** Whether a record is entered in error: every one of its sources says so. */
+export function recordInError(r: RecordEntry): boolean {
   const from = r.provenance ?? [];
   const verification = r.fields?.verification_status;
   const own = () => saysInError({ status: r.status, verification: typeof verification === 'string' ? verification : undefined });

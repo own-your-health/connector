@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.10 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.11 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 681 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 710 recorded calls of `medrec mcp` to
 this connector's answers, to the character. What some of them need is in
 medrec's views alone, and without those an answer differs as said below.
 
@@ -115,6 +115,20 @@ results, the timeline's details and a lab search's snippets), while the lists of
 results and tests have it, until medrec 0.9.10 or this version's `npm run views`
 writes them again.
 
+A claim line that names a vaccine is listed among the person's immunizations,
+and in their summary, as `from a claim` (its `detail`), from medrec 0.9.11. It
+keeps the claim's id, so what is private of the claim is private of it. It is
+listed once for each vaccine and day that no immunization of the person's
+already has, it is no record of its own, and it sets no status. A medicine's
+`standing` says `(from a claim)` after the day of a fill that only a pharmacy
+claim tells of. medrec also names a vaccine by a line's CPT code, with CDC's
+tables on the machine that writes the views. Read from the files, or from views
+that `npm run views` wrote, only a line's own CVX code names one. medrec's views
+leave out the vaccine of a claim line that an answer about the whole household
+does not show, and name a line with no text of its own by what the claim shows
+there. So from them, an answer that names the person lacks that vaccine and
+that name, which `medrec mcp` gives (medrec's data contract, "Records").
+
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
 ## How it keeps the records private
@@ -142,6 +156,10 @@ Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
   records arguments or results.
 - **Errors without contents.** Tool errors carry no record text, and none of
   Drive's own messages.
+- **One public page.** `GET /version` answers anyone, with no sign-in, the
+  connector's version and the medrec contract it follows:
+  `{"version": "0.1.0", "medrec_contract": "0.9.11"}`. It says nothing of the
+  folder, the accounts or the records.
 
 What it cannot protect against: anyone who controls your Cloudflare account,
 your Google account, or your assistant account. Your assistant's provider
@@ -427,6 +445,18 @@ its own) are being prepared when asked for their tests, and leaves that person
 out of tests of everyone. A folder
 prepared by `npm run views` needs one more run after an update that changes
 what the script writes: the release's notes say so.
+
+Views from medrec 0.9.11 and later name the oldest medrec contract a reader
+must follow (`reader` in `views.json`; without it, the medrec that wrote them).
+This version follows 0.9.11's. Of views that name a later one, or a value it
+cannot read, it reads nothing: every tool says the connector needs updating,
+and none falls back to the folder's own files. Views that `npm run views` wrote
+before this version name none, and every tool asks for one more run of it.
+`GET /version` gives the contract a deployment follows (`medrec_contract`), so
+a script can check it before a newer medrec writes the views. A connector from
+before 0.9.11's contract reads 0.9.11's views, and shows a vaccine that only a
+claim tells of as a record of it, and a claim's fill as the pharmacy's: update
+the connector first.
 
 ## Renewing the deploy token
 
