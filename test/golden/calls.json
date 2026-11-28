@@ -5739,6 +5739,330 @@
       "arguments": {
         "query": "capsule"
       }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_visitaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_visitaaaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_dischargeaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_dischargeaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_counselaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_counselaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_privateaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_privateaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_heldaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_heldaaaaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_billaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_document",
+      "arguments": {
+        "id": "d_billaaaaaaaaaaaaaaaa",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "documents",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "follow up"
+      }
+    },
+    {
+      "folder": "papers",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "exampleprofen",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "name": "samplepox"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "name": "in no group"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "name": "nothing like it"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "limit": 1
+      },
+      "label": "schedule-page"
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "limit": 1
+      },
+      "cursor_from": "schedule-page"
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "active": true
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "since": "2021-01-01"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "until": "2021-01-01"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Nobody"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "id": "e_aaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "doc_type": "bill"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "schedule",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin",
+        "name": "no group"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule",
+        "person": "Sam Example",
+        "name": "x"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "schedule"
+      }
+    },
+    {
+      "folder": "demo",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "Schedule",
+        "person": "Robin"
+      }
     }
   ]
 }

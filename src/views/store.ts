@@ -20,7 +20,9 @@ import { isObject, parseExact } from '../records/numbers';
 import { OpenText, nameOf, notShown, shownClaim, type Parts, type SearchParts } from '../records/parts';
 import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Bills, type Candidate, type Events, type RecordFilter, type Skip, type Store } from '../records/store';
+import type { PaperFields } from '../records/fields';
 import type { Privacy } from '../records/private';
+import { SCHEDULE_SCHEMA, SCHEDULE_SINCE, type NoSchedule, type ScheduleView } from '../records/schedule';
 import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
 import { STANDING_SCHEMA, standingsOf, type StandingView, type Standings } from '../records/standing';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
@@ -57,6 +59,7 @@ import {
   PRIVATE_SCHEMA,
   VIEWS_SCHEMA,
   readerStop,
+  writtenSince,
   hex,
   paths,
   prefixOf,
@@ -173,6 +176,7 @@ const DEPENDS = {
   'private.json': ['marks', 'provider_state'],
   'code-names.json': ['marks', 'provider_state'],
   'providers.json': ['marks', 'provider_state'],
+  'schedule.json': ['marks', 'provider_state'],
 } as const satisfies Record<string, readonly (keyof typeof MADE_FROM)[]>;
 
 /** private.json as a reader needs it (medrec-private/v1). */
@@ -400,6 +404,40 @@ export class ViewsStore implements Store {
   /** Whether the person's folder holds what a provider directory gave. The survey has it, so it costs no request. */
   private async hasProviderState(p: Person): Promise<boolean> {
     return (await this.folder.md5([`${p.folder}/${MADE_FROM.provider_state}`]))[0] !== null;
+  }
+
+  /**
+   * schedule.json, which medrec writes on a machine that keeps a schedule
+   * table, and from what private.json is made of, since it leaves out what is
+   * private: none where the last pass wrote none, and an error where the
+   * records changed after it.
+   */
+  async schedule(h: Household, p: Person): Promise<ScheduleView | NoSchedule> {
+    const st = await this.state(h);
+    if (st.newer) {
+      throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads`).withFix(UPDATE).personUnavailable(p.id);
+    }
+    if (st.index?.people[p.id]?.files?.['schedule.json'] === undefined) {
+      // Only medrec 0.9.12 or later writes one, and only with a schedule table kept.
+      return { none: st.index !== null && writtenSince(st.index, SCHEDULE_SINCE) ? 'tables' : 'medrec' };
+    }
+    const found = await this.findDerived(h, p, 'schedule.json');
+    if ('not' in found) {
+      throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared their vaccine schedule for assistants`)
+        .withFix("Tell the user medrec prepares it on its next pass on the household's computer, then ask again; if it persists, the computer may be off")
+        .personUnavailable(p.id);
+    }
+    const view = await new PersonReader(this.folder, p, found.v).json<ScheduleView>(paths.schedule(p.id));
+    if (view.schema !== SCHEDULE_SCHEMA) {
+      throw ToolError.upstream(`medrec prepared ${p.name}'s vaccine schedule in a layout (${String(view.schema)}) this connector does not read`).withFix(UPDATE).personUnavailable(p.id);
+    }
+    return view;
+  }
+
+  /** documents.json gives a paper's fields as a reader shows them: without those private by what they say, each drug with its medicine. */
+  async paperFields(h: Household, p: Person, d: DocumentEntry): Promise<PaperFields | undefined> {
+    if (!(await this.views(h, p))) return this.raw.paperFields(h, p, d);
+    return d.fields ?? undefined;
   }
 
   async bills(h: Household, p: Person): Promise<Bills | null> {

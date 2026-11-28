@@ -3,7 +3,8 @@
 // folder, the large synthetic one (scripts/synth.mjs) and medrec's own, for
 // provider labels (scripts/labels-folder.mjs), and for what sources say, what is
 // entered in error, what a source gave and what a questionnaire asks, of a grown
-// person and in a child's chart (scripts/own-folder.mjs), into
+// person and in a child's chart, and for the follow-ups and drugs of papers and a
+// vaccine schedule (scripts/own-folder.mjs), into
 // test/golden/medrec.json, a call a line. test/golden.test.ts then holds this
 // connector's answers to the same calls equal to medrec's.
 //
@@ -11,33 +12,43 @@
 //
 // medrec runs in a scratch HOME with its own config and a keychain service
 // that holds nothing, over copies of the folders: it never sees a real
-// profile, folder or credential.
+// profile, folder or credential. The folders in TABLED have a HOME of their
+// own, which keeps the invented vaccine schedule of medrec's tests
+// (scripts/cdsi.mjs).
 
 import { spawn, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import { parseExact } from '../src/records/numbers.ts';
+import { keepCdsi } from './cdsi.mjs';
 import { labelsFolder } from './labels-folder.mjs';
-import { OWN, ownFolder } from './own-folder.mjs';
+import { OWN, TABLED, ownFolder } from './own-folder.mjs';
 import { synth } from './synth.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const scratch = mkdtempSync(join(tmpdir(), 'oyh-golden-'));
-const env = {
+/** A machine's environment, its HOME under the scratch directory. */
+const machine = (home) => ({
   PATH: process.env.PATH,
-  HOME: scratch,
-  XDG_CONFIG_HOME: join(scratch, 'config'),
-  XDG_CACHE_HOME: join(scratch, 'cache'),
-  XDG_DATA_HOME: join(scratch, 'data'),
+  HOME: home,
+  XDG_CONFIG_HOME: join(home, 'config'),
+  XDG_CACHE_HOME: join(home, 'cache'),
+  XDG_DATA_HOME: join(home, 'data'),
   MEDREC_KEYCHAIN_SERVICE: 'own-your-health-connector-golden-none',
   NO_COLOR: '1',
   TZ: 'UTC',
-};
-const medrec = (...args) => execFileSync('medrec', args, { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+});
+const plain = machine(scratch);
+const tabled = machine(join(scratch, 'tabled'));
+mkdirSync(tabled.HOME);
+const envOf = (name) => (TABLED.includes(name) ? tabled : plain);
+const run = (env, ...args) => execFileSync('medrec', args, { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+const medrec = (...args) => run(plain, ...args);
+keepCdsi((...args) => run(tabled, ...args), join(scratch, 'cdsi.zip'));
 
 const folders = { demo: join(scratch, 'demo'), large: join(scratch, 'large'), labels: join(scratch, 'labels') };
 cpSync(join(ROOT, 'test/fixtures/records'), folders.demo, { recursive: true });
@@ -45,6 +56,7 @@ synth(folders.large);
 labelsFolder(folders.labels);
 for (const name of OWN) folders[name] = ownFolder(name, join(scratch, name));
 for (const [name, path] of Object.entries(folders)) {
+  const medrec = (...args) => run(envOf(name), ...args);
   medrec('profiles', 'add', name);
   medrec('--profile', name, 'config', 'set', 'folder', path);
   // medrec reads a code's plain name from the folder's views. The recorded
@@ -72,7 +84,7 @@ const today = new Date().toISOString().slice(0, 10);
 
 /** One `medrec mcp` per folder, spoken to over stdio, one request at a time. */
 function server(profile) {
-  const child = spawn('medrec', ['--profile', profile, 'mcp'], { env, stdio: ['pipe', 'pipe', 'inherit'] });
+  const child = spawn('medrec', ['--profile', profile, 'mcp'], { env: envOf(profile), stdio: ['pipe', 'pipe', 'inherit'] });
   const lines = createInterface({ input: child.stdout });
   const waiting = [];
   // Numbers as medrec prints them: JSON.parse would write its 4.0 as 4.

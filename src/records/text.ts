@@ -233,3 +233,11 @@ export function cmpStr(a: string, b: string): number {
   }
   return a.length < b.length ? -1 : a.length > b.length ? 1 : 0;
 }
+
+/** What can steer a terminal or hide text: control characters and invisible formatting, as medrec's `printable` drops them. */
+const HIDDEN = /[\p{Cc}\u00AD\u0600-\u0605\u061C\u06DD\u070F\u180E\u200B-\u200F\u2028-\u202E\u2060-\u2064\u2066-\u206F\uFEFF\uFFF9-\uFFFB\u{E0000}-\u{E007F}]/gu;
+
+/** A name as medrec prints it in a message: without those. */
+export function printable(s: string): string {
+  return s.replace(HIDDEN, '');
+}

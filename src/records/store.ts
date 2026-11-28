@@ -15,11 +15,13 @@
 import { shownIndex } from './about';
 import { NO_NAMES, type CodeNames } from './code-names';
 import { allOf, enteredInError, type Errors } from './errors';
+import { withMedicines, type PaperFields } from './fields';
 import type { Folder } from './folder';
 import { heads } from './panels';
 import type { Parts } from './parts';
 import type { Privacy } from './private';
 import type { LabelsFile } from './provider-labels';
+import type { NoSchedule, ScheduleView } from './schedule';
 import type { Standings } from './standing';
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, PersonIndex, RecordEntry } from './model';
@@ -199,6 +201,13 @@ export interface Store {
   errors(h: Household, p: Person): Promise<Errors>;
   /** How many of their records and papers are about somebody else, and shown nowhere (medrec 0.9.9 and later). */
   aboutAnother(h: Household, p: Person): Promise<number>;
+  /**
+   * The person's vaccine schedule (schedule.json, medrec 0.9.12 and later),
+   * or why the views have none. One the records changed after is an error.
+   */
+  schedule(h: Household, p: Person): Promise<ScheduleView | NoSchedule>;
+  /** A paper's fields, each drug with the person's medicine of an equal code; undefined where it has none. */
+  paperFields(h: Household, p: Person, d: DocumentEntry): Promise<PaperFields | undefined>;
 }
 
 /** The records tool's order: date, newest first (the day only, unless detailed), then title. */
@@ -370,6 +379,15 @@ export class RawStore implements Store {
 
   async aboutAnother(h: Household, p: Person): Promise<number> {
     return (await this.index(h, p)).about_another?.length ?? 0;
+  }
+
+  /** A schedule is medrec's, made by CDC's tables on the machine that writes the views, which this store does not read. */
+  async schedule(_h: Household, _p: Person): Promise<ScheduleView | NoSchedule> {
+    return { none: 'medrec' };
+  }
+
+  async paperFields(h: Household, p: Person, d: DocumentEntry): Promise<PaperFields | undefined> {
+    return d.fields ? withMedicines(d.fields, (await this.index(h, p)).records ?? []) : undefined;
   }
 
   household(): Promise<Household> {

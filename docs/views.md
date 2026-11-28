@@ -17,12 +17,16 @@ The reference writer is `src/views/write.ts`. Its output for the demo folder,
 the large synthetic folder and medrec's own folder for provider labels, with
 the views only medrec makes as it wrote them for each (`events.json`,
 `bills.json`, `private.json`, `code-names.json`, `providers.json` and
-`standing.json`, in `test/fixtures`), and all of medrec's own views for its eight
+`standing.json`, in `test/fixtures`), and all of medrec's own views for its ten
 other folders (`words`, `errors`, `given`, `questionnaires`, `child`, `parts`,
-`vaccines` and `fills`), answer all the recorded calls exactly as `medrec mcp`
-does (`test/golden.test.ts`, "from the views"). The one exception is what
-medrec's views do not hold of a claim's vaccines, in an answer that names the
-person (Records, below). Another writer (medrec's) is right
+`vaccines`, `fills`, `papers` and `schedule`), answer all the recorded calls
+exactly as `medrec mcp` does (`test/golden.test.ts`, "from the views"). The
+exceptions are what medrec's views do not hold, in an answer that names the
+person: of a claim's vaccines (Records, below), of a paper's fields private by
+what they say (`documents.json`), and of a schedule's doses on file
+(`schedule.json`). Over the reference writer's views, the `no-schedule` warning
+also says a schedule needs medrec 0.9.12 or later (`schedule.json`). Another
+writer (medrec's) is right
 when its views pass the same calls:
 
 ```sh
@@ -61,6 +65,7 @@ views/<person id>/code-names.json         medrec 0.9.4 on; medrec's own, below
 views/<person id>/providers.json          medrec 0.9.7 on; medrec's own, below
 views/<person id>/standing.json           medrec 0.9.9 on; medrec's own, below
 views/<person id>/search-parts.json       medrec 0.9.9 on; medrec's own, below
+views/<person id>/schedule.json           medrec 0.9.12 on; medrec's own, below
 ```
 
 `views/` is at the top of the records folder, beside `household.json`. A
@@ -88,7 +93,7 @@ MD5 (hex) of each source file, exactly as stored, that the views were made
 from, and of every view it describes:
 
 ```json
-{"schema":"medrec-views/v2","medrec":"0.9.11","reader":"0.9.11","household":"<md5>",
+{"schema":"medrec-views/v2","medrec":"0.9.12","reader":"0.9.11","household":"<md5>",
  "people":{"p_…":{"index":"<md5>","text":"<md5>", …,
                   "files":{"summary.json":"<md5>","records-result-0.json":"<md5>", …}}}}
 ```
@@ -104,14 +109,18 @@ reader must follow to read the views: `MAJOR.MINOR.PATCH`, three decimal
 integers, compared as numbers part by part (`0.9.9` is older than `0.9.10`).
 Where it is absent, `medrec` stands in its place. medrec raises it in a release
 that adds a field a reader must not ignore: from 0.9.11, `from_claim` of a
-vaccine and of a fill, below. This connector follows 0.9.11's contract
-(`MEDREC_CONTRACT` in `src/version.ts`, which `GET /version` gives). Of views
-that name a later one, or a value it cannot parse, it reads nothing, not even a
-small person's own files, and every tool says the connector needs updating.
-This version's `npm run views` writes `reader` as that contract. Views it wrote
-before have `medrec: "connector"` and no `reader`, and every tool asks for one
-more run of it. `vaccine_tables`, per person (medrec 0.9.11), says which of
-CDC's tables made the person's vaccines from claims. A reader need not check it.
+vaccine and of a fill, below. medrec 0.9.12 adds none, and names 0.9.11. This
+connector follows 0.9.12's contract (`MEDREC_CONTRACT` in `src/version.ts`,
+which `GET /version` gives). Of views that name a later one, or a value it
+cannot parse, it reads nothing, not even a small person's own files, and every
+tool says the connector needs updating. This version's `npm run views` writes
+`reader` as medrec of that contract writes its own (`VIEWS_READER`, 0.9.11).
+Views it wrote before 0.9.11's contract have `medrec: "connector"` and no
+`reader`, and every tool asks for one more run of it. `vaccine_tables`, per
+person (medrec 0.9.11), says which of CDC's tables made the person's vaccines
+from claims. `schedule_tables` (medrec 0.9.12) says which schedules made the
+person's `schedule.json`, `<id> <SHA-256>` each, and is absent when the views
+have none. A reader need not check either.
 
 A reader compares these with the MD5s Drive reports (`md5Checksum`), all of
 which one listing of the folder gives.
@@ -319,6 +328,19 @@ added:
   the person's `private.json` holds back, and all of them when there are no ids
   and any record of theirs is private or may be. With `person`, whose document
   it is, it is an answer about them and has every name.
+- `fields` (medrec 0.9.12 and later): what the paper's text says on the lines
+  that label it, `follow_up` and `drugs` (medrec's data contract, "Fields of a
+  paper"), as `index.json` has them but without any field whose lines are among
+  the paper's private places (Private parts, below). Each drug has `medicine`,
+  the id of the person's medicine of an equal RxNorm code or NDC, where there is
+  one. Absent where no field is left. `medrec_document` gives them as `labeled`
+  lines, after a bill's amount due: at most 20, then one that says how many more
+  the text has. Without `person` it leaves out a field any of whose lines is in
+  the paper's `text` part, and the id of a medicine `private.json` holds back.
+  With `person` it gives every field `documents.json` has. A field private by
+  what it says is in `index.json` alone, so an answer from the views lacks it
+  where `medrec mcp` gives it. `npm run views` marks nothing private, and writes
+  every field.
 
 `text-<n>.bin` holds the documents' texts as UTF-8, one after another, in
 document order. A pack closes before a text would take it past 1,000,000
@@ -409,7 +431,7 @@ matching rules. Its layout, `medrec-events/v1`, is medrec's, in medrec's
 It is stored and listed in `files` like every view. Each person's entry in
 `views.json` also gives what else their events were made from, and only the
 views medrec makes itself (`events.json`, `bills.json`, `private.json`,
-`code-names.json`, `providers.json`) depend on these:
+`code-names.json`, `providers.json`, `schedule.json`) depend on these:
 
 | Field | What |
 |---|---|
@@ -461,7 +483,7 @@ too (medrec 0.9.7 and later). The person's entry in `views.json` gives these:
 
 A reader uses either only when the person's views are current and
 `overrides`, `marks` and `linked` still match, and for `private.json` (and
-`code-names.json` and `providers.json`, below) `provider_state` too. `events.json` does not depend
+`code-names.json`, `providers.json` and `schedule.json`, below) `provider_state` too. `events.json` does not depend
 on `marks`, and neither it nor `bills.json` on `provider_state`. A
 `provider-state.json` that is not the one named, one where none is named, and
 one that is gone are each a difference. The file is medrec's own: a reader
@@ -535,15 +557,15 @@ takes its place.
 
 ## Private parts (medrec 0.9.9 and later)
 
-A claim of several services, a bill, a receipt, an explanation of benefits or an
-event can be open with a private part: a service, a diagnosis or a payer's note
-in a claim, a line of a paper's text, and what such a claim or a private paper
-says of an event. `private.json` has each in `parts`, by the item's id:
+A claim of several services, a paper or an event can be open with a private
+part: a service, a diagnosis or a payer's note in a claim, a line of a paper's
+text (from medrec 0.9.12, of any type, such as a line that prescribes a private
+drug), and what such a claim or a private paper says of an event. `private.json` has each in `parts`, by the item's id:
 
 | Item | Its part |
 |---|---|
 | claim | `lines`, `diagnoses` and `payer_notes`: places from 0 in its `items`, `diagnoses` and `payer_notes`, each absent when there is none; `display`, the name it is shown by; `date`, its date; `category` when the lines that are left have another, `null` when none has |
-| bill, receipt, explanation of benefits | `text`: `[offset, length]` of each private line, in bytes of its text |
+| paper | `text`: `[offset, length]` of each private line, in bytes of its text; from medrec 0.9.12, also the lines of each of its `fields` private by what it says (`documents.json`) |
 | event | any of `kind`, `title`, `what`, `what_from`, `place`, `place_from`, `clinicians`, `money`, `differences` and `expected`, to take the event's own place, `null` for none |
 
 `says` is how much is left out ("1 service not shown"); an event whose open
@@ -675,6 +697,39 @@ summary. With `active`, it reads all of the person's records of the kind, since
 a line's records may be of any date. Without a current `standing.json` it lists
 by status, as views from 0.9.8 and earlier are, and says nothing of sources
 that differ.
+
+## `schedule.json` (medrec 0.9.12 and later)
+
+A person's vaccine schedule, in medrec's layout `medrec-schedule/v1` (medrec's
+`docs/data-contract.md`, "Schedule"): each vaccine group's doses by CDC's CDSi
+supporting data, and the person's doses on file under each group, never paired
+with a dose of the schedule. Nothing in it says a dose is due. medrec writes it
+on a machine that keeps those tables (`medrec tables fetch cdsi`), and
+`schedule_tables` in `views.json` names them. Without them the views have no
+`schedule.json`. The reference writer here does not write it, and this connector
+keeps no tables. Without one, `medrec_records` with `kind: "schedule"` has no
+item and a `no-schedule` warning. Where medrec 0.9.12 or later wrote the views
+(their `medrec`), the warning is medrec's own: no schedule is kept, and `medrec
+tables fetch cdsi` keeps CDC's. Where there are no views, `npm run views` wrote
+them, or an earlier medrec did, the tables alone give none, and the warning
+says a schedule needs medrec 0.9.12 or later as well.
+
+It is made from the same files as `private.json`, and a reader uses it only when
+the person's `overrides`, `marks`, `linked` and `provider_state` match. When it
+is not current, the answer is an error that says medrec prepares the schedule on
+its next pass. While it is still arriving, the error says the records are being
+prepared, and to ask again in a minute. In another layout, it says the connector
+needs updating.
+
+A reader lists each group as an item, in the file's order, then the doses on file
+in no group (`not_placed`), by the words of the contract. A person without a
+birth date has no groups, and the answer warns `no-birth-date`. medrec writes it
+for assistants with what `private.json` holds back: no private record is a dose
+on file, a claim line held back gives no vaccine, a claim is named without its
+held lines, and the doses before the person's records begin are those before the
+earliest open record or paper. `medrec mcp` naming the person reads all of it.
+So from the views, that answer lacks those doses and that name, can fold other
+doses under "Before these records begin", and marks no item private.
 
 ## What is entered in error (medrec 0.9.9 and later)
 

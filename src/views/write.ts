@@ -7,12 +7,13 @@
 import { createHash } from 'node:crypto';
 import { shownIndex } from '../records/about';
 import { allOf, enteredInError } from '../records/errors';
+import { withMedicines } from '../records/fields';
 import type { Household, Person, PersonIndex, RecordEntry } from '../records/model';
 import { heads } from '../records/panels';
 import { sourcesOf, type SourceOf } from '../records/sources';
 import { recordOrder, eventOrder } from '../records/store';
 import { claimVaccines } from '../records/vaccines';
-import { MEDREC_CONTRACT } from '../version';
+import { VIEWS_READER } from '../version';
 import { cmpOpt, day, fold, wordStarts } from '../records/text';
 import { SUMMARY_LINES, isLab, newestFirst, personRow, recordDetail, searchables, seriesKey, summarize, timelineEvents, type Event } from '../records/views';
 import {
@@ -61,7 +62,7 @@ const json = (v: unknown) => JSON.stringify(v);
 /** Every view of the folder, by the path it is stored at (storedName), and views.json. */
 export function writeViews(h: Household, householdBytes: Uint8Array, people: PersonFiles[], medrec: string): Map<string, string | Uint8Array> {
   const out = new Map<string, string | Uint8Array>();
-  const index: ViewsIndex = { schema: VIEWS_SCHEMA, medrec, reader: MEDREC_CONTRACT, household: md5(householdBytes), people: {} };
+  const index: ViewsIndex = { schema: VIEWS_SCHEMA, medrec, reader: VIEWS_READER, household: md5(householdBytes), people: {} };
   for (const f of people) {
     const pid = f.person.id;
     const views = new Map<string, string | Uint8Array>();
@@ -282,7 +283,10 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   const located = new Map(withText.map((d, i) => [d.id, textAt[i]!]));
   const dv: DocumentView[] = docs.map((d) => {
     // What a source gave and no item shows decides what is private, and is in no view.
-    const { given: _given, ...v }: DocumentView = d;
+    const { given: _given, fields, ...rest }: DocumentView = d;
+    const v: DocumentView = rest;
+    // Each drug with the person's medicine of an equal code. This script marks nothing private, so it has no field private by what it says to leave out.
+    if (fields && ((fields.follow_up?.length ?? 0) > 0 || (fields.drugs?.length ?? 0) > 0)) v.fields = withMedicines(fields, records);
     const at = located.get(d.id);
     if (at) v.text_at = [...at, Array.from(texts[d.id]!).length];
     const linked = records.filter((r) => (r.documents ?? []).includes(d.id) && !gone.has(r.id)).slice(0, 20);

@@ -3,6 +3,8 @@
 // text.json and notes.md. Only the fields the tools read are typed; the rest
 // pass through untouched.
 
+import type { PaperFields } from './fields';
+
 declare const exact: unique symbol;
 /** A number kept as its file writes it, as JSON.rawJSON holds it (numbers.ts). */
 export interface ExactNumber {
@@ -149,6 +151,8 @@ export interface DocumentEntry {
   words?: SourceWord[];
   given?: GivenPaper[];
   says?: Json;
+  /** What its text says on the lines it labels (medrec 0.9.12 and later; fields.ts). */
+  fields?: PaperFields | null;
 }
 
 export interface Series {

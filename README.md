@@ -7,9 +7,9 @@ assistant that accepts remote MCP connectors (Claude on the web, phone and
 desktop, and others; see [Assistants](#assistants)) can then answer questions
 from the records, with no computer left on to serve them.
 
-It offers the four tools of `medrec mcp` 0.9.11 under the same names, with the
+It offers the four tools of `medrec mcp` 0.9.12 under the same names, with the
 same descriptions and schemas (`spec/medrec-tools.json`). The answers are the
-same too: `test/golden.test.ts` holds 710 recorded calls of `medrec mcp` to
+same too: `test/golden.test.ts` holds 750 recorded calls of `medrec mcp` to
 this connector's answers, to the character. What some of them need is in
 medrec's views alone, and without those an answer differs as said below.
 
@@ -17,8 +17,8 @@ medrec's views alone, and without those an answer differs as said below.
 |---|---|
 | `medrec_summary` | The household's people; with `person`, their current medicines, conditions, allergies, vaccines, latest results, recent visits and bills |
 | `medrec_search` | Every document, record, study and note holding all the query's words |
-| `medrec_records` | One kind of record (medications, results, tests, visits, claims, bills, documents, notes, the timeline…), filtered and paged; `events`: what happened, one per visit, ER trip, stay or fill, with what the household owes; `bills`: whether each is paid, or what is left |
-| `medrec_document` | A document's extracted text, a part at a time |
+| `medrec_records` | One kind of record (medications, results, tests, visits, claims, bills, documents, notes, the timeline…), filtered and paged; `events`: what happened, one per visit, ER trip, stay or fill, with what the household owes; `bills`: whether each is paid, or what is left; `schedule`: a person's vaccine schedule |
+| `medrec_document` | A document's extracted text, a part at a time, and what it labels: a bill's amount due, follow-ups and drugs |
 
 Records, documents, events and imaging studies about mental health,
 reproductive or sexual health or substance use are private: medrec marks them
@@ -43,8 +43,9 @@ that names no person, an event asked for by its id too, `in_error` and
 itself. The place of
 another person's stay, as of a birth, is an event's place only when that stay
 holds nothing private.
-A claim, a bill or an event can be open with a private part: a service among
-others, a diagnosis, a line of the text. When medrec 0.9.9 or later has marked
+A claim, a paper (a bill, a visit summary and the like) or an event can be open
+with a private part: a service among others, a diagnosis, a line of the text,
+such as one that prescribes a private drug. When medrec 0.9.9 or later has marked
 those, an answer that names no person leaves them out, lists and finds the item
 by what is left, and says how much it left out: `not_shown`, or a text's `(1 line
 not shown)` and its `hint`. `medrec_document` gives all of the text with
@@ -128,6 +129,36 @@ with no text of its own by what the claim shows there. So from them, an answer
 that names the person lacks that vaccine and that name, which `medrec mcp` gives
 (medrec's data contract, "Records").
 
+A document's `labeled` lines (from medrec 0.9.12, in place of `amount_due` and
+`due_date`) say what its text says on the lines that label it: a bill's amount
+due and due date, each follow-up with the day it tells and how, and each drug
+with its directions, its codes and the id of the person's medicine of an equal
+RxNorm code or NDC. There are at most 20, then a line that says how many more
+the text has. They come from the paper's `fields`, which medrec 0.9.12 reads as
+it files a paper, and `medrec reindex` reads for one filed before. An answer
+about the whole household leaves out a field on a line `private.json` holds
+back, and a medicine's id where it holds the medicine back. medrec's views
+leave out a field private by what it says, so from them an answer that names
+the person lacks it, which `medrec mcp` gives (medrec's data contract, "Fields
+of a paper"). A drug is listed under its paper alone, never as a medicine.
+
+`kind: "schedule"` (medrec 0.9.12) lists a person's vaccine schedule: one item
+per vaccine group, its doses and the person's doses on file, then the doses on
+file in no group. It takes `person`, and not `active`, `since` or `until`. It
+says nothing of what is due. medrec makes it from CDC's CDSi tables on the
+machine that writes the views (`medrec tables fetch cdsi`), and this connector
+reads that alone (`schedule.json`). Without one, the answer has no item and a
+`no-schedule` warning. From views of medrec 0.9.12 or later it is medrec's:
+`medrec tables fetch cdsi` keeps CDC's tables. From the files, from views
+`npm run views` wrote, or from an earlier medrec's, it says a schedule needs
+medrec 0.9.12 or later on the household's computer as well. A person with no birth
+date has no schedule (`no-birth-date`), and their doses on file are listed alone.
+medrec makes `schedule.json` without what `private.json` holds back, so from
+it an answer lacks a private dose, the vaccine of a claim line held back and
+that line's name, and can fold more doses under "Before these records begin".
+`medrec mcp` gives them, and marks the private ones (medrec's data contract,
+"Schedule").
+
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 
 ## How it keeps the records private
@@ -157,7 +188,7 @@ Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
   Drive's own messages.
 - **One public page.** `GET /version` answers anyone, with no sign-in, the
   connector's version and the medrec contract it follows:
-  `{"version": "0.1.0", "medrec_contract": "0.9.11"}`. It says nothing of the
+  `{"version": "0.1.0", "medrec_contract": "0.9.12"}`. It says nothing of the
   folder, the accounts or the records.
 
 What it cannot protect against: anyone who controls your Cloudflare account,
@@ -452,15 +483,17 @@ what the script writes: the release's notes say so.
 
 Views from medrec 0.9.11 and later name the oldest medrec contract a reader
 must follow (`reader` in `views.json`; without it, the medrec that wrote them).
-This version follows 0.9.11's. Of views that name a later one, or a value it
+This version follows 0.9.12's. Of views that name a later one, or a value it
 cannot read, it reads nothing: every tool says the connector needs updating,
 and none falls back to the folder's own files. Views that `npm run views` wrote
-before this version name none, and every tool asks for one more run of it.
+before 0.9.11's contract name none, and every tool asks for one more run of it.
 `GET /version` gives the contract a deployment follows (`medrec_contract`), so
-a script can check it before a newer medrec writes the views. A connector from
-before 0.9.11's contract reads 0.9.11's views, and shows a vaccine that only a
-claim tells of as a record of it, and a claim's fill as the pharmacy's: update
-the connector first.
+a script can check it before a newer medrec writes the views. medrec 0.9.12's
+views name 0.9.11, so a connector of 0.9.11's contract reads them: it gives a
+bill's `amount_due` and `due_date` and no other `labeled` line, and has no
+`kind: "schedule"`. A connector from before 0.9.11's contract reads 0.9.11's
+views, and shows a vaccine that only a claim tells of as a record of it, and a
+claim's fill as the pharmacy's: update the connector first.
 
 ## Renewing the deploy token
 
