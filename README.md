@@ -117,15 +117,16 @@ A claim line that names a vaccine is listed among the person's immunizations,
 and in their summary, as `from a claim` (its `detail`), from medrec 0.9.11. It
 keeps the claim's id, so what is private of the claim is private of it. It is
 listed once for each vaccine and day that no immunization of the person's
-already has, it is no record of its own, and it sets no status. A medicine's
-`standing` says `(from a claim)` after the day of a fill that only a pharmacy
-claim tells of. medrec also names a vaccine by a line's CPT code, with CDC's
-tables on the machine that writes the views. Read from the files, or from views
-that `npm run views` wrote, only a line's own CVX code names one. medrec's views
-leave out the vaccine of a claim line that an answer about the whole household
-does not show, and name a line with no text of its own by what the claim shows
-there. So from them, an answer that names the person lacks that vaccine and
-that name, which `medrec mcp` gives (medrec's data contract, "Records").
+already has (one entered in error or not given does not count), it is no record
+of its own, and it sets no status. A medicine's `standing` says `(from a claim)`
+after the day of a fill that only a pharmacy claim tells of. medrec also names a
+vaccine by a line's CPT code, with CDC's tables on the machine that writes the
+views. Read from the files, or from views that `npm run views` wrote, only a
+line's own CVX code names one. medrec's views leave out the vaccine of a claim
+line that an answer about the whole household does not show, and name a line
+with no text of its own by what the claim shows there. So from them, an answer
+that names the person lacks that vaccine and that name, which `medrec mcp` gives
+(medrec's data contract, "Records").
 
 Not affiliated with Anthropic, Google, OpenAI or Cloudflare.
 

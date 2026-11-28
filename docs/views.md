@@ -192,21 +192,22 @@ of (medrec 0.9.11 and later). Each is the claim's `id` and `provenance`, `kind`
 `display` the line's service text, else the claim's, `status` `completed`, and
 `fields` `{"from_claim": true, "cvx": [codes]}`, with `code` the CVX code where
 there is exactly one. It is no record. What is private of the claim is private
-of it, by the id. Of the claim's entry in `private.json`'s `parts`, only
-`says` applies: an answer that names no person gives it as the vaccine's
-`not_shown`, as `medrec mcp` does. Its `display` and `lines` do not. A counted line names a vaccine by its own CVX code (one of its
-`codes`, else its `service`), never 998 or 999, or, with CDC's tables on
-medrec's machine, by its CPT code. One is listed for each vaccine and day that
-no immunization of the person's has, by its CVX code, or by its kind of vaccine
-where that immunization has none, and once for two claims of it. A claim that is
-cancelled, planned, entered in error, or denied with nothing of it paid tells of
-none. A reader shows it with `from a claim` for its `detail`. medrec's views
-leave out the vaccine of a line `parts` leaves out of an open claim, and name a
-line with no text of its own by the claim's `display` as an answer about the
-whole household shows it; `medrec mcp`'s answers that name the person list the
-first and name the second by the whole claim. The reference writer here has no
-tables: it names a vaccine by a line's own CVX code alone, and leaves nothing
-out.
+of it, by the id. Of the claim's entry in `private.json`'s `parts`, only `says`
+applies: an answer that names no person gives it as the vaccine's `not_shown`,
+as `medrec mcp` does. Its `display` and `lines` do not. A counted line names a
+vaccine by its own CVX code (one of its `codes`, else its `service`), never 998
+or 999, or, with CDC's tables on medrec's machine, by its CPT code. One is
+listed for each vaccine and day that no immunization of the person's has, by its
+CVX code, or by its kind of vaccine where that immunization has none, and once
+for two claims of it. An immunization entered in error, or not given
+(`not-done`, a refusal), does not count. A claim that is cancelled, planned,
+entered in error, or denied with nothing of it paid tells of none. A reader
+shows it with `from a claim` for its `detail`. medrec's views leave out the
+vaccine of a line `parts` leaves out of an open claim, and name a line with no
+text of its own by the claim's `display` as an answer about the whole household
+shows it; `medrec mcp`'s answers that name the person list the first and name
+the second by the whole claim. The reference writer here has no tables: it names
+a vaccine by a line's own CVX code alone, and leaves nothing out.
 
 Views written by medrec 0.9.5 and earlier have no `label`. A CLI, an
 organization and a FHIR base do not name a source, and a view does not hold
