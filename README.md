@@ -43,8 +43,9 @@ that names no person, an event asked for by its id too, `in_error` and
 itself. The place of
 another person's stay, as of a birth, is an event's place only when that stay
 holds nothing private.
-A claim, a bill or an event can be open with a private part: a service among
-others, a diagnosis, a line of the text. When medrec 0.9.9 or later has marked
+A claim, a paper (a bill, a visit summary and the like) or an event can be open
+with a private part: a service among others, a diagnosis, a line of the text,
+such as one that prescribes a private drug. When medrec 0.9.9 or later has marked
 those, an answer that names no person leaves them out, lists and finds the item
 by what is left, and says how much it left out: `not_shown`, or a text's `(1 line
 not shown)` and its `hint`. `medrec_document` gives all of the text with
@@ -146,8 +147,11 @@ per vaccine group, its doses and the person's doses on file, then the doses on
 file in no group. It takes `person`, and not `active`, `since` or `until`. It
 says nothing of what is due. medrec makes it from CDC's CDSi tables on the
 machine that writes the views (`medrec tables fetch cdsi`), and this connector
-reads that alone (`schedule.json`). Read from the files, or from views without
-one, the answer has no item and a `no-schedule` warning. A person with no birth
+reads that alone (`schedule.json`). Without one, the answer has no item and a
+`no-schedule` warning. From views of medrec 0.9.12 or later it is medrec's:
+`medrec tables fetch cdsi` keeps CDC's tables. From the files, from views
+`npm run views` wrote, or from an earlier medrec's, it says a schedule needs
+medrec 0.9.12 or later on the household's computer as well. A person with no birth
 date has no schedule (`no-birth-date`), and their doses on file are listed alone.
 medrec makes `schedule.json` without what `private.json` holds back, so from
 it an answer lacks a private dose, the vaccine of a claim line held back and

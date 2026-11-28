@@ -22,7 +22,7 @@ import { atBase, sourcesOf } from '../records/sources';
 import { RawStore, eventOrder, eventsNotPrepared, merged, passes, recordOrder, upTo, type Bills, type Candidate, type Events, type RecordFilter, type Skip, type Store } from '../records/store';
 import type { PaperFields } from '../records/fields';
 import type { Privacy } from '../records/private';
-import { SCHEDULE_SCHEMA, type ScheduleView } from '../records/schedule';
+import { SCHEDULE_SCHEMA, SCHEDULE_SINCE, type NoSchedule, type ScheduleView } from '../records/schedule';
 import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
 import { STANDING_SCHEMA, standingsOf, type StandingView, type Standings } from '../records/standing';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
@@ -59,6 +59,7 @@ import {
   PRIVATE_SCHEMA,
   VIEWS_SCHEMA,
   readerStop,
+  writtenSince,
   hex,
   paths,
   prefixOf,
@@ -411,12 +412,15 @@ export class ViewsStore implements Store {
    * private: none where the last pass wrote none, and an error where the
    * records changed after it.
    */
-  async schedule(h: Household, p: Person): Promise<ScheduleView | null> {
+  async schedule(h: Household, p: Person): Promise<ScheduleView | NoSchedule> {
     const st = await this.state(h);
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads`).withFix(UPDATE).personUnavailable(p.id);
     }
-    if (st.index?.people[p.id]?.files?.['schedule.json'] === undefined) return null;
+    if (st.index?.people[p.id]?.files?.['schedule.json'] === undefined) {
+      // Only medrec 0.9.12 or later writes one, and only with a schedule table kept.
+      return { none: st.index !== null && writtenSince(st.index, SCHEDULE_SINCE) ? 'tables' : 'medrec' };
+    }
     const found = await this.findDerived(h, p, 'schedule.json');
     if ('not' in found) {
       throw ToolError.upstream(`${p.name}'s records changed after medrec last prepared their vaccine schedule for assistants`)

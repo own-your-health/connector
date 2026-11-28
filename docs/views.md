@@ -24,7 +24,9 @@ exactly as `medrec mcp` does (`test/golden.test.ts`, "from the views"). The
 exceptions are what medrec's views do not hold, in an answer that names the
 person: of a claim's vaccines (Records, below), of a paper's fields private by
 what they say (`documents.json`), and of a schedule's doses on file
-(`schedule.json`). Another writer (medrec's) is right
+(`schedule.json`). Over the reference writer's views, the `no-schedule` warning
+also says a schedule needs medrec 0.9.12 or later (`schedule.json`). Another
+writer (medrec's) is right
 when its views pass the same calls:
 
 ```sh
@@ -429,7 +431,7 @@ matching rules. Its layout, `medrec-events/v1`, is medrec's, in medrec's
 It is stored and listed in `files` like every view. Each person's entry in
 `views.json` also gives what else their events were made from, and only the
 views medrec makes itself (`events.json`, `bills.json`, `private.json`,
-`code-names.json`, `providers.json`) depend on these:
+`code-names.json`, `providers.json`, `schedule.json`) depend on these:
 
 | Field | What |
 |---|---|
@@ -481,7 +483,7 @@ too (medrec 0.9.7 and later). The person's entry in `views.json` gives these:
 
 A reader uses either only when the person's views are current and
 `overrides`, `marks` and `linked` still match, and for `private.json` (and
-`code-names.json` and `providers.json`, below) `provider_state` too. `events.json` does not depend
+`code-names.json`, `providers.json` and `schedule.json`, below) `provider_state` too. `events.json` does not depend
 on `marks`, and neither it nor `bills.json` on `provider_state`. A
 `provider-state.json` that is not the one named, one where none is named, and
 one that is gone are each a difference. The file is medrec's own: a reader
@@ -555,10 +557,10 @@ takes its place.
 
 ## Private parts (medrec 0.9.9 and later)
 
-A claim of several services, a bill, a receipt, an explanation of benefits or an
-event can be open with a private part: a service, a diagnosis or a payer's note
-in a claim, a line of a paper's text, and what such a claim or a private paper
-says of an event. `private.json` has each in `parts`, by the item's id:
+A claim of several services, a paper or an event can be open with a private
+part: a service, a diagnosis or a payer's note in a claim, a line of a paper's
+text (from medrec 0.9.12, of any type, such as a line that prescribes a private
+drug), and what such a claim or a private paper says of an event. `private.json` has each in `parts`, by the item's id:
 
 | Item | Its part |
 |---|---|
@@ -705,14 +707,19 @@ with a dose of the schedule. Nothing in it says a dose is due. medrec writes it
 on a machine that keeps those tables (`medrec tables fetch cdsi`), and
 `schedule_tables` in `views.json` names them. Without them the views have no
 `schedule.json`. The reference writer here does not write it, and this connector
-keeps no tables. So from the files, from views without it, and from views
-`npm run views` wrote, `medrec_records` with `kind: "schedule"` has no item, and
-its `no-schedule` warning says so.
+keeps no tables. Without one, `medrec_records` with `kind: "schedule"` has no
+item and a `no-schedule` warning. Where medrec 0.9.12 or later wrote the views
+(their `medrec`), the warning is medrec's own: no schedule is kept, and `medrec
+tables fetch cdsi` keeps CDC's. Where there are no views, `npm run views` wrote
+them, or an earlier medrec did, the tables alone give none, and the warning
+says a schedule needs medrec 0.9.12 or later as well.
 
 It is made from the same files as `private.json`, and a reader uses it only when
-the person's `marks` and `provider_state` match. Otherwise, while it is still
-arriving, or in another layout, the answer is an error that says medrec prepares
-the schedule on its next pass, or that the connector needs updating.
+the person's `overrides`, `marks`, `linked` and `provider_state` match. When it
+is not current, the answer is an error that says medrec prepares the schedule on
+its next pass. While it is still arriving, the error says the records are being
+prepared, and to ask again in a minute. In another layout, it says the connector
+needs updating.
 
 A reader lists each group as an item, in the file's order, then the doses on file
 in no group (`not_placed`), by the words of the contract. A person without a

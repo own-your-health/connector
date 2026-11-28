@@ -293,6 +293,12 @@ function newer(a: bigint[], b: bigint[]): boolean {
   return i !== -1 && a[i]! > b[i]!;
 }
 
+/** Whether medrec `version` or later wrote these views, by their `medrec` (this connector's own script writes "connector"). */
+export function writtenSince(index: { medrec?: unknown }, version: string): boolean {
+  const v = versionOf(index.medrec);
+  return v !== undefined && !newer(versionOf(version)!, v);
+}
+
 /**
  * Why a reader that follows medrec `contract`'s contract reads nothing of
  * these views: they need a newer one (`needs`), or say none it can parse

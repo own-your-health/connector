@@ -20,7 +20,7 @@ import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Pe
 import { isObject } from './numbers';
 import { valueText } from './values';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, printable, trim } from './text';
-import { scheduleRows } from './schedule';
+import { NO_MEDREC, NO_TABLES, scheduleRows } from './schedule';
 import { capped, drugLine, dueLine, followUpLine, leftOut, type Place } from './fields';
 import {
   CLIP,
@@ -861,8 +861,8 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     // An answer about one person: each group of their schedule, in its order (by the date of its first dose), and none with a date of its own.
     for (const p of chosen) {
       const v = await ctx.store.schedule(h, p);
-      if (v === null) {
-        said.push({ code: 'no-schedule', message: "no schedule is kept on this machine: `medrec tables fetch cdsi` keeps CDC's" });
+      if ('none' in v) {
+        said.push({ code: 'no-schedule', message: v.none === 'tables' ? NO_TABLES : NO_MEDREC });
         continue;
       }
       if (v.birth_date === null || v.birth_date === undefined) {

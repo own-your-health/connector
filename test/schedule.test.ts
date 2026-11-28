@@ -13,11 +13,11 @@ import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { ownFolder } from '../scripts/own-folder.mjs';
 import { ParsedCache } from '../src/records/folder';
-import { scheduleRows, usDay, type ScheduleView } from '../src/records/schedule';
+import { NO_MEDREC, NO_TABLES, scheduleRows, usDay, type ScheduleView } from '../src/records/schedule';
 import { printable } from '../src/records/text';
 import { RawStore, type Store } from '../src/records/store';
 import { callTool } from '../src/records/tools';
-import { VIEWS_INDEX, personDir, storedName } from '../src/views/format';
+import { VIEWS_INDEX, personDir, storedName, writtenSince } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 import { folderAt } from './support';
@@ -118,6 +118,13 @@ describe("a schedule's rows", () => {
   });
 });
 
+describe('views a schedule can be in', () => {
+  it('are those medrec 0.9.12 or later wrote, by the parts of its version as numbers', () => {
+    for (const medrec of ['0.9.12', '0.9.13', '0.10.0', '1.0.0']) expect(writtenSince({ medrec }, '0.9.12'), medrec).toBe(true);
+    for (const medrec of ['0.9.11', '0.9.9', '0.8.20', 'connector', '0.9', '0.9.12-rc1', undefined, 9]) expect(writtenSince({ medrec }, '0.9.12'), String(medrec)).toBe(false);
+  });
+});
+
 describe("a person's name in a warning", () => {
   it("is without what can steer a terminal or hide text, as medrec's `printable` cases have it", () => {
     for (const [input, shown] of [
@@ -161,22 +168,33 @@ describe('kind schedule', () => {
     expect(s.warnings).toBeUndefined();
   });
 
-  it('says no schedule is kept where the views have none, from the files, and from views this connector wrote', async () => {
+  it("says medrec keeps no schedule table where medrec 0.9.12's views have none, and that it needs such a medrec where no such medrec wrote them", async () => {
     const files = ownFolder('schedule', join(scratch, 'files'));
     const own = ownFolder('schedule', join(scratch, 'own'));
     writeViewsAt(own);
-    const none = medrecs((dir, index) => {
+    const without = (dir: string, index: Record<string, any>) => {
       rmSync(join(dir, scheduleFile(dir)));
       delete index.people[PID].files['schedule.json'];
       delete index.people[PID].schedule_tables;
+    };
+    const tableless = medrecs(without);
+    // medrec 0.9.11 writes no schedule.json, with the tables or without.
+    const earlier = medrecs((dir, index) => {
+      without(dir, index);
+      Object.assign(index, { medrec: '0.9.11', reader: '0.9.11' });
     });
-    const stores = [new RawStore(folderAt(files, new ParsedCache())), views(own), views(none)];
-    for (const store of stores) {
+    const cases: [string, Store, string, string[]][] = [
+      ['the files', new RawStore(folderAt(files, new ParsedCache())), NO_MEDREC, ['private-not-prepared']],
+      ["this connector's views", views(own), NO_MEDREC, ['private-not-prepared']],
+      ["medrec 0.9.11's views", views(earlier), NO_MEDREC, []],
+      ["medrec 0.9.12's views without a table", views(tableless), NO_TABLES, []],
+    ];
+    for (const [over, store, message, after] of cases) {
       const s = (await ask(store)).structuredContent as { items: unknown[]; warnings: { code: string; message: string }[] };
-      expect(s.items).toEqual([]);
-      // Before what is said of what is private, which the files and these views do not say.
-      expect(s.warnings[0]).toEqual({ code: 'no-schedule', message: "no schedule is kept on this machine: `medrec tables fetch cdsi` keeps CDC's" });
-      expect(s.warnings.slice(1).map((w) => w.code)).toEqual(store === stores[2] ? [] : ['private-not-prepared']);
+      expect(s.items, over).toEqual([]);
+      // Before what is said of what is private, which the files and the connector's views do not say.
+      expect(s.warnings[0], over).toEqual({ code: 'no-schedule', message });
+      expect(s.warnings.slice(1).map((w) => w.code), over).toEqual(after);
     }
   });
 

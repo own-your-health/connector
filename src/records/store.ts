@@ -21,7 +21,7 @@ import { heads } from './panels';
 import type { Parts } from './parts';
 import type { Privacy } from './private';
 import type { LabelsFile } from './provider-labels';
-import type { ScheduleView } from './schedule';
+import type { NoSchedule, ScheduleView } from './schedule';
 import type { Standings } from './standing';
 import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, PersonIndex, RecordEntry } from './model';
@@ -202,11 +202,10 @@ export interface Store {
   /** How many of their records and papers are about somebody else, and shown nowhere (medrec 0.9.9 and later). */
   aboutAnother(h: Household, p: Person): Promise<number>;
   /**
-   * The person's vaccine schedule (schedule.json, medrec 0.9.12 and later);
-   * null where the views have none, as medrec writes none on a machine that
-   * keeps no schedule. One the records changed after is an error.
+   * The person's vaccine schedule (schedule.json, medrec 0.9.12 and later),
+   * or why the views have none. One the records changed after is an error.
    */
-  schedule(h: Household, p: Person): Promise<ScheduleView | null>;
+  schedule(h: Household, p: Person): Promise<ScheduleView | NoSchedule>;
   /** A paper's fields, each drug with the person's medicine of an equal code; undefined where it has none. */
   paperFields(h: Household, p: Person, d: DocumentEntry): Promise<PaperFields | undefined>;
 }
@@ -383,8 +382,8 @@ export class RawStore implements Store {
   }
 
   /** A schedule is medrec's, made by CDC's tables on the machine that writes the views, which this store does not read. */
-  async schedule(_h: Household, _p: Person): Promise<ScheduleView | null> {
-    return null;
+  async schedule(_h: Household, _p: Person): Promise<ScheduleView | NoSchedule> {
+    return { none: 'medrec' };
   }
 
   async paperFields(h: Household, p: Person, d: DocumentEntry): Promise<PaperFields | undefined> {

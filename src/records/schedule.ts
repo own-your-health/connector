@@ -9,6 +9,25 @@ import type { JsonObject } from './model';
 
 export const SCHEDULE_SCHEMA = 'medrec-schedule/v1';
 
+/** The first medrec that writes a schedule.json. */
+export const SCHEDULE_SINCE = '0.9.12';
+
+/**
+ * Why a person has no schedule.json to read: medrec of SCHEDULE_SINCE or later
+ * wrote the views on a machine that keeps no schedule table (`tables`), or no
+ * such medrec wrote them (`medrec`): there are none, this connector's own
+ * script wrote them, or an earlier medrec did.
+ */
+export interface NoSchedule {
+  none: 'tables' | 'medrec';
+}
+
+/** `no-schedule` where medrec kept no schedule table: medrec's own words. */
+export const NO_TABLES = "no schedule is kept on this machine: `medrec tables fetch cdsi` keeps CDC's";
+
+/** `no-schedule` where no medrec that writes one prepared the views, so the tables alone would not give one. */
+export const NO_MEDREC = `no vaccine schedule is among what medrec prepared for assistants: medrec ${SCHEDULE_SINCE} or later prepares one on the household's computer, once \`medrec tables fetch cdsi\` keeps CDC's tables there`;
+
 export interface ScheduleSource {
   id?: string;
   version?: string;

@@ -14,7 +14,7 @@ import { OWN, filesOf, ownFolder, type Own } from '../scripts/own-folder.mjs';
 import { synth } from '../scripts/synth.mjs';
 import { ParsedCache } from '../src/records/folder';
 import { parseExact } from '../src/records/numbers';
-import { usDay } from '../src/records/schedule';
+import { NO_MEDREC, NO_TABLES, usDay } from '../src/records/schedule';
 import { TOOLS, callTool, instructions, unknownTool } from '../src/records/tools';
 import { DEMO, RawWithDerived, addCodeNames, addDerived, folderAt } from './support';
 import { RawStore, type Store } from '../src/records/store';
@@ -147,6 +147,18 @@ function documentAsTheViewsSay(g: Golden['results'][number], want: Record<string
   if (!shown.labeled) delete shown.labeled;
   return { ...want, content: [{ type: 'text', text: JSON.stringify(shown) }], structuredContent: shown };
 }
+/**
+ * medrec's answer as this connector gives it over a folder's files, or the
+ * views its own script wrote. medrec recorded it on a machine that keeps no
+ * schedule table, and says the table alone gives one. Here no medrec 0.9.12
+ * wrote the views, so the connector says it needs one too.
+ */
+function asTheConnectorSays(g: Golden['results'][number], want: Record<string, unknown>): Record<string, unknown> {
+  const s = want.structuredContent as { warnings?: { code: string; message: string }[] } | undefined;
+  if (OWN.includes(g.folder as Own) || g.arguments?.kind !== 'schedule' || !s?.warnings?.some((w) => w.code === 'no-schedule')) return want;
+  const said = { ...s, warnings: s.warnings.map((w) => (w.code === 'no-schedule' && w.message === NO_TABLES ? { ...w, message: NO_MEDREC } : w)) };
+  return { ...want, content: [{ type: 'text', text: JSON.stringify(said) }], structuredContent: said };
+}
 /** The folder's name among the fixtures. */
 const fixtures = (f: Exclude<Name, Own>) => (f === 'demo' ? 'records' : f);
 
@@ -223,7 +235,7 @@ describe(`parity with medrec ${golden.medrec_version}`, () => {
             expect(g.answer.error).toEqual({ code: -32602, message: unknownTool(g.name) });
             return;
           }
-          const want = over === 'views' ? asTheViewsSay(g, g.answer.result!) : g.answer.result!;
+          const want = asTheConnectorSays(g, over === 'views' ? asTheViewsSay(g, g.answer.result!) : g.answer.result!);
           expect(ours).not.toBeNull();
           if (over === 'files' && g.name === 'medrec_records' && g.arguments?.kind === 'events' && JSON.stringify(ours!.content) !== JSON.stringify(want.content)) {
             expect(ours!.isError).toBe(true);
