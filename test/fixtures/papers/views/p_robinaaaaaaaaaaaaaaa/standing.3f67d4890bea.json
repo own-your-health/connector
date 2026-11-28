@@ -1,0 +1,1 @@
+{"schema":"medrec-standing/v1","person":"p_robinaaaaaaaaaaaaaaa","sources":["Example Health"],"order":{"medication":["r_exampleprofenaaaaaaa"]},"records":{"r_exampleprofenaaaaaaa":{"kind":"medication","is":"current","line":"http://hl7.org/fhir/sid/ndc|00000-0001-01","words":[{"source":0,"read":"2025-06-02","is":"current","status":"active"}]}}}

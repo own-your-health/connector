@@ -25,6 +25,7 @@
 //   views/<person id>/bills.json           medrec 0.9.1 on: what is paid and left on each bill
 //   views/<person id>/private.json         medrec 0.9.1 on: the private records, documents, events and studies
 //   views/<person id>/search-parts.json    medrec 0.9.9 on: what of an item's text is left without its private part
+//   views/<person id>/schedule.json        medrec 0.9.12 on, where it keeps a schedule table: the person's vaccine schedule
 //
 // Search items are numbered in the reverse of medrec's order for hits of
 // equal score (date, newest first, undated last, then as the files hold
@@ -150,6 +151,12 @@ export interface PersonViews {
   in_error?: Json;
   /** medrec 0.9.9 on: the ids of what is in the person's chart and about somebody else, which no view has; absent when there is none. */
   about_another?: string[];
+  /**
+   * medrec 0.9.12 on: the schedule tables schedule.json was made with
+   * (`cdsi <SHA-256>`); absent when the pass had none, and then the views have
+   * no schedule.json. A reader goes by the file's presence, and need not check it.
+   */
+  schedule_tables?: string;
 }
 
 /** medrec_summary's summary without what depends on the day it is asked or on notes.md. */
@@ -269,6 +276,8 @@ export const paths = {
   events: (pid: string) => `${VIEWS_DIR}/${pid}/events.json`,
   bills: (pid: string) => `${VIEWS_DIR}/${pid}/bills.json`,
   private: (pid: string) => `${VIEWS_DIR}/${pid}/private.json`,
+  /** medrec 0.9.12 on: the person's vaccine schedule (medrec-schedule/v1), on a machine that keeps a schedule table; this connector does not write it. */
+  schedule: (pid: string) => `${VIEWS_DIR}/${pid}/schedule.json`,
 };
 
 export type { Json };

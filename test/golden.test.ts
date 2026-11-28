@@ -10,10 +10,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { labelsFolder } from '../scripts/labels-folder.mjs';
-import { OWN, ownFolder, type Own } from '../scripts/own-folder.mjs';
+import { OWN, filesOf, ownFolder, type Own } from '../scripts/own-folder.mjs';
 import { synth } from '../scripts/synth.mjs';
 import { ParsedCache } from '../src/records/folder';
 import { parseExact } from '../src/records/numbers';
+import { usDay } from '../src/records/schedule';
 import { TOOLS, callTool, instructions, unknownTool } from '../src/records/tools';
 import { DEMO, RawWithDerived, addCodeNames, addDerived, folderAt } from './support';
 import { RawStore, type Store } from '../src/records/store';
@@ -33,13 +34,11 @@ const CVX = 'http://hl7.org/fhir/sid/cvx';
  * and "Summary"), so an answer from them lists neither.
  */
 function asTheViewsSay(g: Golden['results'][number], want: Record<string, unknown>): Record<string, unknown> {
+  if (g.name === 'medrec_document') return documentAsTheViewsSay(g, want);
   const of = g.arguments ?? {};
-  if (typeof of.person !== 'string' || !(g.name === 'medrec_summary' || of.kind === 'immunizations') || !OWN.includes(g.folder as Own)) return want;
-  const dir = join(import.meta.dirname, 'fixtures', g.folder, 'views');
-  const pid = readdirSync(dir).find((f) => f.startsWith('p_'))!;
-  const priv = readdirSync(join(dir, pid)).find((f) => f.startsWith('private.'))!;
-  const parts = JSON.parse(readFileSync(join(dir, pid, priv), 'utf8')).parts as Record<string, { display?: string; lines?: number[] }>;
-  const records = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures', g.folder === 'child' ? 'questionnaires' : g.folder, 'index.json'), 'utf8')).records as { id: string; date?: string; fields?: { items?: { serviced?: string; service?: { system?: string; display?: string }; codes?: { system?: string }[] }[] } }[];
+  if (typeof of.person !== 'string' || !(g.name === 'medrec_summary' || of.kind === 'immunizations' || of.kind === 'schedule') || !OWN.includes(g.folder as Own)) return want;
+  const { parts, records } = heldParts(g.folder as Own);
+  if (of.kind === 'schedule') return scheduleAsTheViewsSay(want, parts, records);
   /** What the views make of an item from a claim with a part: null where they leave it out. */
   const asShown = (item: Record<string, unknown>, name: string): Record<string, unknown> | null => {
     const part = parts[item.id as string];
@@ -66,6 +65,87 @@ function asTheViewsSay(g: Golden['results'][number], want: Record<string, unknow
     s.returned = s.items.length;
   }
   return changed ? { ...want, content: [{ type: 'text', text: JSON.stringify(s) }], structuredContent: s } : want;
+}
+interface ClaimRecord {
+  id: string;
+  date?: string;
+  display?: string;
+  kind?: string;
+  fields?: { items?: { serviced?: string; service?: { system?: string; display?: string }; codes?: { system?: string }[] }[] };
+}
+type Parts = Record<string, { display?: string; lines?: number[] }>;
+/** The parts of claims the folder's views hold back (private.json), and the records of its index. */
+function heldParts(folder: Own): { parts: Parts; records: ClaimRecord[] } {
+  const dir = join(import.meta.dirname, 'fixtures', folder, 'views');
+  const pid = readdirSync(dir).find((f) => f.startsWith('p_'))!;
+  const priv = readdirSync(join(dir, pid)).find((f) => f.startsWith('private.'))!;
+  return {
+    parts: JSON.parse(readFileSync(join(dir, pid, priv), 'utf8')).parts as Parts,
+    records: JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures', filesOf(folder), 'index.json'), 'utf8')).records as ClaimRecord[],
+  };
+}
+/**
+ * medrec's schedule answer as its views can give it. medrec writes the views'
+ * schedule.json with what private.json holds back (its data contract,
+ * "Schedule"): no vaccine of a claim line it holds back, and a claim's name
+ * without its held lines. `medrec mcp` naming the person reads the whole index.
+ * Each dose on file is one of an item's lines, joined by "; ".
+ */
+function scheduleAsTheViewsSay(want: Record<string, unknown>, parts: Parts, records: ClaimRecord[]): Record<string, unknown> {
+  const s = structuredClone(want.structuredContent) as { items?: { title: string; detail: string }[]; returned?: number } | undefined;
+  if (!s?.items) return want;
+  /** Each claim line with a CVX code: the words a dose on file of it begins with, and what the views make of them (null where they leave it out). */
+  const lines = records.flatMap((r) => {
+    const part = parts[r.id];
+    if (r.kind !== 'claim' || !part) return [];
+    return (r.fields?.items ?? []).flatMap((l, i) => {
+      if (!(l.codes ?? [l.service ?? {}]).some((c) => c.system === CVX)) return [];
+      const day = usDay((l.serviced ?? r.date ?? '').slice(0, 10));
+      const own = l.service?.display?.trim();
+      const said = `${day}, ${own || r.display} (CVX `;
+      return [{ said, shown: part.lines?.includes(i) ? null : `${day}, ${own || part.display} (CVX ` }];
+    });
+  });
+  let changed = false;
+  const items = s.items.flatMap((item) => {
+    const kept = item.detail.split('; ').flatMap((x) => {
+      const at = x.startsWith('On file: ') ? 'On file: '.length : item.title === 'On file, in no group' ? 0 : -1;
+      const line = at < 0 || !x.includes('), from a claim') ? undefined : lines.find((l) => x.startsWith(l.said, at));
+      if (!line) return [x];
+      changed = true;
+      return line.shown === null ? [] : [x.slice(0, at) + line.shown + x.slice(at + line.said.length)];
+    });
+    return kept.length === 0 ? [] : [{ ...item, detail: kept.join('; ') }];
+  });
+  if (!changed) return want;
+  const shown = { ...s, items, ...(s.returned === undefined ? {} : { returned: items.length }) };
+  return { ...want, content: [{ type: 'text', text: JSON.stringify(shown) }], structuredContent: shown };
+}
+/**
+ * medrec's document answer as its views can give it. An answer that names the
+ * person gives every field of the paper, from its index. Its views have none
+ * private by what it says (documents.json, medrec's data contract "Fields of a
+ * paper"), so an answer from them lacks those lines.
+ */
+function documentAsTheViewsSay(g: Golden['results'][number], want: Record<string, unknown>): Record<string, unknown> {
+  const s = structuredClone(want.structuredContent) as { id?: string; labeled?: string[] } | undefined;
+  if (typeof g.arguments?.person !== 'string' || !OWN.includes(g.folder as Own) || !s?.labeled) return want;
+  type Fields = { follow_up?: { lines: unknown }[]; drugs?: { lines: unknown }[] };
+  const filed = (JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures', filesOf(g.folder as Own), 'index.json'), 'utf8')).documents as { id: string; fields?: Fields }[]).find((d) => d.id === s.id)?.fields;
+  const dir = join(import.meta.dirname, 'fixtures', g.folder, 'views');
+  const pid = readdirSync(dir).find((f) => f.startsWith('p_'))!;
+  const docs = readdirSync(join(dir, pid)).find((f) => f.startsWith('documents.'))!;
+  const viewed = (JSON.parse(readFileSync(join(dir, pid, docs), 'utf8')) as { id: string; fields?: Fields }[]).find((d) => d.id === s.id)?.fields;
+  const has = (list: { lines: unknown }[] | undefined, x: { lines: unknown }) => (list ?? []).some((y) => JSON.stringify(y.lines) === JSON.stringify(x.lines));
+  // The lines come in order: the amount due, then each follow-up, then each drug.
+  const at = /^(Amount due|Due by) /.test(s.labeled[0]!) ? 1 : 0;
+  const follow = filed?.follow_up ?? [];
+  const gone = new Set([...follow.flatMap((x, i) => (has(viewed?.follow_up, x) ? [] : [at + i])), ...(filed?.drugs ?? []).flatMap((x, i) => (has(viewed?.drugs, x) ? [] : [at + follow.length + i]))]);
+  if (gone.size === 0) return want;
+  const labeled = s.labeled.filter((_, i) => !gone.has(i));
+  const shown = { ...s, labeled: labeled.length > 0 ? labeled : undefined };
+  if (!shown.labeled) delete shown.labeled;
+  return { ...want, content: [{ type: 'text', text: JSON.stringify(shown) }], structuredContent: shown };
 }
 /** The folder's name among the fixtures. */
 const fixtures = (f: Exclude<Name, Own>) => (f === 'demo' ? 'records' : f);

@@ -317,7 +317,7 @@
     {
       "name": "medrec_records",
       "title": "List records",
-      "description": "One kind of record, newest first. events: what happened, one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time.",
+      "description": "One kind of record, newest first. events: one per visit, stay or fill, with you_owe; id gives one in full. results with name: one test over time.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -339,9 +339,10 @@
               "documents",
               "notes",
               "timeline",
-              "events"
+              "events",
+              "schedule"
             ],
-            "description": "visits: encounters. tests: each test's latest result. bills: filed statements. timeline: all."
+            "description": "tests: each test's latest result. bills: statements. timeline: all. schedule: vaccines by age."
           },
           "person": {
             "type": "string",
@@ -545,7 +546,7 @@
     {
       "name": "medrec_document",
       "title": "Read a document",
-      "description": "A filed document's text. A visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset as offset.",
+      "description": "A filed document's text and labeled lines. A visit summary, lab report, letter or bill. Long text comes in parts: pass next_offset.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -593,12 +594,6 @@
           "organization": {
             "type": "string"
           },
-          "amount_due": {
-            "type": "string"
-          },
-          "due_date": {
-            "type": "string"
-          },
           "text_chars": {
             "type": "integer"
           },
@@ -634,6 +629,12 @@
             "items": {
               "type": "object",
               "additionalProperties": true
+            }
+          },
+          "labeled": {
+            "type": "array",
+            "items": {
+              "type": "string"
             }
           },
           "hint": {

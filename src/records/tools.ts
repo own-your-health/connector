@@ -19,7 +19,9 @@ import { printedOfClaim, printedOfDocument, printedOfEvent, printedOfRecord, pri
 import type { DocumentEntry, Household, Json, JsonObject, ListedRecord, Note, Person, RecordEntry } from './model';
 import { isObject } from './numbers';
 import { valueText } from './values';
-import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
+import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, printable, trim } from './text';
+import { scheduleRows } from './schedule';
+import { capped, drugLine, dueLine, followUpLine, leftOut, type Place } from './fields';
 import {
   CLIP,
   FROM_CLAIM,
@@ -728,6 +730,7 @@ const KINDS: Record<string, string | null> = {
   documents: null,
   notes: null,
   timeline: null,
+  schedule: null,
 };
 
 const ITEM_KEYS = [
@@ -773,6 +776,9 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
   const r = range(a.since, a.until);
   const id = given(a.id);
   if (id !== undefined && kind !== 'events') throw ToolError.usage('id applies to kind `events` only');
+  if (kind === 'schedule' && (person === undefined || active || r.since !== undefined || r.until !== undefined)) {
+    throw ToolError.usage('kind `schedule` takes a person, and not active, since or until');
+  }
   if (active && kind === 'events') throw ToolError.usage('active does not apply to kind `events`; status says which are still waiting');
   if (docType !== undefined) {
     if (kind !== 'documents') throw ToolError.usage('doc_type applies to kind `documents` only');
@@ -799,11 +805,12 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     throw personError(e);
   }
   const named = (title: string) => name === undefined || fold(title).includes(fold(name));
-  const rows: { p: Person; it: Item; members?: string[]; wrong?: Why }[] = [];
+  const rows: { p: Person; it: Item; members?: string[]; wrong?: Why; group?: number }[] = [];
   const recordKind = KINDS[kind];
   const household = person === undefined;
   const left = new LeftOut(household);
-  const hint = 'person, since/until, active or name';
+  const hint = kind === 'schedule' ? 'name' : 'person, since/until, active or name';
+  const said: Warning[] = [];
   const gate = (await gateOf(ctx, h, chosen, household, kind))();
   const filterOf = (p: Person): RecordFilter => ({ range: r, active, name, errors: gate.errorsOf(p), parts: gate.parts(p) });
   // A question about everyone holds back the private items it does not name; each one an answer includes carries its area.
@@ -850,6 +857,22 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
     const { out, warnings } = cutPage(page, gate, chosen, left, household, items, hint, { notes: [...notes, ...aside], gaps });
     if (kind === 'conditions') out.items = await withPlainNames(ctx, h, gate, household, top.slice(page.offset, page.offset + out.returned), out.items);
     return pageJson(out, warnings);
+  } else if (kind === 'schedule') {
+    // An answer about one person: each group of their schedule, in its order (by the date of its first dose), and none with a date of its own.
+    for (const p of chosen) {
+      const v = await ctx.store.schedule(h, p);
+      if (v === null) {
+        said.push({ code: 'no-schedule', message: "no schedule is kept on this machine: `medrec tables fetch cdsi` keeps CDC's" });
+        continue;
+      }
+      if (v.birth_date === null || v.birth_date === undefined) {
+        said.push({ code: 'no-birth-date', message: `${printable(p.name)} has no birth date on file, so no schedule: \`medrec people edit <PERSON> --birth-date YYYY-MM-DD\` gives one` });
+      }
+      for (const [n, row] of scheduleRows(v).entries()) {
+        if (!named(row.title)) continue;
+        rows.push({ p, group: Math.min(n, 255), members: row.members, it: { kind: 'schedule', person: p.name, title: row.title, detail: row.detail, id: `schedule:${p.id}:${n}` } });
+      }
+    }
   } else if (kind === 'notes') {
     const notes: { p: Person; note: Note }[] = [];
     for (const p of chosen) for (const n of await ctx.store.notes(h, p)) if (holdsRange(r, n.date)) notes.push({ p, note: n });
@@ -896,14 +919,14 @@ async function recordsTool(a: Args, ctx: Context): Promise<Record<string, unknow
       }
     }
   }
-  rows.sort((x, y) => cmpOptS(y.it.date, x.it.date) || cmpS(x.it.title as string, y.it.title as string));
+  rows.sort((x, y) => (x.group ?? 0) - (y.group ?? 0) || cmpOptS(y.it.date, x.it.date) || cmpS(x.it.title as string, y.it.title as string));
   const kept = rows.filter(({ p, it, members, wrong }) => keep(p, it, members, wrong));
   const items = kept.map(({ p, it, members }) => marked(p, it, members));
   const gaps = await addLabels(ctx, h, gate, household, page, items, (i) => {
     const { p, it } = kept[i]!;
     return { p, printed: it.kind === 'document' ? printedOfDocument(it.source as string | undefined) : [] };
   });
-  return gatedPage(page, gate, chosen, left, household, items, hint, { notes: aside, extra, gaps, bills: kind === 'bills' });
+  return gatedPage(page, gate, chosen, left, household, items, hint, { notes: [...said, ...aside], extra, gaps, bills: kind === 'bills' });
 }
 
 const NONE_IN_ERROR: ReadonlySet<string> = new Set();
@@ -1235,8 +1258,6 @@ const DOCUMENT_KEYS = [
   'date',
   'doc_type',
   'organization',
-  'amount_due',
-  'due_date',
   'text_chars',
   'offset',
   'next_offset',
@@ -1247,6 +1268,7 @@ const DOCUMENT_KEYS = [
   'records',
   'private',
   'provider_labels',
+  'labeled',
   'hint',
 ] as const;
 
@@ -1302,6 +1324,15 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
         : undefined;
   const hint = (text?: string) => [note, more, text].filter((x) => x !== undefined).join(' ') || undefined;
   const s = d.statement ?? undefined;
+  // What its text says on the lines it labels, a line each: a field on a line left out is left out with it, and without person so is a private medicine's id.
+  const places = Array.isArray(part?.text) ? part.text.filter((x): x is number[] => Array.isArray(x)) : [];
+  const shown = (lines: Place[]) => !leftOut(lines, places as number[][]);
+  const fields = await ctx.store.paperFields(h, p, d);
+  const labeled = capped([
+    ...[dueLine(s?.amount_due, s?.due_date)].filter((x) => x !== undefined),
+    ...(fields?.follow_up ?? []).filter((x) => shown(x.lines)).map(followUpLine),
+    ...(fields?.drugs ?? []).filter((x) => shown(x.lines)).map((x) => drugLine(x, x.medicine !== undefined && !(household && gate.heldBack(p, x.medicine)) ? x.medicine : undefined)),
+  ]);
   const out: Record<string, unknown> = {
     id: d.id,
     person: p.name,
@@ -1309,8 +1340,6 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
     date: d.date ?? undefined,
     doc_type: d.doc_type ?? undefined,
     organization: d.organization ?? undefined,
-    amount_due: s?.amount_due ? money(s.amount_due) : undefined,
-    due_date: s?.due_date ?? undefined,
     text_chars: cs.length,
     offset: start,
     first_page: 1,
@@ -1321,6 +1350,7 @@ async function documentTool(a: Args, ctx: Context): Promise<Record<string, unkno
     // Asked for by id: a private document is the person's, named.
     private: privacy.areas.get(d.id),
     provider_labels: labels.length > 0 ? labels : undefined,
+    labeled: labeled.length > 0 ? labeled : undefined,
   };
   if (cs.length === 0) {
     out.hint = hint('No text was extracted from this document: an image without OCR, or a file medrec cannot read.');

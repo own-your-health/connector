@@ -20,7 +20,7 @@ import type { Household, RecordEntry } from '../src/records/model';
 import { ToolError } from '../src/mcp/errors';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
-import { MEDREC_CONTRACT } from '../src/version';
+import { MEDREC_CONTRACT, VIEWS_READER } from '../src/version';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, LocalSource, RawWithDerived, addDerived, editSources, folderAt } from './support';
 
@@ -372,14 +372,14 @@ describe('the contract a reader of the views must follow (views.json reader, med
     for (const [name, args] of calls) expect((await ask(root, name, args)).r).toEqual((await ask(demo, name, args)).r);
   };
 
-  it('is the contract this connector follows, in the views its own script writes', () => {
-    expect(JSON.parse(readFileSync(join(demo, VIEWS_INDEX), 'utf8')).reader).toBe(MEDREC_CONTRACT);
+  it("is medrec's, in the views this connector's own script writes", () => {
+    expect(JSON.parse(readFileSync(join(demo, VIEWS_INDEX), 'utf8')).reader).toBe(VIEWS_READER);
   });
 
   it('refuses the whole folder when the views need a newer contract, and reads none of its files instead', async () => {
     await refused(
-      saying('reader-newer', (v) => (v.reader = '0.9.12')),
-      /medrec prepared the household's records for readers that follow its contract of 0\.9\.12 or later, and this connector follows 0\.9\.11's, so it reads none of them/,
+      saying('reader-newer', (v) => (v.reader = '0.9.13')),
+      /medrec prepared the household's records for readers that follow its contract of 0\.9\.13 or later, and this connector follows 0\.9\.12's, so it reads none of them/,
       UPDATE,
     );
   });
@@ -388,9 +388,9 @@ describe('the contract a reader of the views must follow (views.json reader, med
     await refused(
       saying('reader-absent-newer', (v) => {
         delete v.reader;
-        v.medrec = '0.9.12';
+        v.medrec = '0.9.13';
       }),
-      /contract of 0\.9\.12 or later/,
+      /contract of 0\.9\.13 or later/,
       UPDATE,
     );
     await answers(
@@ -403,7 +403,7 @@ describe('the contract a reader of the views must follow (views.json reader, med
 
   it('compares versions as numbers, part by part', async () => {
     for (const newer of ['0.10.0', '1.0.0', '0.9.100']) await refused(saying(`reader-${newer}`, (v) => (v.reader = newer)), new RegExp(`contract of ${newer.replaceAll('.', '\\.')} or later`), UPDATE);
-    for (const older of ['0.9.9', '0.9.10', '0.8.20', MEDREC_CONTRACT]) await answers(saying(`reader-${older}`, (v) => (v.reader = older)));
+    for (const older of ['0.9.9', '0.9.10', '0.9.11', '0.8.20', MEDREC_CONTRACT]) await answers(saying(`reader-${older}`, (v) => (v.reader = older)));
   });
 
   it('refuses a version it cannot read, and says what views.json says', async () => {

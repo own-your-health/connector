@@ -16,7 +16,7 @@ import { vaccineFamily } from '../src/records/vaccines';
 import { VIEWS_INDEX } from '../src/views/format';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
-import { MEDREC_CONTRACT } from '../src/version';
+import { VIEWS_READER } from '../src/version';
 import { folderAt } from './support';
 
 interface Result {
@@ -60,8 +60,8 @@ describe('the vaccines claims tell of', () => {
     });
   }
 
-  it('are in the views that script writes, which say the contract they follow', () => {
-    expect(JSON.parse(readFileSync(join(own, VIEWS_INDEX), 'utf8')).reader).toBe(MEDREC_CONTRACT);
+  it('are in the views that script writes, which say the contract a reader must follow', () => {
+    expect(JSON.parse(readFileSync(join(own, VIEWS_INDEX), 'utf8')).reader).toBe(VIEWS_READER);
   });
 });
 
