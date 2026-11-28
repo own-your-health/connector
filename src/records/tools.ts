@@ -22,6 +22,7 @@ import { valueText } from './values';
 import { clip, cmpOpt as cmpOptRaw, cmpStr as cmpS, day, firstLine, fold, trim } from './text';
 import {
   CLIP,
+  FROM_CLAIM,
   DOC_TYPES,
   SUMMARY_LINES,
   bills as billsOf,
@@ -119,7 +120,8 @@ function error(e: ToolError): CallResult {
   return { content: [{ type: 'text', text: e.render(SERVER) }], isError: true };
 }
 
-function run(name: string, a: Args, ctx: Context): Promise<Record<string, unknown>> {
+async function run(name: string, a: Args, ctx: Context): Promise<Record<string, unknown>> {
+  await ctx.store.readable?.();
   switch (name) {
     case SUMMARY:
       return summaryTool(a, ctx);
@@ -376,7 +378,7 @@ function sections(s: Summary, current: Part[], notes: ReadonlyMap<string, string
   section(
     'immunizations',
     s.immunizations.more,
-    s.immunizations.items.map((v) => ({ name: v.vaccine, date: v.last_date, detail: `${v.doses} dose${v.doses === 1 ? '' : 's'} on file`, source: v.source, id: v.id })),
+    s.immunizations.items.map((v) => ({ name: v.vaccine, date: v.last_date, detail: v.from_claim ? FROM_CLAIM : `${v.doses} dose${v.doses === 1 ? '' : 's'} on file`, source: v.source, id: v.id })),
   );
   section(
     'latest_results',

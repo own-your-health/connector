@@ -1,4 +1,4 @@
-export type Own = 'words' | 'errors' | 'given' | 'questionnaires' | 'child' | 'parts';
+export type Own = 'words' | 'errors' | 'given' | 'questionnaires' | 'child' | 'parts' | 'vaccines' | 'fills';
 export const OWN: readonly Own[];
 /** Writes the folder of test/fixtures/<name> to `out` and returns `out`. */
 export function ownFolder(name: Own, out: string, options?: { views?: boolean }): string;

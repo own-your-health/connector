@@ -5,6 +5,7 @@
 //   /authorize           consent, then Google sign-in
 //   /google/callback     Google's answer; admits only ALLOWED_ACCOUNTS
 //   /oauth/token, /oauth/register, /.well-known/*   workers-oauth-provider
+//   /version             public: this connector's version and the medrec contract it follows
 //
 // Records are read from Drive on each call, with the caller's own Google
 // token, and held only in this isolate's memory (src/records/folder.ts).
@@ -27,7 +28,7 @@ import { DriveSource } from './records/drive-source';
 import { Folder, ParsedCache } from './records/folder';
 import { ViewsStore } from './views/store';
 import { SERVER, TOOLS, callTool, instructions, unknownTool } from './records/tools';
-import { VERSION } from './version';
+import { MEDREC_CONTRACT, VERSION } from './version';
 
 export interface Env {
   OAUTH_KV: KVNamespace;
@@ -217,12 +218,21 @@ const site = {
       if (error instanceof CimdFetchError) return messagePage(400, 'The assistant asking to connect could not be verified. Try again in a minute.');
       throw error;
     }
+    if (url.pathname === '/version' && request.method === 'GET') return versionResponse();
     if (url.pathname === '/' && request.method === 'GET') {
       return messagePage(200, `This is a household's medical records connector. Its owner adds ${url.origin}/mcp to an AI assistant as a custom connector.`);
     }
     return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
   },
 };
+
+/**
+ * What a medrec about to change the household's folder reads first: whether
+ * this connector follows its contract. Nothing of the household is in it.
+ */
+function versionResponse(): Response {
+  return Response.json({ version: VERSION, medrec_contract: MEDREC_CONTRACT }, { headers: { 'Cache-Control': 'no-store' } });
+}
 
 async function showConsent(request: Request, env: Env): Promise<Response> {
   const missing = missingConfig(env, SIGN_IN);

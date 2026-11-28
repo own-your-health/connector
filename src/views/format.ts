@@ -96,7 +96,14 @@ export const UNDATED = -1;
 
 export interface ViewsIndex {
   schema: string;
+  /** The version of medrec that wrote the views, or `connector` for this connector's own views script. */
   medrec: string;
+  /**
+   * The oldest medrec whose contract a reader must follow to read these views
+   * (medrec 0.9.11 and later): MAJOR.MINOR.PATCH, compared as numbers part by
+   * part. Where it is absent, `medrec` stands in its place.
+   */
+  reader?: string;
   /** MD5 (hex) of household.json as the views were made from it. */
   household: string;
   people: Record<string, PersonViews>;
@@ -265,3 +272,26 @@ export const paths = {
 };
 
 export type { Json };
+
+/** A version as views.json gives one, MAJOR.MINOR.PATCH: three decimal integers. */
+function versionOf(v: unknown): bigint[] | undefined {
+  return typeof v === 'string' && /^[0-9]+\.[0-9]+\.[0-9]+$/.test(v) ? v.split('.').map(BigInt) : undefined;
+}
+
+/** Whether version `a` is newer than `b`, part by part as numbers. */
+function newer(a: bigint[], b: bigint[]): boolean {
+  const i = a.findIndex((x, i) => x !== b[i]);
+  return i !== -1 && a[i]! > b[i]!;
+}
+
+/**
+ * Why a reader that follows medrec `contract`'s contract reads nothing of
+ * these views: they need a newer one (`needs`), or say none it can parse
+ * (`unread`, with what they say). Undefined when it may read them.
+ */
+export function readerStop(index: { reader?: unknown; medrec?: unknown }, contract: string): { needs: string } | { unread: unknown } | undefined {
+  const said = index.reader !== undefined ? index.reader : index.medrec;
+  const v = versionOf(said);
+  if (v === undefined) return { unread: said };
+  return newer(v, versionOf(contract)!) ? { needs: said as string } : undefined;
+}

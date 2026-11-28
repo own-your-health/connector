@@ -5,7 +5,7 @@
 // read from the files they are refused instead.
 
 import { execSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -21,6 +21,52 @@ import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 
 type Name = 'demo' | 'large' | 'labels' | Own;
+
+const CVX = 'http://hl7.org/fhir/sid/cvx';
+
+/**
+ * medrec's answer as its views can give it. An answer that names the person
+ * leaves nothing out of a claim, and medrec lists every vaccine of its lines
+ * there. Its views make the vaccines claims tell of without the lines
+ * private.json leaves out of an open claim, and name one whose line has no
+ * name by its claim as shown without them (medrec's data contract, "Records"
+ * and "Summary"), so an answer from them lists neither.
+ */
+function asTheViewsSay(g: Golden['results'][number], want: Record<string, unknown>): Record<string, unknown> {
+  const of = g.arguments ?? {};
+  if (typeof of.person !== 'string' || !(g.name === 'medrec_summary' || of.kind === 'immunizations') || !OWN.includes(g.folder as Own)) return want;
+  const dir = join(import.meta.dirname, 'fixtures', g.folder, 'views');
+  const pid = readdirSync(dir).find((f) => f.startsWith('p_'))!;
+  const priv = readdirSync(join(dir, pid)).find((f) => f.startsWith('private.'))!;
+  const parts = JSON.parse(readFileSync(join(dir, pid, priv), 'utf8')).parts as Record<string, { display?: string; lines?: number[] }>;
+  const records = JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures', g.folder === 'child' ? 'questionnaires' : g.folder, 'index.json'), 'utf8')).records as { id: string; date?: string; fields?: { items?: { serviced?: string; service?: { system?: string; display?: string }; codes?: { system?: string }[] }[] } }[];
+  /** What the views make of an item from a claim with a part: null where they leave it out. */
+  const asShown = (item: Record<string, unknown>, name: string): Record<string, unknown> | null => {
+    const part = parts[item.id as string];
+    const claim = records.find((r) => r.id === item.id);
+    if (item.detail !== 'from a claim' || !part || !claim) return item;
+    const at = (claim.fields?.items ?? []).findIndex((l) => (l.codes ?? [l.service ?? {}]).some((c) => c.system === CVX) && (l.serviced ?? claim.date)?.slice(0, 10) === item.date);
+    if (part.lines?.includes(at)) return null;
+    const line = claim.fields!.items![at]!;
+    return line.service?.display?.trim() ? item : { ...item, [name]: part.display };
+  };
+  let changed = false;
+  const shown = (items: Record<string, unknown>[], name: string) =>
+    items.flatMap((i) => {
+      const x = asShown(i, name);
+      changed ||= x !== i;
+      return x === null ? [] : [x];
+    });
+  const s = structuredClone(want.structuredContent) as Record<string, any>;
+  if (g.name === 'medrec_summary') {
+    const sec = s.summary.sections.find((x: { section: string }) => x.section === 'immunizations');
+    sec.items = shown(sec.items, 'name');
+  } else {
+    s.items = shown(s.items, 'title');
+    s.returned = s.items.length;
+  }
+  return changed ? { ...want, content: [{ type: 'text', text: JSON.stringify(s) }], structuredContent: s } : want;
+}
 /** The folder's name among the fixtures. */
 const fixtures = (f: Exclude<Name, Own>) => (f === 'demo' ? 'records' : f);
 
@@ -97,7 +143,7 @@ describe(`parity with medrec ${golden.medrec_version}`, () => {
             expect(g.answer.error).toEqual({ code: -32602, message: unknownTool(g.name) });
             return;
           }
-          const want = g.answer.result!;
+          const want = over === 'views' ? asTheViewsSay(g, g.answer.result!) : g.answer.result!;
           expect(ours).not.toBeNull();
           if (over === 'files' && g.name === 'medrec_records' && g.arguments?.kind === 'events' && JSON.stringify(ours!.content) !== JSON.stringify(want.content)) {
             expect(ours!.isError).toBe(true);

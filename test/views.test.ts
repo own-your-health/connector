@@ -20,6 +20,7 @@ import type { Household, RecordEntry } from '../src/records/model';
 import { ToolError } from '../src/mcp/errors';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore, planRanges } from '../src/views/store';
+import { MEDREC_CONTRACT } from '../src/version';
 import { FOLDER_ID, FakeGoogle } from './fake-google';
 import { DEMO, LocalSource, RawWithDerived, addDerived, editSources, folderAt } from './support';
 
@@ -336,6 +337,90 @@ describe('the views store', () => {
     const { r } = await ask(root, 'medrec_summary', { person: 'Sam' });
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/being prepared for assistants right now/);
+  });
+});
+
+describe('the contract a reader of the views must follow (views.json reader, medrec 0.9.11)', () => {
+  /** A copy of the demo folder, small enough to read whole, whose views.json says what `edit` makes it say. */
+  const saying = (name: string, edit: (v: Record<string, unknown>) => void) => {
+    const root = copy(demo, name);
+    const at = join(root, VIEWS_INDEX);
+    const v = JSON.parse(readFileSync(at, 'utf8')) as Record<string, unknown>;
+    edit(v);
+    writeFileSync(at, JSON.stringify(v));
+    return root;
+  };
+  const calls: [string, Record<string, unknown>][] = [
+    ['medrec_summary', {}],
+    ['medrec_summary', { person: 'Robin' }],
+    ['medrec_records', { kind: 'conditions' }],
+    ['medrec_records', { kind: 'timeline', person: 'Sam' }],
+    ['medrec_search', { query: 'cholesterol' }],
+  ];
+  /** Every call refuses, saying `why`, having read views.json alone: nothing of the folder answers. */
+  const refused = async (root: string, why: RegExp, fix: RegExp) => {
+    for (const [name, args] of calls) {
+      const { r, read } = await ask(root, name, args);
+      expect(r.isError, `${name} ${JSON.stringify(args)}`).toBe(true);
+      expect(r.content[0]!.text).toMatch(why);
+      expect(r.content[0]!.text).toMatch(fix);
+      expect(read).toEqual([VIEWS_INDEX]);
+    }
+  };
+  const UPDATE = /connector needs updating: its README's Updating section has the steps/;
+  const answers = async (root: string) => {
+    for (const [name, args] of calls) expect((await ask(root, name, args)).r).toEqual((await ask(demo, name, args)).r);
+  };
+
+  it('is the contract this connector follows, in the views its own script writes', () => {
+    expect(JSON.parse(readFileSync(join(demo, VIEWS_INDEX), 'utf8')).reader).toBe(MEDREC_CONTRACT);
+  });
+
+  it('refuses the whole folder when the views need a newer contract, and reads none of its files instead', async () => {
+    await refused(
+      saying('reader-newer', (v) => (v.reader = '0.9.12')),
+      /medrec prepared the household's records for readers that follow its contract of 0\.9\.12 or later, and this connector follows 0\.9\.11's, so it reads none of them/,
+      UPDATE,
+    );
+  });
+
+  it('takes the medrec that wrote the views where they name no reader', async () => {
+    await refused(
+      saying('reader-absent-newer', (v) => {
+        delete v.reader;
+        v.medrec = '0.9.12';
+      }),
+      /contract of 0\.9\.12 or later/,
+      UPDATE,
+    );
+    await answers(
+      saying('reader-absent-older', (v) => {
+        delete v.reader;
+        v.medrec = '0.9.10';
+      }),
+    );
+  });
+
+  it('compares versions as numbers, part by part', async () => {
+    for (const newer of ['0.10.0', '1.0.0', '0.9.100']) await refused(saying(`reader-${newer}`, (v) => (v.reader = newer)), new RegExp(`contract of ${newer.replaceAll('.', '\\.')} or later`), UPDATE);
+    for (const older of ['0.9.9', '0.9.10', '0.8.20', MEDREC_CONTRACT]) await answers(saying(`reader-${older}`, (v) => (v.reader = older)));
+  });
+
+  it('refuses a version it cannot read, and says what views.json says', async () => {
+    await refused(saying('reader-short', (v) => (v.reader = '0.9')), /a medrec contract this connector cannot read \(views\.json says 0\.9\)/, UPDATE);
+    await refused(saying('reader-number', (v) => (v.reader = 11)), /\(views\.json says 11\)/, UPDATE);
+    await refused(saying('reader-null', (v) => (v.reader = null)), /\(views\.json says null\)/, UPDATE);
+  });
+
+  it("asks for the connector's own views script again where it wrote them before it named their contract", async () => {
+    await refused(
+      saying('reader-connector', (v) => {
+        delete v.reader;
+        v.medrec = 'connector';
+      }),
+      /the connector's own views script prepared the household's records before it said which medrec contract they follow/,
+      /run `npm run views` again/,
+    );
   });
 });
 

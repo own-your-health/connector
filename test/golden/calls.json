@@ -5502,6 +5502,243 @@
         "id": "d_accountaaaaaaaaaaaaa",
         "person": ""
       }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "active": true
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "name": "vaccine b"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "person": "Robin",
+        "name": "900"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "immunizations",
+        "person": "Robin",
+        "since": "2025-01-01",
+        "until": "2025-08-31"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin",
+        "response_format": "detailed"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "timeline",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "sample vaccine"
+      }
+    },
+    {
+      "folder": "vaccines",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "vaccine",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_summary",
+      "arguments": {}
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_summary",
+      "arguments": {
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "limit": 50
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "person": "Robin",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "person": "Robin",
+        "response_format": "detailed",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "person": "Robin",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "name": "capsule"
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "active": true,
+        "name": "lotion",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "medications",
+        "name": "gel",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "claims",
+        "person": "Robin"
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_records",
+      "arguments": {
+        "kind": "events",
+        "person": "Robin",
+        "limit": 50
+      }
+    },
+    {
+      "folder": "fills",
+      "name": "medrec_search",
+      "arguments": {
+        "query": "capsule"
+      }
     }
   ]
 }

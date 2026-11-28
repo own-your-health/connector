@@ -32,7 +32,8 @@ export async function standingRows(st: Standings, read: (f: RecordFilter) => Asy
   const listed = (x: RecordEntry) => name !== undefined && asked(x) && names(clip(x.display, CLIP), name);
   if (active) {
     const shows = (x: RecordEntry) => !heldBack?.(x.id) || listed(x);
-    const { rows, notes } = st.active(await all(read({ range: {}, active: false })), kind, today, asked, shows);
+    // A claim, which a medicine's fill can be, is never one the question lists by name.
+    const { rows, notes } = st.active(await all(read({ range: {}, active: false })), kind, today, asked, shows, (id) => !heldBack?.(id));
     const order = recordOrder(detailed);
     return { rows: each(rows.sort((a, b) => a.group - b.group || order(a.record, b.record))), notes };
   }

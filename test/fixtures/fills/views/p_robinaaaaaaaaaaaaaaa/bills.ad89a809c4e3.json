@@ -1,0 +1,1 @@
+{"schema":"medrec-bills/v1","person":"p_robinaaaaaaaaaaaaaaa","bills":{},"copy_of":{},"receipts":[],"worth_a_call":[],"not_billed":[{"event":"e_uuj2gakxpjlp22gjrumj","start":"2024-05-12","provider":"Example Pharmacy","claims":["r_claimpaidaaaaaaaaaaa"],"you_owe":"7.00","currency":"USD","fill":true}],"in_error":{"r_mistakenaaaaaaaaaaaa":{"as":"claim"}}}

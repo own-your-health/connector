@@ -11,7 +11,7 @@ import { isExact, parseExact } from '../src/records/numbers';
 import { RawStore } from '../src/records/store';
 import { callTool, memberOwes } from '../src/records/tools';
 import { valueText } from '../src/records/values';
-import { moneyForTests } from '../src/records/views';
+import { moneyForTests } from '../src/records/money';
 import { writeViewsAt } from '../src/views/local';
 import { ViewsStore } from '../src/views/store';
 import { DEMO, LocalSource, addDerived, folderAt } from './support';

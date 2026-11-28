@@ -4,11 +4,14 @@
 // otherwise gets an error that says the views are being prepared: never an
 // answer from views that no longer match the records. Each view read is
 // checked against the MD5 views.json gives it, so a pass still arriving on
-// Drive is never mixed with the one before.
+// Drive is never mixed with the one before. Views for a later medrec contract
+// than this connector follows (views.json `reader`) are read not at all, and
+// neither are the files beside them.
 
 import { Buffer } from 'node:buffer';
 import { createHash } from 'node:crypto';
 import { ToolError } from '../mcp/errors';
+import { MEDREC_CONTRACT } from '../version';
 import { NO_NAMES, codeNamesOf, type CodeNames, type CodeNamesView } from '../records/code-names';
 import { NO_ERRORS, errorsOf, type Errors } from '../records/errors';
 import type { Folder } from '../records/folder';
@@ -21,6 +24,7 @@ import type { Privacy } from '../records/private';
 import { NO_LABELS, PROVIDERS_SCHEMA, providerLabelsOf, type LabelsFile, type ProvidersView } from '../records/provider-labels';
 import { STANDING_SCHEMA, standingsOf, type StandingView, type Standings } from '../records/standing';
 import { clip, cmpOpt, cmpStr, day } from '../records/text';
+import { fromClaim } from '../records/vaccines';
 import {
   CLIP,
   LAB_QUERIES,
@@ -52,6 +56,7 @@ import {
   CODE_NAMES_SCHEMA,
   PRIVATE_SCHEMA,
   VIEWS_SCHEMA,
+  readerStop,
   hex,
   paths,
   prefixOf,
@@ -214,8 +219,18 @@ export function billsOf(view: BillsView): Bills {
 /** events.json as a reader needs it (medrec-events/v1). */
 type EventsView = { schema?: string; events?: JsonObject[]; events_in_error?: JsonObject[]; in_error?: Record<string, { not_applied?: unknown[] }> };
 
+/** A vaccine a claim tells of says what an answer leaves out of its claim, by the claim's id; nothing else of the claim's part applies to it. */
+function fromItsClaim<T extends RecordEntry>(x: T, parts: Parts): T & { not_shown?: string } {
+  const says = fromClaim(x) ? notShown(parts.get(x.id)) : undefined;
+  return says === undefined ? x : { ...x, not_shown: says };
+}
+
+/** What the model tells the user when the views need a newer connector. */
+const UPDATE = "Tell the user the connector needs updating: its README's Updating section has the steps";
+
 export class ViewsStore implements Store {
   private readonly raw: RawStore;
+  private index_: Promise<ViewsIndex | null> | null = null;
   private state_: Promise<{ index: ViewsIndex | null; newer?: string; older?: string; fresh: Set<string> }> | null = null;
   /** Byte ranges fetched for snippets this call, by file: each one's first byte, and the bytes. */
   private windows = new Map<string, { start: number; bytes: Uint8Array }[]>();
@@ -229,10 +244,35 @@ export class ViewsStore implements Store {
     return this.folder.household();
   }
 
+  /**
+   * Refuses the whole folder when its views say a reader must follow a newer
+   * medrec contract than this connector's, or say none it can parse: then it
+   * reads nothing of them, and none of the files themselves either, since its
+   * rules for them do not know what the newer contract added.
+   */
+  async readable(): Promise<void> {
+    this.index_ ??= this.folder.parsed<ViewsIndex>(VIEWS_INDEX);
+    const index = await this.index_;
+    if (!isObject(index as Json)) return;
+    const stop = readerStop(index!, MEDREC_CONTRACT);
+    if (stop === undefined) return;
+    if ('needs' in stop) {
+      throw ToolError.upstream(`medrec prepared the household's records for readers that follow its contract of ${stop.needs} or later, and this connector follows ${MEDREC_CONTRACT}'s, so it reads none of them`).withFix(UPDATE);
+    }
+    if (index!.medrec === 'connector' && index!.reader === undefined) {
+      throw ToolError.upstream("the connector's own views script prepared the household's records before it said which medrec contract they follow, so the connector reads none of them").withFix(
+        'Tell the user to run `npm run views` again (its README has the steps), then ask again',
+      );
+    }
+    const said = typeof stop.unread === 'string' ? clip(stop.unread, 40) : JSON.stringify(stop.unread) ?? 'nothing';
+    throw ToolError.upstream(`the household's records were prepared for readers of a medrec contract this connector cannot read (views.json says ${said}), so it reads none of them`).withFix(UPDATE);
+  }
+
   /** The views, and whose still match household.json, index.json and text.json: one MD5 request for everyone. */
   private state(h: Household) {
     this.state_ ??= (async () => {
-      const index = await this.folder.parsed<ViewsIndex>(VIEWS_INDEX);
+      await this.readable();
+      const index = await this.index_!;
       if (!index || index.schema !== VIEWS_SCHEMA) {
         // A later layout needs a later connector, and an earlier one a new pass of the writer; anything else is no views at all.
         const v = Number(/^medrec-views\/v(\d+)$/.exec(index?.schema ?? '')?.[1] ?? NaN);
@@ -263,7 +303,7 @@ export class ViewsStore implements Store {
     const st = await this.state(h);
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads`).withFix(
-        "Tell the user the connector needs updating: its README's Updating section has the steps",
+        UPDATE,
       ).personUnavailable(p.id);
     }
     const v = st.index?.people[p.id];
@@ -278,7 +318,7 @@ export class ViewsStore implements Store {
     const e = await new PersonReader(this.folder, p, v).json<EventsView>(paths.events(p.id));
     if (e.schema !== EVENTS_SCHEMA) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s events in a layout (${String(e.schema)}) this connector does not read`).withFix(
-        "Tell the user the connector needs updating: its README's Updating section has the steps",
+        UPDATE,
       ).personUnavailable(p.id);
     }
     const gone = new Map(Object.entries(e.in_error ?? {}));
@@ -425,7 +465,7 @@ export class ViewsStore implements Store {
     if (await this.small(p)) return null;
     if (st.newer) {
       throw ToolError.upstream(`medrec prepared ${p.name}'s records in a newer layout (${st.newer}) than this connector reads, and they are too large to read here without it`).withFix(
-        "Tell the user the connector needs updating: its README's Updating section has the steps",
+        UPDATE,
       ).personUnavailable(p.id);
     }
     if (st.older) {
@@ -517,7 +557,7 @@ export class ViewsStore implements Store {
     for (const i of shardsFor(run, filter.range)) {
       if (only && !only.has(i)) continue;
       const shard = await r.records(kind, i);
-      const pass = (parts ? shard.map((x) => shownClaim(x, parts.get(x.id))) : shard).filter((x) => passes(x, kind, filter));
+      const pass = (parts ? shard.map((x) => shownClaim(x, parts.get(x.id))) : kind === 'immunization' && filter.parts ? shard.map((x) => fromItsClaim(x, filter.parts!)) : shard).filter((x) => passes(x, kind, filter));
       // A shard holds whole days in the concise order; detailed orders by the full date within them, and a name shown for another by itself.
       const sorted = parts ? await this.shownOrder(r, pass, recordOrder(detailed), parts) : detailed ? pass.sort(recordOrder(detailed)) : pass;
       for (const x of sorted) yield { ...x, source: from(x) };

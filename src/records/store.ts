@@ -25,6 +25,7 @@ import { ToolError } from '../mcp/errors';
 import type { DocumentEntry, Household, JsonObject, ListedRecord, Note, Person, PersonIndex, RecordEntry } from './model';
 import { sourcesOf } from './sources';
 import { clip, cmpOpt, cmpStr, day, fold } from './text';
+import { claimVaccines } from './vaccines';
 import {
   CLIP,
   LAB_QUERIES,
@@ -131,6 +132,8 @@ export const NO_EVENTS: Events = { events: [], lost: [], kept: () => 0 };
  * Drive sign-in or the request budget, is never so marked, and fails the call.
  */
 export interface Store {
+  /** Throws when nothing of the folder may be read: its views need a newer connector. Every tool asks first. */
+  readable?(): Promise<void>;
   household(): Promise<Household>;
   people(h: Household): Promise<PersonRow[]>;
   summary(h: Household, p: Person, today: string, perList: number): Promise<Summary>;
@@ -385,7 +388,9 @@ export class RawStore implements Store {
     noParts(filter.parts);
     const idx = await this.index(h, p);
     const from = sourcesOf(h, p.id, idx.imports);
-    const rs = (idx.records ?? []).filter((r) => passes(r, kind, filter));
+    const all = idx.records ?? [];
+    // The vaccines claims tell of are immunizations too.
+    const rs = [...all, ...(kind === 'immunization' ? claimVaccines(all) : [])].filter((r) => passes(r, kind, filter));
     for (const r of rs.sort(recordOrder(detailed))) yield { ...r, source: from(r) };
   }
 

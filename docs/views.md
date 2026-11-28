@@ -17,10 +17,12 @@ The reference writer is `src/views/write.ts`. Its output for the demo folder,
 the large synthetic folder and medrec's own folder for provider labels, with
 the views only medrec makes as it wrote them for each (`events.json`,
 `bills.json`, `private.json`, `code-names.json`, `providers.json` and
-`standing.json`, in `test/fixtures`), and all of medrec's own views for its six
-other folders (`words`, `errors`, `given`, `questionnaires`, `child` and
-`parts`), answer all the recorded calls exactly as `medrec mcp` does
-(`test/golden.test.ts`, "from the views"). Another writer (medrec's) is right
+`standing.json`, in `test/fixtures`), and all of medrec's own views for its eight
+other folders (`words`, `errors`, `given`, `questionnaires`, `child`, `parts`,
+`vaccines` and `fills`), answer all the recorded calls exactly as `medrec mcp`
+does (`test/golden.test.ts`, "from the views"). The one exception is what
+medrec's views do not hold of a claim's vaccines, in an answer that names the
+person (Records, below). Another writer (medrec's) is right
 when its views pass the same calls:
 
 ```sh
@@ -86,7 +88,7 @@ MD5 (hex) of each source file, exactly as stored, that the views were made
 from, and of every view it describes:
 
 ```json
-{"schema":"medrec-views/v2","medrec":"0.8.0","household":"<md5>",
+{"schema":"medrec-views/v2","medrec":"0.9.11","reader":"0.9.11","household":"<md5>",
  "people":{"p_…":{"index":"<md5>","text":"<md5>", …,
                   "files":{"summary.json":"<md5>","records-result-0.json":"<md5>", …}}}}
 ```
@@ -96,6 +98,20 @@ file in the person's directory, `views/<person id>/`, with its MD5.
 From medrec 0.9.10, `build` is the commit medrec was built from, and medrec
 makes again all views another build wrote, those of `npm run views` too. A reader
 does not need it.
+
+From medrec 0.9.11, `reader` is the oldest medrec release whose contract a
+reader must follow to read the views: `MAJOR.MINOR.PATCH`, three decimal
+integers, compared as numbers part by part (`0.9.9` is older than `0.9.10`).
+Where it is absent, `medrec` stands in its place. medrec raises it in a release
+that adds a field a reader must not ignore: from 0.9.11, `from_claim` of a
+vaccine and of a fill, below. This connector follows 0.9.11's contract
+(`MEDREC_CONTRACT` in `src/version.ts`, which `GET /version` gives). Of views
+that name a later one, or a value it cannot parse, it reads nothing, not even a
+small person's own files, and every tool says the connector needs updating.
+This version's `npm run views` writes `reader` as that contract. Views it wrote
+before have `medrec: "connector"` and no `reader`, and every tool asks for one
+more run of it. `vaccine_tables`, per person (medrec 0.9.11), says which of
+CDC's tables made the person's vaccines from claims. A reader need not check it.
 
 A reader compares these with the MD5s Drive reports (`md5Checksum`), all of
 which one listing of the folder gives.
@@ -124,6 +140,9 @@ else in `views/` is touched. A left person's directory may stay, empty: a
 reader lists only the directories of the people `household.json` names.
 
 ### The schema
+
+A reader checks `reader` first (above): views it may not read are not read at
+all, and neither are the files beside them, whatever their schema.
 
 `schema` names the layout. A change that a reader of the current layout
 would misread takes the next number (`medrec-views/v3`). A field that
@@ -166,6 +185,29 @@ what the record came through, as `medrec mcp` shows it, or `null`. A reader
 shows the `label`. A result that is a heading has `heading: true` (medrec 0.9.10
 and later): a panel that lists results and has no value of its own. It is listed
 with `panel` for its `detail`, and is in no series of tests and no latest results.
+
+`records-immunization-<n>.json` also holds the vaccines the person's claims tell
+of (medrec 0.9.11 and later). Each is the claim's `id` and `provenance`, `kind`
+`immunization`, `date` the line's day (its `serviced`, else the claim's date),
+`display` the line's service text, else the claim's, `status` `completed`, and
+`fields` `{"from_claim": true, "cvx": [codes]}`, with `code` the CVX code where
+there is exactly one. It is no record. What is private of the claim is private
+of it, by the id. Of the claim's entry in `private.json`'s `parts`, only `says`
+applies: an answer that names no person gives it as the vaccine's `not_shown`,
+as `medrec mcp` does. Its `display` and `lines` do not. A counted line names a
+vaccine by its own CVX code (one of its `codes`, else its `service`), never 998
+or 999, or, with CDC's tables on medrec's machine, by its CPT code. One is
+listed for each vaccine and day that no immunization of the person's has, by its
+CVX code, or by its kind of vaccine where that immunization has none, and once
+for two claims of it. An immunization entered in error, or not given
+(`not-done`, a refusal), does not count. A claim that is cancelled, planned,
+entered in error, or denied with nothing of it paid tells of none. A reader
+shows it with `from a claim` for its `detail`. medrec's views leave out the
+vaccine of a line `parts` leaves out of an open claim, and name a line with no
+text of its own by the claim's `display` as an answer about the whole household
+shows it; `medrec mcp`'s answers that name the person list the first and name
+the second by the whole claim. The reference writer here has no tables: it names
+a vaccine by a line's own CVX code alone, and leaves nothing out.
 
 Views written by medrec 0.9.5 and earlier have no `label`. A CLI, an
 organization and a FHIR base do not name a source, and a view does not hold
@@ -255,6 +297,11 @@ against the day they answer, so its value here does not matter. A result's
 version's writer, made it from an index that has one. An earlier writer left it
 out there, in a timeline event's `detail` and in a lab search's snippet, though
 the records' shards keep it.
+
+From medrec 0.9.11, `immunizations` also lists the vaccines claims tell of
+(Records, above), one dose each with `"from_claim": true`, by their day among
+the others, newest first. A reader gives such a line `from a claim` for its
+`detail`, in place of its doses.
 
 ## `documents.json` and `text-<n>.bin`
 
@@ -614,6 +661,11 @@ current whenever the person's views are. Two other views come with it:
   is current or on hold, uncut, for a reader to make the summary's lists of.
   `medications`, `conditions` and `allergies` beside it are by each record's
   own `status`, for a reader without `standing.json`.
+
+A medicine's `filled` lists its fills, `{record, date}`. From medrec 0.9.11 a
+pharmacy claim is one too, with `"from_claim": true` and the claim for its
+`record`: a reader says `(from a claim)` after its day, and shows it only where
+it may show that claim.
 
 This connector makes the lists by medrec's rules ("As a reader lists them"), on
 the day it answers and of the records the answer may show: a private one it may

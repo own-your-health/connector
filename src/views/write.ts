@@ -11,6 +11,8 @@ import type { Household, Person, PersonIndex, RecordEntry } from '../records/mod
 import { heads } from '../records/panels';
 import { sourcesOf, type SourceOf } from '../records/sources';
 import { recordOrder, eventOrder } from '../records/store';
+import { claimVaccines } from '../records/vaccines';
+import { MEDREC_CONTRACT } from '../version';
 import { cmpOpt, day, fold, wordStarts } from '../records/text';
 import { SUMMARY_LINES, isLab, newestFirst, personRow, recordDetail, searchables, seriesKey, summarize, timelineEvents, type Event } from '../records/views';
 import {
@@ -59,7 +61,7 @@ const json = (v: unknown) => JSON.stringify(v);
 /** Every view of the folder, by the path it is stored at (storedName), and views.json. */
 export function writeViews(h: Household, householdBytes: Uint8Array, people: PersonFiles[], medrec: string): Map<string, string | Uint8Array> {
   const out = new Map<string, string | Uint8Array>();
-  const index: ViewsIndex = { schema: VIEWS_SCHEMA, medrec, household: md5(householdBytes), people: {} };
+  const index: ViewsIndex = { schema: VIEWS_SCHEMA, medrec, reader: MEDREC_CONTRACT, household: md5(householdBytes), people: {} };
   for (const f of people) {
     const pid = f.person.id;
     const views = new Map<string, string | Uint8Array>();
@@ -218,11 +220,13 @@ function writePerson(h: Household, f: PersonFiles, out: Map<string, string | Uin
   out.set(paths.summary(pid), json(sv));
 
   // ---- records of each kind ----
-  const kinds = [...new Set(records.map((r) => r.kind))].sort();
+  // The vaccines claims tell of are immunizations too, by their claim's id.
+  const withClaims = [...records, ...claimVaccines(records)];
+  const kinds = [...new Set(withClaims.map((r) => r.kind))].sort();
   const spans: Record<string, Run> = {};
   const where = new Map<RecordEntry, [shard: number, pos: number]>();
   for (const kind of kinds) {
-    const list = records.filter((r) => r.kind === kind).sort(recordOrder(false));
+    const list = withClaims.filter((r) => r.kind === kind).sort(recordOrder(false));
     const { shards, undated } = cutFromOldest(list, (r) => day(r.date), (r) => json(slim(r, from)).length);
     spans[kind] = { shards: shards.map((sh) => span(sh, (r) => r.date)), undated: undated.length };
     const names = new Map<string, NameRow>();
